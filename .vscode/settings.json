@@ -1,0 +1,8 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit",
+    "source.sortMembers": "explicit"
+  },
+  "cmake.sourceDirectory": "/Users/abdul/CHOREPAL/chorepal/node_modules/expo-modules-core/android"
+}
