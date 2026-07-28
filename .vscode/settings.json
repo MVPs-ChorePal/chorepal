@@ -1,8 +1,7 @@
 {
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
-    "source.organizeImports": "explicit",
-    "source.sortMembers": "explicit"
-  },
-  "cmake.sourceDirectory": "/Users/abdul/CHOREPAL/chorepal/node_modules/expo-modules-core/android"
+  "deno.enable": true,
+  "deno.enablePaths": ["supabase/functions"],
+  "deno.lint": true,
+  "deno.unstable": [],
+  "editor.defaultFormatter": "denoland.vscode-deno"
 }
