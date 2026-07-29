@@ -51,41 +51,53 @@ export default function Dashboard() {
       console.log("photo captured, requesting upload url");
 
       //calls edge function to get a signed url for s3 upload
-      const { data, error: funcError } = await supabase.functions.invoke('get-upload-url', {
+      const urlResponse = await supabase.functions.invoke('get-upload-url', {
         body: { fileName, fileType: 'image/jpeg' }
       });
 
-      if (funcError || !data?.uploadUrl) {
-        throw new Error(funcError?.message || "could not get upload link from cloud");
+      //safety gate
+      if (!urlResponse.data || !urlResponse.data.uploadUrl) {
+        throw new Error("failed to get upload url");
       }
 
-      console.log("link received pushing to s3");
+      console.log("link received. pushing to s3");
+      const secretUploadUrl = urlResponse.data.uploadUrl;
 
-      //convert uri to blob
+      //convert uri to blob and push to s3
       const blobResponse = await fetch(photo.uri);
       const blob = await blobResponse.blob();
-
-      //fetch to s3 with signed url
-      const uploadResponse = await fetch(data.uploadUrl, {
+      const uploadResult = await fetch(secretUploadUrl, {
         method: 'PUT',
         body: blob,
         headers: { 'Content-Type': 'image/jpeg' }
       });
 
-      if (uploadResponse.ok) {
-        Alert.alert("success", "photo is now in the aws bucket");
-        console.log("successfully uploaded:", fileName);
-      } else {
-        throw new Error("s3 rejected the upload");
+      if (!uploadResult.ok) {
+        throw new Error("s3 upload failed");
       }
 
+        console.log("successfully uploaded:", fileName, ". requesting ai verification");
+
+        //trigger ai verification
+        const aiResponse = await supabase.functions.invoke('verify-with-ai', {
+            body: { fileName }
+        });
+
+        //safety gate
+        if (aiResponse.data?.labels) {
+            const foundItems = aiResponse.data.labels.join(", ").toLowerCase();
+            Alert.alert("verification good", `found items: ${foundItems}`);
+        } else {
+            Alert.alert("verification failed");
+        }
+
     } catch (error: any) {
-      console.error("pipeline error:", error.message);
-      Alert.alert("error", `upload failed: ${error.message}`);
+        console.error("pipeline error", error.message);
+        Alert.alert("error", "could not complete the process");
     } finally {
-      setIsCapturing(false);
+        setIsCapturing(false);
     }
-  };
+};
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
