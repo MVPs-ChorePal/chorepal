@@ -1,10 +1,50 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import { supabase } from '@/utils/supabase';
 
 export default function ChildJoin() {
   const router = useRouter();
   const [secretCode, setSecretCode] = useState('');
+
+  const handleJoin = async () => {
+    if (secretCode.length !== 7) {
+      Alert.alert("error", "code must be 7 characters");
+      return;
+    }
+
+    console.log("joining household with code:", secretCode);
+
+    //find the parent
+    const { data: parent, error: findError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('secret_code', secretCode)
+      .single();
+
+    if (findError || !parent) {
+      Alert.alert("error", "invalid code. check with your parent.");
+      return;
+    }
+
+    console.log("found parent with id:", parent.id);
+
+    //get the current logged-in child's id
+    const { data: { user } } = await supabase.auth.getUser();
+
+    //link the child to that parent
+    const { error: linkError } = await supabase
+      .from('users')
+      .update({ account_owner_id: parent.id })
+      .eq('id', user?.id);
+
+    if (linkError) {
+      Alert.alert("error", "could not join household");
+    } else {
+      Alert.alert("success", "welcome to the family!");
+      router.replace('/child-dashboard');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -26,10 +66,7 @@ export default function ChildJoin() {
 
         <TouchableOpacity 
           style={styles.joinButton}
-          onPress={() => {
-            if(secretCode.length === 7) router.push('/child-dashboard');
-          }}
-        >
+          onPress={handleJoin}>
           <Text style={styles.joinButtonText}>join household</Text>
         </TouchableOpacity>
 

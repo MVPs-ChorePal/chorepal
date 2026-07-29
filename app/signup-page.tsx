@@ -8,6 +8,16 @@ import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SignupPage() {
+  //generates family code
+  const generateSecretCode = () => {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const numbers = "0123456789";
+  let code = "";
+  for (let i = 0; i < 3; i++) code += letters.charAt(Math.floor(Math.random() * letters.length));
+  for (let i = 0; i < 4; i++) code += numbers.charAt(Math.floor(Math.random() * numbers.length));
+  return code;
+};
+
   const router = useRouter();
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [fullName, setFullName] = useState('');
@@ -35,8 +45,9 @@ export default function SignupPage() {
 
     //insert into users table with info
     if (authData.user) {
+      const secretCode = role === 'parent' ? generateSecretCode() : null; //only generate code for parents
       const { error: dbError } = await supabase.from('users').insert([
-        { id: authData.user.id, username, role, current_balance: 0 }
+        { id: authData.user.id, secret_code: secretCode, username, role, current_balance: 0 }
       ]);
 
       //if error, show alert, else navigate to dashboard
