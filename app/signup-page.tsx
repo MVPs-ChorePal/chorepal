@@ -132,6 +132,12 @@ export default function SignupPage() {
           >
             <Text style={[styles.roleText, !isParent && { color: '#FFD700' }]}>child</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push('/login-page')} style={{ marginTop: 50, alignItems: 'center' }}>
+            <Text style={{ color: '#AAA', fontSize: 14 }}>
+              already have an account? <Text style={{ color: '#005DA7', fontWeight: '600' }}>login</Text>
+            </Text>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
