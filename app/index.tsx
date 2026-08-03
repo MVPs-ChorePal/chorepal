@@ -20,20 +20,47 @@ export default function SplashScreen() {
     ).start();
 
     const checkCache = async () => {
-      //2s delay so user sees loading screen
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const { data: { session } } = await supabase.auth.getSession();
+      try {
+        //2s delay loading screen
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-      if (session) {
-        const { data: profile } = await supabase.from('users').select('role').eq('id', session.user.id).single();
-        if (profile?.role === 'parent') router.replace('/parent-dashboard');
-        else if (profile?.role === 'child') router.replace('/child-join');
-        else router.replace('/signup-page');
-      } else {
-        router.replace('/signup-page');
+        //if session exixts, check role and route accordingly
+        if (sessionError || !session) {
+          console.log("no session found, clearing cache");
+          await supabase.auth.signOut(); //clear cache
+          router.replace('/login-page');
+          return;
+        }
+
+        //if session exists, fetch user role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role, account_owner_id')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          console.log("error fetching profile, redirecting to signup");
+          router.replace('/signup-page');
+          return;
+        }
+
+        //routing logic
+        if (profile.role === 'parent') {
+          router.replace('/parent-dashboard');
+        } else {
+          //if child hasn't joined a family yet, send to join page
+          if (!profile.account_owner_id) router.replace('/child-dashboard');
+          else router.replace('/child-join');
+        }
+      } catch (err) {
+        console.error("error checking session:", err);
+        router.replace('/login-page');
       }
     };
-    checkCache();
+
+    void checkCache();
   }, []);
 
   const spin = spinValue.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
