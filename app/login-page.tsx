@@ -18,7 +18,11 @@ export default function LoginPage() {
 
     setLoading(true);
 
+<<<<<<< HEAD
     //authenticate user with supabase
+=======
+    // 1. Authenticate with Supabase
+>>>>>>> 754f2e011f259f55bda5f2cdfc53fa4bf4b1065e
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -31,7 +35,11 @@ export default function LoginPage() {
     }
 
     if (authData.user) {
+<<<<<<< HEAD
       //fetch user to determine role
+=======
+      // 2. Fetch User Profile to determine routing
+>>>>>>> 754f2e011f259f55bda5f2cdfc53fa4bf4b1065e
       const { data: profile, error: dbError } = await supabase
         .from('users')
         .select('role, account_owner_id')
@@ -39,11 +47,19 @@ export default function LoginPage() {
         .single();
 
       if (profile) {
+<<<<<<< HEAD
         //routing logic
         if (profile.role === 'parent') {
           router.replace('/parent-dashboard');
         } else if (profile.role === 'child') {
           //if child hasn't joined a family yet, send to join page
+=======
+        // SMART ROUTING LOGIC
+        if (profile.role === 'parent') {
+          router.replace('/parent-dashboard');
+        } else if (profile.role === 'child') {
+          // If child hasn't joined a family yet, send to join page
+>>>>>>> 754f2e011f259f55bda5f2cdfc53fa4bf4b1065e
           if (!profile.account_owner_id) router.replace('/child-join');
           else router.replace('/child-dashboard');
         }
