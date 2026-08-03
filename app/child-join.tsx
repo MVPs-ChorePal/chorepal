@@ -42,7 +42,7 @@ export default function ChildJoin() {
       Alert.alert("error", "could not join household");
     } else {
       Alert.alert("success", "welcome to the family!");
-      router.replace('/child-dashboard');
+      router.replace('/(child)/home');
     }
   };
 
@@ -72,7 +72,7 @@ export default function ChildJoin() {
 
         <TouchableOpacity 
           style={styles.bypassButton} 
-          onPress={() => router.push('/child-dashboard')}
+          onPress={() => router.push('/(child)/home')}
         >
           <Text style={styles.bypassText}>skip to camera dashboard</Text>
         </TouchableOpacity>

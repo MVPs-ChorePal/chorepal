@@ -57,7 +57,7 @@ export default function SignupPage() {
       } else {
         setTimeout(() => {
           setLoading(false);
-          if (role === 'parent') router.replace('/parent-dashboard');
+          if (role === 'parent') router.replace('/(parent)/home');
           else router.replace('/child-join');
         }, 1000);
       }

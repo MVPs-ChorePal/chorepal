@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView } from 'react-native';
-import { supabase } from '../utils/supabase';
+import { supabase } from '../../utils/supabase';
 import { useRouter, Stack } from 'expo-router';
 
 export default function ParentDashboard() {
@@ -19,10 +19,6 @@ export default function ParentDashboard() {
         <View style={styles.content}>
           <Text style={styles.placeholderText}>blankity blank</Text>
         </View>
-
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>logout</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

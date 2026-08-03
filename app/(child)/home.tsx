@@ -4,7 +4,7 @@ import {
   StyleSheet, Text, View, TextInput, TouchableOpacity, 
   ActivityIndicator, SafeAreaView, Alert, Platform, Dimensions 
 } from 'react-native';
-import { supabase } from '../utils/supabase';
+import { supabase } from '../../utils/supabase';
 import { Stack, useRouter } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 

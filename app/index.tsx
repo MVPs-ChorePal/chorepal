@@ -48,10 +48,10 @@ export default function SplashScreen() {
 
         //routing logic
         if (profile.role === 'parent') {
-          router.replace('/parent-dashboard');
+          router.replace('/(parent)/home');
         } else {
           //if child hasn't joined a family yet, send to join page
-          if (!profile.account_owner_id) router.replace('/child-dashboard');
+          if (!profile.account_owner_id) router.replace('/(child)/home');
           else router.replace('/child-join');
         }
       } catch (err) {
