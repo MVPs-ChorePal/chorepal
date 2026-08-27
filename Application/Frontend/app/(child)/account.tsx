@@ -26,6 +26,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '300', color: '#FFD700', letterSpacing: -1 },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   placeholder: { color: '#BDC4D4', fontWeight: '300' },
-  logoutButton: { alignItems: 'center', marginBottom: 20 },
+  logoutButton: { alignItems: 'center', marginBottom: 70 },
   logoutText: { color: '#FFD700', textDecorationLine: 'underline', fontWeight: '300' }
 });

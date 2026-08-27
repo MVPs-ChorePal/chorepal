@@ -132,12 +132,6 @@ export default function Dashboard() {
           </View>
           <Text style={styles.instructionText}>tap to test aws s3 upload</Text>
         </View>
-
-        <View style={styles.bottomSection}>
-          <TouchableOpacity onPress={handleLogout}>
-            <Text style={styles.logoutText}>logout</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </SafeAreaView>
   );
@@ -164,5 +158,4 @@ const styles = StyleSheet.create({
   },
   innerCircle: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#FFF' },
   bottomSection: { alignItems: 'center', marginBottom: 10 },
-  logoutText: { color: '#AAA', fontSize: 13, textDecorationLine: 'underline', fontWeight: '300' }
 });

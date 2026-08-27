@@ -21,8 +21,9 @@ export default function SplashScreen() {
 
     const checkCache = async () => {
       try {
-        //2s delay loading screen
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        //few seconds loading screen
+        await new Promise(resolve => setTimeout(resolve, 3100));
+        
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
         //if session exixts, check role and route accordingly
@@ -51,7 +52,7 @@ export default function SplashScreen() {
           router.replace('/(parent)/home');
         } else {
           //if child hasn't joined a family yet, send to join page
-          if (!profile.account_owner_id) router.replace('/(child)/home');
+          if (profile.account_owner_id) router.replace('/(child)/home');
           else router.replace('/child-join');
         }
       } catch (err) {

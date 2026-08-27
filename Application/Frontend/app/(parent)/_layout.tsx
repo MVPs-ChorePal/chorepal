@@ -1,46 +1,102 @@
-import { Tabs } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Tabs, useSegments } from 'expo-router';
+import { Text, View, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const TabItem = ({ label, icon, isActive }: { label: string, icon: string, isActive: boolean }) => {
+  const activeColor = '#005DA7'; 
+  const activeBg = '#E8F0FE';    
+  const inactiveColor = '#8E8E93';
+
+  return (
+    <View style={[styles.pill, isActive && { backgroundColor: activeBg }]}>
+      <Ionicons 
+        name={isActive ? icon : (`${icon}-outline` as any)} 
+        size={22} 
+        color={isActive ? activeColor : inactiveColor} 
+      />
+      <Text style={[styles.tabText, { color: isActive ? activeColor : inactiveColor }]}>
+        {label}
+      </Text>
+    </View>
+  );
+};
 
 export default function ParentLayout() {
+  const segments = useSegments();
+  const isChoresActive = segments[1] === 'chores';
+
   return (
     <Tabs screenOptions={{
       headerShown: false,
-      tabBarStyle: {
-        backgroundColor: '#EDF0FF',
-        borderTopWidth: 0, // Clean look
-        height: 70,
-        elevation: 0,
-        shadowOpacity: 0,
+      animation: 'none',
+      tabBarShowLabel: false, 
+      tabBarStyle: styles.tabBar,
+      //centers the entire tab slot vertically
+      tabBarItemStyle: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100%',
       },
+      //removes default margins from the icon container
+      tabBarIconStyle: {
+        width: '100%',
+        height: '100%',
+        marginTop: 0,
+      }
     }}>
       <Tabs.Screen name="home" options={{
-        tabBarLabel: ({ focused }) => (
-          <View style={{ borderBottomWidth: 2, borderBottomColor: focused ? '#005DA7' : 'transparent', paddingBottom: 4 }}>
-            <Text style={{ color: focused ? '#005DA7' : '#AAA', fontSize: 13, fontWeight: '500' }}>home</Text>
-          </View>
+        tabBarIcon: ({ focused }) => (
+          <TabItem label="HOME" icon="home" isActive={focused} />
         )
       }} />
-      <Tabs.Screen name="chores" options={{
-        tabBarLabel: ({ focused }) => (
-          <View style={{ borderBottomWidth: 2, borderBottomColor: focused ? '#005DA7' : 'transparent', paddingBottom: 4 }}>
-            <Text style={{ color: focused ? '#005DA7' : '#AAA', fontSize: 13, fontWeight: '500' }}>chores</Text>
-          </View>
+      <Tabs.Screen name="chores/index" options={{
+        title: 'chores',
+        tabBarIcon: () => (
+          <TabItem label="CHORES" icon="list" isActive={isChoresActive} />
         )
       }} />
       <Tabs.Screen name="rewards" options={{
-        tabBarLabel: ({ focused }) => (
-          <View style={{ borderBottomWidth: 2, borderBottomColor: focused ? '#005DA7' : 'transparent', paddingBottom: 4 }}>
-            <Text style={{ color: focused ? '#005DA7' : '#AAA', fontSize: 13, fontWeight: '500' }}>rewards</Text>
-          </View>
+        tabBarIcon: ({ focused }) => (
+          <TabItem label="REWARDS" icon="star" isActive={focused} />
         )
       }} />
       <Tabs.Screen name="account" options={{
-        tabBarLabel: ({ focused }) => (
-          <View style={{ borderBottomWidth: 2, borderBottomColor: focused ? '#005DA7' : 'transparent', paddingBottom: 4 }}>
-            <Text style={{ color: focused ? '#005DA7' : '#AAA', fontSize: 13, fontWeight: '500' }}>account</Text>
-          </View>
+        tabBarIcon: ({ focused }) => (
+          <TabItem label="ACCOUNT" icon="person" isActive={focused} />
         )
       }} />
+      <Tabs.Screen name="chores/create-chore" options={{ href: null }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: '#FFF',
+    borderTopWidth: 0,
+    height: 100, 
+    elevation: 0,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingBottom: 20,
+  },
+  pill: {
+    width: 85,
+    height: 65,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 25,
+  },
+  tabText: {
+    fontSize: 10,
+    fontWeight: '800',
+    marginTop: 4,
+  }
+});

@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function ParentChores() {
+export default function ChoresList() {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>chores</Text>
+      <Text style={styles.title}>chore management</Text>
       <View style={styles.content}>
-        <Text style={styles.placeholder}>create and assign tasks here</Text>
+        <Text style={styles.placeholder}>chores information</Text>
       </View>
     </SafeAreaView>
   );

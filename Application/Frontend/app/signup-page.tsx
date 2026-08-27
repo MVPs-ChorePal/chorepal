@@ -25,6 +25,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  //handles sign up logic
   const handleSignUp = async () => {
     if (!fullName || !email || !password) {
       Alert.alert('error', 'please fill all fields');
@@ -47,10 +48,10 @@ export default function SignupPage() {
     if (authData.user) {
       const secretCode = role === 'parent' ? generateSecretCode() : null; //only generate code for parents
       const { error: dbError } = await supabase.from('users').insert([
-        { id: authData.user.id, secret_code: secretCode, username, role, current_balance: 0 }
+        { id: authData.user.id, secret_code: secretCode, username: username, display_name: fullName, role: role, current_balance: 0 }
       ]);
 
-      //if error, show alert, else navigate to dashboard
+      //if error, show alert or else navigate to dashboard
       if (dbError) {
         Alert.alert('error', dbError.message.toLowerCase());
         setLoading(false);
