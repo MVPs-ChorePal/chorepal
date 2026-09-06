@@ -7,6 +7,7 @@ CREATE TABLE public.users (
   account_owner_id UUID REFERENCES public.users(id), -- Linked to Parent
   role TEXT CHECK (role IN ('parent', 'child')),
   username TEXT UNIQUE NOT NULL,
+  display_name TEXT,
   secret_code TEXT UNIQUE,
   current_balance NUMERIC DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -23,6 +24,7 @@ CREATE TABLE public.chores (
   after_image_key TEXT, -- S3 Bucket Key for photo proof
   target_label TEXT, -- What the AI is looking for
   reward_amount NUMERIC DEFAULT 0,
+  due_date TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
