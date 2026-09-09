@@ -90,7 +90,7 @@ export default function CreateChore() {
       const targetKids = selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId);
       
       if (targetKids.length === 0) {
-        console.error("CHORE ERROR: no children found.");
+        Alert.alert("no children yet", "add a child to your household before assigning chores.");
         setLoading(false);
         return;
       }

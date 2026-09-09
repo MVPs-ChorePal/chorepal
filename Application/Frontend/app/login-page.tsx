@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+
+// TouchableWithoutFeedback's tap-outside-to-dismiss steals pointer focus from
+// TextInput on react-native-web, so only wrap with it on native.
+const DismissKeyboardWrapper = Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
+const dismissKeyboardProps = Platform.OS === 'web' ? {} : { onPress: Keyboard.dismiss };
 import { supabase } from '../utils/supabase';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -58,31 +63,31 @@ export default function LoginPage() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <DismissKeyboardWrapper {...dismissKeyboardProps}>
           <View style={styles.inner}>
             <Text style={styles.title}>welcome back</Text>
 
             <View style={styles.form}>
-              <TextInput 
-                placeholder="email address" 
+              <TextInput
+                placeholder="email address"
                 placeholderTextColor="#999"
-                style={styles.input} 
-                onChangeText={setEmail} 
-                value={email} 
-                autoCapitalize="none" 
+                style={styles.input}
+                onChangeText={setEmail}
+                value={email}
+                autoCapitalize="none"
               />
-              <TextInput 
-                placeholder="password" 
+              <TextInput
+                placeholder="password"
                 placeholderTextColor="#999"
-                style={styles.input} 
-                onChangeText={setPassword} 
-                value={password} 
-                secureTextEntry 
+                style={styles.input}
+                onChangeText={setPassword}
+                value={password}
+                secureTextEntry
                 autoCapitalize="none"
               />
 
-              <TouchableOpacity 
-                style={styles.mainButton} 
+              <TouchableOpacity
+                style={styles.mainButton}
                 onPress={handleLogin}
                 disabled={loading}
               >
@@ -94,7 +99,7 @@ export default function LoginPage() {
               <Text style={styles.linkText}>new here? <Text style={{ color: '#005DA7', fontWeight: '600' }}>sign up</Text></Text>
             </TouchableOpacity>
           </View>
-        </TouchableWithoutFeedback>
+        </DismissKeyboardWrapper>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
