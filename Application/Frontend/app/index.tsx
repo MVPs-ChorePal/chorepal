@@ -37,7 +37,7 @@ export default function SplashScreen() {
         //if session exists, fetch user role
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('role, account_owner_id')
+          .select('role, family_id')
           .eq('id', session.user.id)
           .single();
 
@@ -48,12 +48,13 @@ export default function SplashScreen() {
         }
 
         //routing logic
-        if (profile.role === 'parent') {
+        if (!profile.family_id) {
+          //no household yet (child, or a parent who chose to join one) - send to join page
+          router.replace('/join-household');
+        } else if (profile.role === 'parent') {
           router.replace('/(parent)/home');
         } else {
-          //if child hasn't joined a family yet, send to join page
-          if (profile.account_owner_id) router.replace('/(child)/home');
-          else router.replace('/child-join');
+          router.replace('/(child)/home');
         }
       } catch (err) {
         console.error("error checking session:", err);

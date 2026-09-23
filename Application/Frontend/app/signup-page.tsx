@@ -20,6 +20,7 @@ export default function SignupPage() {
 
   const router = useRouter();
   const [role, setRole] = useState<'parent' | 'child'>('parent');
+  const [parentMode, setParentMode] = useState<'create' | 'join'>('create');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,9 +47,11 @@ export default function SignupPage() {
 
     //insert into users table with info
     if (authData.user) {
-      const secretCode = role === 'parent' ? generateSecretCode() : null; //only generate code for parents
+      const isNewHousehold = role === 'parent' && parentMode === 'create';
+      const secretCode = isNewHousehold ? generateSecretCode() : null; //only generate code for whoever starts a household
+      const familyId = isNewHousehold ? authData.user.id : null; //household starter is their own family root
       const { error: dbError } = await supabase.from('users').insert([
-        { id: authData.user.id, secret_code: secretCode, username: username, display_name: fullName, role: role, current_balance: 0 }
+        { id: authData.user.id, family_id: familyId, secret_code: secretCode, username: username, display_name: fullName, role: role, current_balance: 0 }
       ]);
 
       //if error, show alert or else navigate to dashboard
@@ -58,8 +61,8 @@ export default function SignupPage() {
       } else {
         setTimeout(() => {
           setLoading(false);
-          if (role === 'parent') router.replace('/(parent)/home');
-          else router.replace('/child-join');
+          if (isNewHousehold) router.replace('/(parent)/home');
+          else router.replace('/join-household');
         }, 1000);
       }
     }
@@ -127,19 +130,37 @@ export default function SignupPage() {
             <Text style={[styles.roleText, isParent && { color: '#005DA7' }]}>parent</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setRole('child')}
             style={[styles.roleLabel, !isParent && { borderBottomColor: '#FFD700' }]}
           >
             <Text style={[styles.roleText, !isParent && { color: '#FFD700' }]}>child</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => router.push('/login-page')} style={{ marginTop: 50, alignItems: 'center' }}>
-            <Text style={{ color: '#AAA', fontSize: 14 }}>
-              already have an account? <Text style={{ color: '#005DA7', fontWeight: '600' }}>login</Text>
-            </Text>
-          </TouchableOpacity>
         </View>
+
+        {isParent && (
+          <View style={[styles.toggleContainer, { marginTop: 20 }]}>
+            <TouchableOpacity
+              onPress={() => setParentMode('create')}
+              style={[styles.roleLabel, parentMode === 'create' && { borderBottomColor: '#005DA7' }]}
+            >
+              <Text style={[styles.roleText, parentMode === 'create' && { color: '#005DA7' }]}>create household</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setParentMode('join')}
+              style={[styles.roleLabel, parentMode === 'join' && { borderBottomColor: '#005DA7' }]}
+            >
+              <Text style={[styles.roleText, parentMode === 'join' && { color: '#005DA7' }]}>join household</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <TouchableOpacity onPress={() => router.push('/login-page')} style={{ marginTop: 50, alignItems: 'center' }}>
+          <Text style={{ color: '#AAA', fontSize: 14 }}>
+            already have an account? <Text style={{ color: '#005DA7', fontWeight: '600' }}>login</Text>
+          </Text>
+        </TouchableOpacity>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

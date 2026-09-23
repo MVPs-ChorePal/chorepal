@@ -44,11 +44,25 @@ export default function CreateChore() {
   async function fetchChildren() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
+
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('family_id')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (!profile.family_id) {
+        console.error("FETCH ERROR: parent has no family_id yet");
+        return;
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('id, display_name')
-        .eq('account_owner_id', session.user.id);
-      
+        .eq('family_id', profile.family_id)
+        .eq('role', 'child');
+
       if (error) throw error;
       if (data) setChildren(data);
     } catch (e) {

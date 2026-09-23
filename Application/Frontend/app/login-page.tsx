@@ -39,18 +39,19 @@ export default function LoginPage() {
       //fetch user to determine role
       const { data: profile, error: dbError } = await supabase
         .from('users')
-        .select('role, account_owner_id')
+        .select('role, family_id')
         .eq('id', authData.user.id)
         .single();
 
       if (profile) {
         //routing logic
-        if (profile.role === 'parent') {
+        if (!profile.family_id) {
+          //no household yet (child, or a parent who chose to join one) - send to join page
+          router.replace('/join-household');
+        } else if (profile.role === 'parent') {
           router.replace('/(parent)/home');
-        } else if (profile.role === 'child') {
-          //if child hasn't joined a family yet, send to join page
-          if (!profile.account_owner_id) router.replace('/child-join');
-          else router.replace('/(child)/home');
+        } else {
+          router.replace('/(child)/home');
         }
       } else {
         router.replace('/signup-page');
