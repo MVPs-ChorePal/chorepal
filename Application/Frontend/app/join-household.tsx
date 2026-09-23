@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 
-export default function ChildJoin() {
+export default function JoinHousehold() {
   const router = useRouter();
   const [secretCode, setSecretCode] = useState('');
+  const [role, setRole] = useState<'parent' | 'child' | null>(null);
+
+  useEffect(() => {
+    fetchRole();
+  }, []);
+
+  //used to route correctly after joining and to hide the child-only bypass button
+  async function fetchRole() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data } = await supabase.from('users').select('role').eq('id', session.user.id).single();
+    if (data) setRole(data.role);
+  }
 
   const handleJoin = async () => {
     if (secretCode.length !== 7) {
@@ -15,34 +28,32 @@ export default function ChildJoin() {
 
     console.log("joining household with code:", secretCode);
 
-    //find the parent
-    const { data: parent, error: findError } = await supabase
+    //find whoever owns this code
+    const { data: owner, error: findError } = await supabase
       .from('users')
-      .select('id')
+      .select('id, family_id')
       .eq('secret_code', secretCode)
       .single();
 
-    if (findError || !parent) {
+    if (findError || !owner || !owner.family_id) {
       Alert.alert("error", "invalid code. check with your parent.");
       return;
     }
 
-    console.log("found parent with id:", parent.id);
-
-    //get the current logged-in child's id
+    //get the current logged-in user's id
     const { data: { user } } = await supabase.auth.getUser();
 
-    //link the child to that parent
+    //link this user to that household
     const { error: linkError } = await supabase
       .from('users')
-      .update({ account_owner_id: parent.id })
+      .update({ family_id: owner.family_id })
       .eq('id', user?.id);
 
     if (linkError) {
       Alert.alert("error", "could not join household");
     } else {
       Alert.alert("success", "welcome to the family!");
-      router.replace('/(child)/home');
+      router.replace(role === 'parent' ? '/(parent)/home' : '/(child)/home');
     }
   };
 
@@ -50,10 +61,10 @@ export default function ChildJoin() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
-        
+
         <Text style={styles.label}>enter household code:</Text>
-        
-        <TextInput 
+
+        <TextInput
           style={styles.codeInput}
           value={secretCode}
           onChangeText={(text) => setSecretCode(text.toUpperCase())} //forces uppercase
@@ -64,18 +75,20 @@ export default function ChildJoin() {
           autoCorrect={false}
         />
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.joinButton}
           onPress={handleJoin}>
           <Text style={styles.joinButtonText}>join household</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.bypassButton} 
-          onPress={() => router.push('/(child)/home')}
-        >
-          <Text style={styles.bypassText}>skip to camera dashboard</Text>
-        </TouchableOpacity>
+        {role === 'child' && (
+          <TouchableOpacity
+            style={styles.bypassButton}
+            onPress={() => router.push('/(child)/home')}
+          >
+            <Text style={styles.bypassText}>skip to camera dashboard</Text>
+          </TouchableOpacity>
+        )}
 
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -86,13 +99,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#EDF0FF' },
   inner: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   label: { fontSize: 16, fontWeight: '300', marginBottom: 20, color: '#1A234E' },
-  codeInput: { 
-    width: '100%', 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#BDC4D4', 
-    fontSize: 32, 
-    textAlign: 'center', 
-    letterSpacing: 5, 
+  codeInput: {
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#BDC4D4',
+    fontSize: 32,
+    textAlign: 'center',
+    letterSpacing: 5,
     fontWeight: '200',
     color: '#1A234E'
   },
