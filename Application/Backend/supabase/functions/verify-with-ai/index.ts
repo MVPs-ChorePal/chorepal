@@ -10,10 +10,8 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    //get input from the phone
-    const { fileName, choreId } = await req.json()
+    const { fileName, choreId, logId } = await req.json()
 
-    //initialize Supabase
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -26,7 +24,7 @@ Deno.serve(async (req) => {
       .eq('id', choreId)
       .single()
 
-    const target = chore?.target_label || "Object";
+    const target = chore?.target_label || "Object"
 
     //initialize aws rekognition
     const client = new RekognitionClient({
@@ -51,39 +49,50 @@ Deno.serve(async (req) => {
     const response = await client.send(command)
     const labels = response.Labels?.map(l => l.Name) || []
 
-    //verification logic
-    const isMatch = labels.some(l => l.toLowerCase().includes(target.toLowerCase()));
-    
-    let feedback = "";
+    //check for match
+    const isMatch = labels.some(l => l.toLowerCase().includes(target.toLowerCase()))
+    const resultFeedback = isMatch 
+      ? `good job! i confirmed the ${target.toLowerCase()} is present.` 
+      : `i see ${labels.slice(0,2).join(' ')}, but no ${target.toLowerCase()}. try again!`;
+
+    //update the history log (pinpoint accuracy with logId)
+    const { error: analysisError } = await supabase
+      .from('chore_analysis')
+      .update({
+        ai_detected_label: labels[0] || 'unknown',
+        ai_confidence_score: response.Labels?.[0]?.Confidence || 0,
+        ai_feedback: resultFeedback,
+        needs_revision: !isMatch
+      })
+      .eq('id', logId)
+
+    if (analysisError) throw analysisError
+
+    //increment attempt_number on the main chore row
+    await supabase.rpc('increment_chore_attempts', { target_chore_id: choreId })
+
+    //the ai decides the status: only move to completed if match is true
     if (isMatch) {
-      feedback = `success!  ${target.toLowerCase()} is present.`;
+      await supabase.from('chores').update({
+        status: 'completed',
+        ai_verified: true,
+        submitted_at: new Date().toISOString()
+      }).eq('id', choreId)
     } else {
-      const seen = labels.slice(0, 2).join(" and ").toLowerCase();
-      feedback = `try again!`;
+      //force status to stay pending if ai fails
+      await supabase.from('chores').update({
+        status: 'pending',
+        ai_verified: false
+      }).eq('id', choreId)
     }
 
-    //record attempt
-    const { error: insertError } = await supabase
-      .from('chore_analysis')
-      .insert({
-        chore_id: choreId,
-        after_image_key: fileName,
-        ai_detected_label: labels[0] || 'Unknown',
-        ai_feedback: feedback,
-        needs_revision: !isMatch,
-        ai_confidence_score: response.Labels?.[0]?.Confidence || 0
-      })
-
-    if (insertError) throw insertError
-
-    //return the result
     return new Response(
-      JSON.stringify({ isMatch, feedback, labels }),
+      JSON.stringify({ isMatch, feedback: resultFeedback }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     )
 
   } catch (error) {
-    console.error(`AI Error: ${error.message}`)
+    console.error(`ai function error: ${error.message}`)
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }

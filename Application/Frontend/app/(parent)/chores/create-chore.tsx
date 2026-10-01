@@ -116,7 +116,7 @@ export default function CreateChore() {
         reward_amount: parseInt(reward) || 500,
         assigned_to: kid.id, 
         created_by: session.user.id,
-        status: 'pending', 
+        status: 'todo', 
         target_label: selectedAiTag, 
         due_date: date.toISOString()
       }));
