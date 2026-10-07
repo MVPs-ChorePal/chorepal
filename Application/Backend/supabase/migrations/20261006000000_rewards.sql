@@ -143,3 +143,6 @@ REVOKE ALL ON FUNCTION public.redeem_reward(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.approve_chore(BIGINT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.reject_chore(BIGINT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.redeem_reward(UUID) TO authenticated;
+
+-- make the api pick up the new column and functions right away
+NOTIFY pgrst, 'reload schema';
