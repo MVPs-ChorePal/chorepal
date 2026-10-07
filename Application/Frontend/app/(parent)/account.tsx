@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
+import HouseholdCode from '../../components/household-code';
 
 export default function ParentAccount() {
   const router = useRouter();
@@ -9,7 +10,7 @@ export default function ParentAccount() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>account</Text>
       <View style={styles.content}>
-        <Text style={styles.placeholder}>profile and family settings</Text>
+        <HouseholdCode />
       </View>
       <TouchableOpacity 
         onPress={() => supabase.auth.signOut().then(() => router.replace('/login-page'))}
