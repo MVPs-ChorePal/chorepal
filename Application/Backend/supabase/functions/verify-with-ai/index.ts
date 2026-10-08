@@ -6,6 +6,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+//rekognition rarely returns the exact category name, so each chore category
+//accepts any of these words (keys are the target_label values from create-chore)
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  'Dishware': ['dishware', 'dish', 'plate', 'bowl', 'cup', 'mug', 'glass', 'cutlery', 'fork', 'spoon', 'knife', 'utensil', 'tableware', 'pottery', 'sink', 'dishwasher', 'kitchen', 'counter', 'countertop'],
+  'Plant': ['plant', 'grass', 'lawn', 'yard', 'backyard', 'garden', 'gardening', 'tree', 'leaf', 'vegetation', 'flower', 'shrub', 'hedge', 'outdoors', 'nature', 'potted plant'],
+  'Clothing': ['clothing', 'apparel', 'shirt', 't-shirt', 'pants', 'jeans', 'shorts', 'sock', 'dress', 'coat', 'jacket', 'sweater', 'laundry', 'towel', 'fabric', 'closet', 'hanger', 'wardrobe'],
+  'Bed': ['bed', 'bedroom', 'pillow', 'cushion', 'blanket', 'mattress', 'bedding', 'linen', 'quilt', 'duvet', 'bed sheet', 'furniture'],
+  'Animal': ['animal', 'pet', 'dog', 'puppy', 'cat', 'kitten', 'mammal', 'canine', 'bird', 'fish', 'rabbit', 'hamster', 'pet bowl'],
+  'Waste Container': ['waste container', 'trash', 'trash can', 'garbage', 'garbage can', 'bin', 'can', 'tin', 'waste', 'recycling', 'recycling bin', 'dumpster', 'rubbish', 'litter', 'bag', 'plastic bag'],
+}
+
+//whole-word match so "can" matches "trash can" but not "candle"
+const matchesKeyword = (label: string, keyword: string) => {
+  const text = label.toLowerCase()
+  return text === keyword || ` ${text} `.includes(` ${keyword} `)
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -42,18 +59,28 @@ Deno.serve(async (req) => {
           Name: fileName,
         },
       },
-      MaxLabels: 10,
-      MinConfidence: 85, //only return things it is #% sure about
+      MaxLabels: 25,
+      MinConfidence: 70, //only return things it is #% sure about
     })
 
     const response = await client.send(command)
     const labels = response.Labels?.map(l => l.Name) || []
 
-    //check for match
-    const isMatch = labels.some(l => l.toLowerCase().includes(target.toLowerCase()))
-    const resultFeedback = isMatch 
-      ? `good job! i confirmed the ${target.toLowerCase()} is present.` 
-      : `i see ${labels.slice(0,2).join(' ')}, but no ${target.toLowerCase()}. try again!`;
+    //check each label plus its aliases and parent categories (e.g. "Trash Can" -> "Container")
+    const candidates = (response.Labels || []).flatMap(l => [
+      l.Name,
+      ...(l.Aliases || []).map(a => a.Name),
+      ...(l.Parents || []).map(p => p.Name),
+    ]).filter(Boolean) as string[]
+
+    const keywords = CATEGORY_KEYWORDS[target] || [target.toLowerCase()]
+    const matchedLabel = candidates.find(c => keywords.some(k => matchesKeyword(c, k)))
+    const isMatch = !!matchedLabel
+    console.log(`target: ${target} | labels: ${labels.join(', ')} | matched: ${matchedLabel ?? 'none'}`)
+
+    const resultFeedback = isMatch
+      ? `good job! i spotted ${matchedLabel!.toLowerCase()}, so this looks done.`
+      : `i see ${labels.slice(0, 3).join(', ').toLowerCase() || 'nothing clear'}, but nothing that matches this chore. try again!`;
 
     //update the history log (pinpoint accuracy with logId)
     const { error: analysisError } = await supabase
@@ -67,9 +94,6 @@ Deno.serve(async (req) => {
       .eq('id', logId)
 
     if (analysisError) throw analysisError
-
-    //increment attempt_number on the main chore row
-    await supabase.rpc('increment_chore_attempts', { target_chore_id: choreId })
 
     //the ai decides the status: only move to completed if match is true
     if (isMatch) {
