@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
+import { showAlert } from '@/utils/alert';
 
 export default function JoinHousehold() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function JoinHousehold() {
 
   const handleJoin = async () => {
     if (secretCode.length !== 7) {
-      Alert.alert("error", "code must be 7 characters");
+      showAlert("error", "code must be 7 characters");
       return;
     }
 
@@ -33,7 +34,7 @@ export default function JoinHousehold() {
       .rpc('find_family_by_code', { p_code: secretCode });
 
     if (findError || !familyId) {
-      Alert.alert("error", "invalid code. check with your parent.");
+      showAlert("error", "invalid code. check with your parent.");
       return;
     }
 
@@ -47,9 +48,9 @@ export default function JoinHousehold() {
       .eq('id', user?.id);
 
     if (linkError) {
-      Alert.alert("error", "could not join household");
+      showAlert("error", "could not join household");
     } else {
-      Alert.alert("success", "welcome to the family!");
+      showAlert("success", "welcome to the family!");
       router.replace(role === 'parent' ? '/(parent)/home' : '/(child)/home');
     }
   };

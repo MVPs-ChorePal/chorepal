@@ -1,10 +1,11 @@
 //@ts-nocheck
 import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, Text, View, TextInput, TouchableOpacity, 
-  ScrollView, Alert, ActivityIndicator, Platform, KeyboardAvoidingView, Modal, Dimensions, LogBox
+import {
+  StyleSheet, Text, View, TextInput, TouchableOpacity,
+  ScrollView, ActivityIndicator, Platform, KeyboardAvoidingView, Modal, Dimensions, LogBox
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
+import { showAlert } from '../../../utils/alert';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -104,7 +105,7 @@ export default function CreateChore() {
       const targetKids = selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId);
       
       if (targetKids.length === 0) {
-        Alert.alert("no children yet", "add a child to your household before assigning chores.");
+        showAlert("no children yet", "add a child to your household before assigning chores.");
         setLoading(false);
         return;
       }

@@ -33,6 +33,10 @@ export default function SignupPage() {
       showAlert('error', 'please fill all fields');
       return;
     }
+    if (password.length < 6) {
+      showAlert('error', 'password must be at least 6 characters');
+      return;
+    }
     setLoading(true);
     //converts full name to username by removing spaces and lowercasing
     const username = fullName.toLowerCase().replace(/\s/g, "");
@@ -96,32 +100,35 @@ export default function SignupPage() {
         </View>
 
         <View style={styles.form}>
-          <TextInput 
-            placeholder="full name" 
+          <TextInput
+            placeholder="full name"
             placeholderTextColor="#999"
-            style={styles.input} 
-            onChangeText={setFullName} 
+            style={styles.input}
+            onChangeText={setFullName}
             value={fullName}
             autoCapitalize="none"
           />
-          <TextInput 
-            placeholder="email address" 
+          <Text style={styles.hint}>your username is generated from this (lowercase, no spaces) and must be unique</Text>
+
+          <TextInput
+            placeholder="email address"
             placeholderTextColor="#999"
-            style={styles.input} 
-            onChangeText={setEmail} 
-            value={email} 
-            autoCapitalize="none" 
+            style={styles.input}
+            onChangeText={setEmail}
+            value={email}
+            autoCapitalize="none"
             keyboardType="email-address"
           />
-          <TextInput 
-            placeholder="password" 
+          <TextInput
+            placeholder="password"
             placeholderTextColor="#999"
-            style={styles.input} 
-            onChangeText={setPassword} 
-            value={password} 
-            secureTextEntry 
+            style={styles.input}
+            onChangeText={setPassword}
+            value={password}
+            secureTextEntry
             autoCapitalize="none"
           />
+          <Text style={styles.hint}>must be at least 6 characters</Text>
 
           <TouchableOpacity 
             style={[styles.mainButton, { backgroundColor: accentColor }]} 
@@ -185,6 +192,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 32, fontWeight: '300', color: '#1A234E', textAlign: 'center', letterSpacing: -1 },
   form: { width: '100%' },
   input: { borderBottomWidth: 1, borderBottomColor: '#BDC4D4', paddingVertical: 15, marginBottom: 20, fontSize: 16, color: '#1A234E' },
+  hint: { fontSize: 12, color: '#AAA', marginTop: -14, marginBottom: 20 },
   mainButton: { paddingVertical: 18, borderRadius: 5, marginTop: 20, alignItems: 'center' },
   mainButtonText: { fontWeight: '600', fontSize: 16, letterSpacing: 0.5 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 60, gap: 30 },

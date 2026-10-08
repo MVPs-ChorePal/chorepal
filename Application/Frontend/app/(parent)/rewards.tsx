@@ -2,12 +2,13 @@
 import React, { useCallback, useState } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput,
-  ActivityIndicator, RefreshControl, Alert, Image
+  ActivityIndicator, RefreshControl, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
+import { showAlert } from '../../utils/alert';
 
 //grabs only the first "word" of a name, lowercased to match the app's style
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
@@ -72,7 +73,7 @@ export default function ParentRewards() {
   const handleAddReward = async () => {
     const cost = parseInt(newCost);
     if (!newTitle.trim() || !cost || cost <= 0) {
-      Alert.alert('error', 'enter a reward name and a point cost');
+      showAlert('error', 'enter a reward name and a point cost');
       return;
     }
 
@@ -84,7 +85,7 @@ export default function ParentRewards() {
     setBusyId(null);
 
     if (error) {
-      Alert.alert('error', error.message.toLowerCase());
+      showAlert('error', error.message.toLowerCase());
       return;
     }
     setNewTitle('');
@@ -98,7 +99,7 @@ export default function ParentRewards() {
     const { error } = await supabase.from('rewards').update({ archived: true }).eq('id', reward.id);
     setBusyId(null);
     if (error) {
-      Alert.alert('error', error.message.toLowerCase());
+      showAlert('error', error.message.toLowerCase());
       return;
     }
     fetchData();

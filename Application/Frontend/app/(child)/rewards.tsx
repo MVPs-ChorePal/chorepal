@@ -2,12 +2,13 @@
 import React, { useCallback, useState } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert
+  ActivityIndicator, RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
+import { showAlert } from '../../utils/alert';
 
 //formats an ISO date string into something like "sep 12"
 const formatDate = (isoDate) =>
@@ -96,11 +97,11 @@ export default function ChildRewards() {
     setRedeemingId(null);
 
     if (error) {
-      Alert.alert('error', error.message.toLowerCase());
+      showAlert('error', error.message.toLowerCase());
       return;
     }
     setBalance(Number(newBalance));
-    Alert.alert('redeemed!', `enjoy your ${reward.title.toLowerCase()}`);
+    showAlert('redeemed!', `enjoy your ${reward.title.toLowerCase()}`);
     fetchData();
   };
 
