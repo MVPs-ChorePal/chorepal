@@ -118,7 +118,8 @@ export default function CreateChore() {
         created_by: session.user.id,
         status: 'todo', 
         target_label: selectedAiTag, 
-        due_date: date.toISOString()
+        due_date: date.toISOString(),
+        created_at: new Date().toISOString()
       }));
 
       const { error } = await supabase.from('chores').insert(choreRows);

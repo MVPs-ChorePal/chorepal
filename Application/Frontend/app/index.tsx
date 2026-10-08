@@ -22,7 +22,7 @@ export default function SplashScreen() {
     const checkCache = async () => {
       try {
         //few seconds loading screen
-        await new Promise(resolve => setTimeout(resolve, 1.200));
+        await new Promise(resolve => setTimeout(resolve, 1200));
         
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
@@ -52,9 +52,16 @@ export default function SplashScreen() {
           //no household yet (child, or a parent who chose to join one) - send to join page
           router.replace('/join-household');
         } else if (profile.role === 'parent') {
+          //explicitly send to parent home
           router.replace('/(parent)/home');
-        } else {
+        } else if (profile.role === 'child') {
+          //explicitly send to child home
           router.replace('/(child)/home');
+        } else {
+          //safety fallback: if role is unknown, do not guess. force logout.
+          console.log("unknown role detected, forcing login");
+          await supabase.auth.signOut();
+          router.replace('/login-page');
         }
       } catch (err) {
         console.error("error checking session:", err);

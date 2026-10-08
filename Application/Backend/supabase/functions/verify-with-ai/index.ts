@@ -9,10 +9,10 @@ const corsHeaders = {
 //rekognition rarely returns the exact category name, so each chore category
 //accepts any of these words (keys are the target_label values from create-chore)
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  'Dishware': ['dishware', 'dish', 'plate', 'bowl', 'cup', 'mug', 'glass', 'cutlery', 'fork', 'spoon', 'knife', 'utensil', 'tableware', 'pottery', 'sink', 'dishwasher', 'kitchen', 'counter', 'countertop'],
+  'Dishware': ['dishware', 'dish', 'plate', 'bowl', 'cup', 'mug', 'glass', 'cutlery', 'fork', 'spoon', 'knife', 'utensil', 'sink', 'dishwasher', 'kitchen', 'counter', 'countertop'],
   'Plant': ['plant', 'grass', 'lawn', 'yard', 'backyard', 'garden', 'gardening', 'tree', 'leaf', 'vegetation', 'flower', 'shrub', 'hedge', 'outdoors', 'nature', 'potted plant'],
   'Clothing': ['clothing', 'apparel', 'shirt', 't-shirt', 'pants', 'jeans', 'shorts', 'sock', 'dress', 'coat', 'jacket', 'sweater', 'laundry', 'towel', 'fabric', 'closet', 'hanger', 'wardrobe'],
-  'Bed': ['bed', 'bedroom', 'pillow', 'cushion', 'blanket', 'mattress', 'bedding', 'linen', 'quilt', 'duvet', 'bed sheet', 'furniture'],
+  'Bed': ['bed', 'bedroom', 'pillow', 'cushion', 'blanket', 'mattress', 'bedding', 'linen', 'quilt', 'duvet', 'bed sheet', ],
   'Animal': ['animal', 'pet', 'dog', 'puppy', 'cat', 'kitten', 'mammal', 'canine', 'bird', 'fish', 'rabbit', 'hamster', 'pet bowl'],
   'Waste Container': ['waste container', 'trash', 'trash can', 'garbage', 'garbage can', 'bin', 'can', 'tin', 'waste', 'recycling', 'recycling bin', 'dumpster', 'rubbish', 'litter', 'bag', 'plastic bag'],
 }
@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
         },
       },
       MaxLabels: 25,
-      MinConfidence: 70, //only return things it is #% sure about
+      MinConfidence: 90, //only return things it is #% sure about
     })
 
     const response = await client.send(command)
@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
       ...(l.Parents || []).map(p => p.Name),
     ]).filter(Boolean) as string[]
 
+    //check for match
     const keywords = CATEGORY_KEYWORDS[target] || [target.toLowerCase()]
     const matchedLabel = candidates.find(c => keywords.some(k => matchesKeyword(c, k)))
     const isMatch = !!matchedLabel

@@ -1,4 +1,4 @@
-//@ts-nocheck
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, 
@@ -77,9 +77,10 @@ export default function ChoreSubmissionMachine() {
       const fileName = `${isBefore ? 'before' : 'after'}_${id}_${Date.now()}.jpg`;
 
       //get s3 pass
-      const { data: urlData } = await supabase.functions.invoke('get-upload-url', {
+      const { data: urlData, error: urlError } = await supabase.functions.invoke('get-upload-url', {
         body: { fileName, fileType: 'image/jpeg' }
       });
+      if (urlError) throw urlError;
 
       //upload photo to s3
       const blobResponse = await fetch(capturedPhoto);
@@ -87,8 +88,17 @@ export default function ChoreSubmissionMachine() {
       await fetch(urlData.uploadUrl, { method: 'PUT', body: photoBlob, headers: { 'Content-Type': 'image/jpeg' } });
 
       if (isBefore) {
-        //phase 1: create first log
-        await supabase.from('chore_analysis').insert({ chore_id: id, before_image_key: fileName });
+        //count how many rows already exist for this chore
+        const { count } = await supabase.from('chore_analysis').select('*', { count: 'exact', head: true }).eq('chore_id', id);
+        const nextAttempt = (count || 0) + 1;
+
+        //insert new row into chore_analysis
+        await supabase.from('chore_analysis').insert({
+          chore_id: id,
+          before_image_key: fileName,
+          attempt_number: nextAttempt 
+        });
+
         await supabase.from('chores').update({ status: 'pending' }).eq('id', id);
 
         setButtonState('checkmark');
@@ -96,7 +106,7 @@ export default function ChoreSubmissionMachine() {
           setButtonState('idle');
           setCapturedPhoto(null);
           fetchChoreDetails(); 
-        }, 2000);
+        }, 1500);
       } else {
         //phase 2: logic for attempts
         //look for an open row waiting for an after photo
@@ -112,10 +122,16 @@ export default function ChoreSubmissionMachine() {
           //retry logic: create a brand new row but reuse the original before key
           const { data: firstLog } = await supabase.from('chore_analysis').select('before_image_key').eq('chore_id', id).order('created_at', { ascending: true }).limit(1).single();
           
+          //calculate next attempt number
+          const { count } = await supabase.from('chore_analysis').select('*', { count: 'exact', head: true }).eq('chore_id', id);
+          const nextAttempt = (count || 0) + 1;
+
+          //create a brand new history row
           const { data: newLog } = await supabase.from('chore_analysis').insert({
             chore_id: id,
             before_image_key: firstLog?.before_image_key,
-            after_image_key: fileName
+            after_image_key: fileName,
+            attempt_number: nextAttempt
           }).select().single();
           
           logIdToUse = newLog.id;
@@ -128,7 +144,7 @@ export default function ChoreSubmissionMachine() {
 
         if (aiResponse.data?.isMatch) {
           setButtonState('verified');
-          setTimeout(() => fetchChoreDetails(), 1500); //refresh to show summary
+          setTimeout(() => fetchChoreDetails(), 1500); 
         } else {
           setAiNote(aiResponse.data?.feedback || "ai check failed");
           setCapturedPhoto(null);
@@ -136,9 +152,9 @@ export default function ChoreSubmissionMachine() {
         }
       }
     } catch (e) {
-      console.error("pipeline error:", e.message);
+      console.error("PIPELINE ERROR:", e.message);
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false); //ensures button is never stuck
     }
   };
 
@@ -153,7 +169,7 @@ export default function ChoreSubmissionMachine() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}><Text style={styles.backLink}>‹ back</Text></TouchableOpacity>
-          <View style={[styles.badge, chore.status === 'approved' && { backgroundColor: '#43A047' }]}>
+          <View style={[styles.badge, (chore.status === 'approved' || chore.status === 'completed') && { backgroundColor: '#339d39' }]}>
             <Text style={styles.badgeText}>{chore.status}</Text>
           </View>
         </View>

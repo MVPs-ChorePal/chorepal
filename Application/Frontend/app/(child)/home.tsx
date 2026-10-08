@@ -113,13 +113,13 @@ export default function Dashboard() {
                 </View>
                 <View style={[
                   styles.statusBadge,
-                  (item.status === 'pending' || item.status === 'completed') && { backgroundColor: '#FFF9C4' },
-                  item.status === 'approved' && { backgroundColor: '#E8F5E9' },
+                  (item.status === 'pending' ) && { backgroundColor: '#FFF9C4' },
+                  item.status === 'approved' || item.status === 'completed' && { backgroundColor: '#E8F5E9' },
                 ]}>
                   <Text style={[
                     styles.statusText,
-                    (item.status === 'pending' || item.status === 'completed') && { color: '#FBC02D' },
-                    item.status === 'approved' && { color: '#43A047' },
+                    (item.status === 'pending' ) && { color: '#FBC02D' },
+                    item.status === 'approved' || item.status === 'completed' && { color: '#339d39' },
                   ]}>
                     {item.status === 'todo' ? 'to-do' : item.status}
                   </Text>

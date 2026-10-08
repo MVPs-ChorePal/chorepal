@@ -66,6 +66,7 @@ export default function ParentLayout() {
         )
       }} />
       <Tabs.Screen name="chores/create-chore" options={{ href: null }} />
+      <Tabs.Screen name="chores/[id]" options={{ href: null }} />
     </Tabs>
   );
 }
