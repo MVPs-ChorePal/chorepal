@@ -50,6 +50,17 @@ export default function SignupPage() {
       const isNewHousehold = role === 'parent' && parentMode === 'create';
       const secretCode = isNewHousehold ? generateSecretCode() : null; //only generate code for whoever starts a household
       const familyId = isNewHousehold ? authData.user.id : null; //household starter is their own family root
+
+      //the family row must exist before a user can reference it as family_id
+      if (isNewHousehold) {
+        const { error: familyError } = await supabase.from('families').insert([{ id: familyId }]);
+        if (familyError) {
+          Alert.alert('error', familyError.message.toLowerCase());
+          setLoading(false);
+          return;
+        }
+      }
+
       const { error: dbError } = await supabase.from('users').insert([
         { id: authData.user.id, family_id: familyId, secret_code: secretCode, username: username, display_name: fullName, role: role, current_balance: 0 }
       ]);
