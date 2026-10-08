@@ -8,16 +8,6 @@ import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SignupPage() {
-  //generates family code
-  const generateSecretCode = () => {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const numbers = "0123456789";
-  let code = "";
-  for (let i = 0; i < 3; i++) code += letters.charAt(Math.floor(Math.random() * letters.length));
-  for (let i = 0; i < 4; i++) code += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  return code;
-};
-
   const router = useRouter();
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [parentMode, setParentMode] = useState<'create' | 'join'>('create');
@@ -48,10 +38,25 @@ export default function SignupPage() {
     //insert into users table with info
     if (authData.user) {
       const isNewHousehold = role === 'parent' && parentMode === 'create';
-      const secretCode = isNewHousehold ? generateSecretCode() : null; //only generate code for whoever starts a household
-      const familyId = isNewHousehold ? authData.user.id : null; //household starter is their own family root
+      let familyId: string | null = null;
+
+      if (isNewHousehold) {
+        const { data: family, error: familyError } = await supabase
+          .from('families')
+          .insert([{}])
+          .select('id')
+          .single();
+
+        if (familyError) {
+          Alert.alert('error', familyError.message.toLowerCase());
+          setLoading(false);
+          return;
+        }
+        familyId = family.id;
+      }
+
       const { error: dbError } = await supabase.from('users').insert([
-        { id: authData.user.id, family_id: familyId, secret_code: secretCode, username: username, display_name: fullName, role: role, current_balance: 0 }
+        { id: authData.user.id, family_id: familyId, username: username, display_name: fullName, role: role, current_balance: 0 }
       ]);
 
       //if error, show alert or else navigate to dashboard

@@ -28,33 +28,18 @@ export default function JoinHousehold() {
 
     console.log("joining household with code:", secretCode);
 
-    //find whoever owns this code
-    const { data: owner, error: findError } = await supabase
-      .from('users')
-      .select('id, family_id')
-      .eq('secret_code', secretCode)
-      .single();
+    //redeem the invite - looks up, claims, and links family_id atomically
+    const { data: familyId, error: redeemError } = await supabase.rpc('redeem_invite', {
+      input_code: secretCode,
+    });
 
-    if (findError || !owner || !owner.family_id) {
-      Alert.alert("error", "invalid code. check with your parent.");
+    if (redeemError || !familyId) {
+      Alert.alert("error", "invalid or already used code. ask for a new one.");
       return;
     }
 
-    //get the current logged-in user's id
-    const { data: { user } } = await supabase.auth.getUser();
-
-    //link this user to that household
-    const { error: linkError } = await supabase
-      .from('users')
-      .update({ family_id: owner.family_id })
-      .eq('id', user?.id);
-
-    if (linkError) {
-      Alert.alert("error", "could not join household");
-    } else {
-      Alert.alert("success", "welcome to the family!");
-      router.replace(role === 'parent' ? '/(parent)/home' : '/(child)/home');
-    }
+    Alert.alert("success", "welcome to the family!");
+    router.replace(role === 'parent' ? '/(parent)/home' : '/(child)/home');
   };
 
   return (

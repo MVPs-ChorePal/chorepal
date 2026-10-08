@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
+import { getApiUrl } from '../../utils/api';
 
 //formats an ISO date string into something like "sep 12"
 const formatDueDate = (isoDate: string | null) => {
@@ -22,14 +23,13 @@ export default function ChildChores() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data, error } = await supabase
-        .from('chores')
-        .select('id, title, description, status, reward_amount, due_date, target_label')
-        .eq('assigned_to', session.user.id)
-        .order('due_date', { ascending: true, nullsFirst: false });
+      const response = await fetch(getApiUrl('/api/chores'), {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
 
-      if (error) throw error;
-      setChores(data || []);
+      setChores(result.chores || []);
     } catch (e: any) {
       console.error('FETCH CHORES ERROR:', e.message);
     } finally {

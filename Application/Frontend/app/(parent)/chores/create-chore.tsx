@@ -5,6 +5,7 @@ import {
   ScrollView, Alert, ActivityIndicator, Platform, KeyboardAvoidingView, Modal, Dimensions, LogBox
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
+import { getApiUrl } from '../../../utils/api';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -109,20 +110,24 @@ export default function CreateChore() {
         return;
       }
 
-      //prepare chore rows for each selected child
-      const choreRows = targetKids.map(kid => ({
-        title, 
-        description, 
-        reward_amount: parseInt(reward) || 500,
-        assigned_to: kid.id, 
-        created_by: session.user.id,
-        status: 'pending', 
-        target_label: selectedAiTag, 
-        due_date: date.toISOString()
-      }));
+      const response = await fetch(getApiUrl('/api/chores'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          reward_amount: parseInt(reward) || 500,
+          target_label: selectedAiTag,
+          due_date: date.toISOString(),
+          assigned_to: targetKids.map(kid => kid.id),
+        }),
+      });
 
-      const { error } = await supabase.from('chores').insert(choreRows);
-      if (error) throw error;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
 
       setLoading(false);
       setIsSuccess(true); //switch button to checkmark
