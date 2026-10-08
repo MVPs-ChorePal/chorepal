@@ -25,6 +25,10 @@ ChorePal is a mobile application designed to modernize and gamify household mana
     cd Application/Frontend
     npm install
 
+3.  **Set Up Environment Variables:**
+    Copy `.env.example` to `.env` and fill in the Supabase project URL and publishable key:
+    cp .env.example .env
+
 ---
 
 ### **How to Run the Application**
