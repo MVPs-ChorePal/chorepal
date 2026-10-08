@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, 
-  KeyboardAvoidingView, Platform, Keyboard 
+import {
+  StyleSheet, Text, View, TextInput, TouchableOpacity,
+  KeyboardAvoidingView, Platform, Keyboard
 } from 'react-native';
 import { supabase } from '../utils/supabase';
+import { showAlert } from '../utils/alert';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,7 +30,7 @@ export default function SignupPage() {
   //handles sign up logic
   const handleSignUp = async () => {
     if (!fullName || !email || !password) {
-      Alert.alert('error', 'please fill all fields');
+      showAlert('error', 'please fill all fields');
       return;
     }
     setLoading(true);
@@ -40,7 +41,7 @@ export default function SignupPage() {
     const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
 
     if (authError) {
-      Alert.alert('error', authError.message.toLowerCase());
+      showAlert('error', authError.message.toLowerCase());
       setLoading(false);
       return;
     }
@@ -55,7 +56,7 @@ export default function SignupPage() {
       if (isNewHousehold) {
         const { error: familyError } = await supabase.from('families').insert([{ id: familyId }]);
         if (familyError) {
-          Alert.alert('error', familyError.message.toLowerCase());
+          showAlert('error', familyError.message.toLowerCase());
           setLoading(false);
           return;
         }
@@ -67,7 +68,7 @@ export default function SignupPage() {
 
       //if error, show alert or else navigate to dashboard
       if (dbError) {
-        Alert.alert('error', dbError.message.toLowerCase());
+        showAlert('error', dbError.message.toLowerCase());
         setLoading(false);
       } else {
         setTimeout(() => {

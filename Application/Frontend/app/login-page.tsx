@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 // TouchableWithoutFeedback's tap-outside-to-dismiss steals pointer focus from
 // TextInput on react-native-web, so only wrap with it on native.
 const DismissKeyboardWrapper = Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
 const dismissKeyboardProps = Platform.OS === 'web' ? {} : { onPress: Keyboard.dismiss };
 import { supabase } from '../utils/supabase';
+import { showAlert } from '../utils/alert';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -17,7 +18,7 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('error', 'please enter email and password');
+      showAlert('error', 'please enter email and password');
       return;
     }
 
@@ -30,7 +31,7 @@ export default function LoginPage() {
     });
 
     if (authError) {
-      Alert.alert('error', authError.message.toLowerCase());
+      showAlert('error', authError.message.toLowerCase());
       setLoading(false);
       return;
     }
