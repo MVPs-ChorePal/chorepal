@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView, Platform, Keyboard
 } from 'react-native';
 import { supabase } from '../utils/supabase';
+import { isValidEmail } from '../utils/validation';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,6 +27,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isFormValid = !!fullName && isValidEmail(email) && password.length >= 6;
 
   //handles sign up logic
   const handleSignUp = async () => {
@@ -134,9 +136,9 @@ export default function SignupPage() {
           {!!error && <Text style={styles.errorText}>{error}</Text>}
 
           <TouchableOpacity
-            style={[styles.mainButton, { backgroundColor: accentColor }]} 
+            style={[styles.mainButton, { backgroundColor: accentColor }, !isFormValid && styles.mainButtonDisabled]}
             onPress={handleSignUp}
-            disabled={loading}
+            disabled={loading || !isFormValid}
           >
             <Text style={[styles.mainButtonText, { color: btnText }]}>
               {loading ? '...' : 'sign up'}
@@ -198,6 +200,7 @@ const styles = StyleSheet.create({
   hint: { fontSize: 12, color: '#AAA', marginTop: -14, marginBottom: 20 },
   errorText: { color: '#D32F2F', fontSize: 13, marginBottom: 15, textAlign: 'center' },
   mainButton: { paddingVertical: 18, borderRadius: 5, marginTop: 20, alignItems: 'center' },
+  mainButtonDisabled: { opacity: 0.4 },
   mainButtonText: { fontWeight: '600', fontSize: 16, letterSpacing: 0.5 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 60, gap: 30 },
   roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },

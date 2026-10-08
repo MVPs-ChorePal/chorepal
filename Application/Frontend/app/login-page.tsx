@@ -6,6 +6,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingVi
 const DismissKeyboardWrapper = Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
 const dismissKeyboardProps = Platform.OS === 'web' ? {} : { onPress: Keyboard.dismiss };
 import { supabase } from '../utils/supabase';
+import { isValidEmail } from '../utils/validation';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const isFormValid = isValidEmail(email) && password.length >= 6;
 
   const handleLogin = async () => {
     setError('');
@@ -92,9 +94,9 @@ export default function LoginPage() {
               {!!error && <Text style={styles.errorText}>{error}</Text>}
 
               <TouchableOpacity
-                style={styles.mainButton}
+                style={[styles.mainButton, !isFormValid && styles.mainButtonDisabled]}
                 onPress={handleLogin}
-                disabled={loading}
+                disabled={loading || !isFormValid}
               >
                 <Text style={styles.mainButtonText}>{loading ? '...' : 'login'}</Text>
               </TouchableOpacity>
@@ -118,6 +120,7 @@ const styles = StyleSheet.create({
   input: { borderBottomWidth: 1, borderBottomColor: '#BDC4D4', paddingVertical: 15, marginBottom: 20, fontSize: 16, color: '#1A234E' },
   errorText: { color: '#D32F2F', fontSize: 13, marginBottom: 15, textAlign: 'center' },
   mainButton: { backgroundColor: '#005DA7', paddingVertical: 18, borderRadius: 5, marginTop: 20, alignItems: 'center' },
+  mainButtonDisabled: { opacity: 0.4 },
   mainButtonText: { color: '#FFF', fontWeight: '600', fontSize: 16 },
   linkContainer: { marginTop: 30, alignItems: 'center' },
   linkText: { color: '#AAA', fontSize: 14 }
