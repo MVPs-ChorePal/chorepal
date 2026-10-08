@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import { Text, View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -22,6 +22,11 @@ const ChildTabItem = ({ label, icon, isActive }: { label: string, icon: string, 
 };
 
 export default function ChildLayout() {
+  const segments = useSegments();
+  
+  //check if the user is in the 'chores' folder
+  const isChoresActive = segments[1] === 'chores';
+
   return (
     <Tabs screenOptions={{
       headerShown: false,
@@ -40,25 +45,22 @@ export default function ChildLayout() {
       }
     }}>
       <Tabs.Screen name="home" options={{
-        tabBarIcon: ({ focused }) => (
-          <ChildTabItem label="HOME" icon="home" isActive={focused} />
-        )
+        tabBarIcon: ({ focused }) => <ChildTabItem label="HOME" icon="home" isActive={focused} />
       }} />
-      <Tabs.Screen name="chores" options={{
-        tabBarIcon: ({ focused }) => (
-          <ChildTabItem label="CHORES" icon="list" isActive={focused} />
-        )
+      
+      <Tabs.Screen name="chores/index" options={{
+        title: 'chores',
+        tabBarIcon: () => <ChildTabItem label="CHORES" icon="list" isActive={isChoresActive} />
       }} />
+
       <Tabs.Screen name="rewards" options={{
-        tabBarIcon: ({ focused }) => (
-          <ChildTabItem label="REWARDS" icon="gift" isActive={focused} />
-        )
+        tabBarIcon: ({ focused }) => <ChildTabItem label="REWARDS" icon="gift" isActive={focused} />
       }} />
       <Tabs.Screen name="account" options={{
-        tabBarIcon: ({ focused }) => (
-          <ChildTabItem label="ACCOUNT" icon="happy" isActive={focused} />
-        )
+        tabBarIcon: ({ focused }) => <ChildTabItem label="ACCOUNT" icon="happy" isActive={focused} />
       }} />
+
+      <Tabs.Screen name="chores/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

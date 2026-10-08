@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     reward_amount: reward_amount ?? 500,
     assigned_to: childId,
     created_by: user.id,
-    status: "pending",
+    status: "todo",
     target_label,
     due_date,
   }));

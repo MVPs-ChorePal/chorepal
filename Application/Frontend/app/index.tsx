@@ -22,7 +22,7 @@ export default function SplashScreen() {
     const checkCache = async () => {
       try {
         //few seconds loading screen
-        await new Promise(resolve => setTimeout(resolve, 3100));
+        await new Promise(resolve => setTimeout(resolve, 1.200));
         
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 

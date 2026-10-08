@@ -1,137 +1,148 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  StyleSheet, Text, View, TextInput, TouchableOpacity, 
-  ActivityIndicator, SafeAreaView, Alert, Platform, Dimensions 
+  StyleSheet, Text, View, FlatList, 
+  ActivityIndicator, SafeAreaView, TouchableOpacity, Dimensions 
 } from 'react-native';
 import { supabase } from '../../utils/supabase';
 import { Stack, useRouter } from 'expo-router';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
 export default function Dashboard() {
   const router = useRouter();
-  const cameraRef = useRef<any>(null);
   
-  const [role, setRole] = useState<'parent' | 'child' | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
+  const [chores, setChores] = useState([]); //stores chores from database
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    fetchUserRole();
+    fetchInitialData();
+
+    //realtime listener to update cards automatically
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chores' }, () => {
+        fetchInitialData(); //refreshes list when a photo is submitted
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  //fetches user role from supabase and sets state
-  async function fetchUserRole() {
+  //handles initial session check and data fetch
+  async function fetchInitialData() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.replace('/'); return; }
-
-    const { data } = await supabase.from('users').select('role').eq('id', session.user.id);
-    if (data && data.length > 0) {
-      setRole(data[0].role);
-      setLoading(false);
-    } else {
-      setTimeout(fetchUserRole, 2000);
+    if (!session) { 
+      router.replace('/login-page');
+      return; 
     }
-  }
 
-  //capture, upload, stores
-  const takePhoto = async () => {
-    if (!cameraRef.current || isCapturing) return;
+    //fetch user display name
+    const { data: userProfile } = await supabase
+      .from('users')
+      .select('display_name')
+      .eq('id', session.user.id)
+      .single();
     
-    try {
-      setIsCapturing(true);
-      
-      //capture
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.4 });
-      const fileName = `chore_${Date.now()}.jpg`;
-
-      console.log("photo captured, requesting upload url");
-
-      //calls edge function to get a signed url for s3 upload
-      const urlResponse = await supabase.functions.invoke('get-upload-url', {
-        body: { fileName, fileType: 'image/jpeg' }
-      });
-
-      //safety gate
-      if (!urlResponse.data || !urlResponse.data.uploadUrl) {
-        throw new Error("failed to get upload url");
-      }
-
-      console.log("link received. pushing to s3");
-      const secretUploadUrl = urlResponse.data.uploadUrl;
-
-      //convert uri to blob and push to s3
-      const blobResponse = await fetch(photo.uri);
-      const blob = await blobResponse.blob();
-      const uploadResult = await fetch(secretUploadUrl, {
-        method: 'PUT',
-        body: blob,
-        headers: { 'Content-Type': 'image/jpeg' }
-      });
-
-      if (!uploadResult.ok) {
-        throw new Error("s3 upload failed");
-      }
-
-        console.log("successfully uploaded:", fileName, ". requesting ai verification");
-
-        //trigger ai verification
-        const aiResponse = await supabase.functions.invoke('verify-with-ai', {
-            body: { fileName }
-        });
-
-        //safety gate
-        if (aiResponse.data?.labels) {
-            const foundItems = aiResponse.data.labels.join(", ").toLowerCase();
-            Alert.alert("verification good", `found items: ${foundItems}`);
-        } else {
-            Alert.alert("verification failed");
-        }
-
-    } catch (error: any) {
-        console.error("pipeline error", error.message);
-        Alert.alert("error", "could not complete the process");
-    } finally {
-        setIsCapturing(false);
+    if (userProfile) {
+      setUserName(userProfile.display_name.split(' ')[0]);
     }
-};
+
+    //fetch chores assigned to child
+    const { data: choresData, error } = await supabase
+      .from('chores')
+      .select('*')
+      .eq('assigned_to', session.user.id)
+      .neq('status', 'approved') //show everything not yet approved
+      .order('due_date', { ascending: true });
+
+    if (error) {
+      console.error("chore fetch error:", error.message);
+    } else {
+      setChores(choresData || []);
+    }
+    
+    setLoading(false);
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.replace('/');
+    router.replace('/login-page');
   };
 
-  if (loading) return <View style={[styles.container, styles.center]}><ActivityIndicator color="#000" /></View>;
+  if (loading) return (
+    <View style={[styles.container, styles.center]}>
+      <ActivityIndicator color="#005DA7" />
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
+      
       <View style={styles.mainWrapper}>
+        
+        {/* top */}
         <View style={styles.topSection}>
-          <Text style={styles.title}>{role} dashboard</Text>
+          <Text style={styles.greeting}>hi, {userName.toLowerCase()}</Text>
+          <Text style={styles.title}>to-do list</Text>
         </View>
 
+        {/* the chores list */}
         <View style={styles.middleSection}>
-          <View style={styles.cameraContainer}>
-            {Platform.OS === 'web' ? (
-              <View style={styles.webPlaceholder}><Text style={styles.placeholderText}>mobile only feature</Text></View>
-            ) : !permission?.granted ? (
-              <TouchableOpacity style={styles.webPlaceholder} onPress={requestPermission}>
-                <Text style={styles.placeholderText}>tap to enable camera</Text>
+          <FlatList
+            data={chores}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listPadding}
+            renderItem={({ item }) => (
+              <TouchableOpacity 
+                style={styles.choreCard}
+                onPress={() => router.push(`/chores/${item.id}`)}
+              >
+                <View style={styles.cardLeft}>
+                  <View style={styles.iconCircle}>
+                    <Ionicons name="flash-outline" size={20} color="#005DA7" />
+                  </View>
+                  <View>
+                    <Text style={styles.choreName}>{item.title.toLowerCase()}</Text>
+                    <Text style={styles.choreReward}>{item.reward_amount} pts</Text>
+                  </View>
+                </View>
+                <View style={[
+                  styles.statusBadge,
+                  (item.status === 'pending' || item.status === 'completed') && { backgroundColor: '#FFF9C4' },
+                  item.status === 'approved' && { backgroundColor: '#E8F5E9' },
+                ]}>
+                  <Text style={[
+                    styles.statusText,
+                    (item.status === 'pending' || item.status === 'completed') && { color: '#FBC02D' },
+                    item.status === 'approved' && { color: '#43A047' },
+                  ]}>
+                    {item.status === 'todo' ? 'to-do' : item.status}
+                  </Text>
+                <Ionicons name="chevron-forward" size={14} color="#BDC4D4" style={{marginLeft: 5}}/>
+                </View>
               </TouchableOpacity>
-            ) : (
-              <CameraView style={styles.camera} facing="back" ref={cameraRef}>
-                <TouchableOpacity style={styles.captureButton} onPress={takePhoto} disabled={isCapturing}>
-                  {isCapturing ? <ActivityIndicator color="#000" /> : <View style={styles.innerCircle} />}
-                </TouchableOpacity>
-              </CameraView>
             )}
-          </View>
-          <Text style={styles.instructionText}>tap to test aws s3 upload</Text>
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>all caught up</Text>
+                <Text style={styles.emptySub}>no pending chores assigned.</Text>
+              </View>
+            }
+          />
         </View>
+
+        {/* utility actions */}
+        <View style={styles.bottomSection}>
+          <TouchableOpacity onPress={handleLogout}>
+            <Text style={styles.logoutText}>logout</Text>
+          </TouchableOpacity>
+        </View>
+
       </View>
     </SafeAreaView>
   );
@@ -140,22 +151,38 @@ export default function Dashboard() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#EDF0FF' },
   center: { justifyContent: 'center', alignItems: 'center' },
-  mainWrapper: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 30, paddingVertical: 50 },
-  topSection: { alignItems: 'center', marginTop: 10 },
-  title: { fontSize: 24, fontWeight: '300', letterSpacing: -1 },
-  middleSection: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  cameraContainer: {
-    width: width * 0.88, height: width * 1.2, borderRadius: 50,
-    overflow: 'hidden', backgroundColor: '#FBFBFB', borderWidth: 1, borderColor: '#F0F0F0',
+  mainWrapper: { flex: 1, paddingHorizontal: 30, paddingTop: 30 },
+  
+  //top styles
+  topSection: { marginBottom: 30 },
+  greeting: { fontSize: 16, color: '#005DA7', fontWeight: '300' },
+  title: { fontSize: 32, fontWeight: '800', color: '#1A234E', letterSpacing: -1 },
+
+  //list styles
+  middleSection: { flex: 1 },
+  listPadding: { paddingBottom: 100 },
+  choreCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 25,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowRadius: 10,
+    elevation: 2
   },
-  camera: { flex: 1, justifyContent: 'flex-end', alignItems: 'center', paddingBottom: 30 },
-  webPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  placeholderText: { color: '#AAA', textAlign: 'center', fontWeight: '200', fontSize: 14 },
-  instructionText: { marginTop: 25, color: '#000000', fontSize: 11, fontWeight: '300' },
-  captureButton: {
-    width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF',
-  },
-  innerCircle: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#FFF' },
-  bottomSection: { alignItems: 'center', marginBottom: 10 },
+  cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  iconCircle: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#EDF0FF', justifyContent: 'center', alignItems: 'center' },
+  choreName: { fontSize: 16, fontWeight: '700', color: '#1A234E' },
+  choreReward: { fontSize: 13, color: '#005DA7', fontWeight: '600', marginTop: 2 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: '#EDF0FF' },
+  statusText: { fontSize: 10, fontWeight: '800', color: '#005DA7', textTransform: 'uppercase' },
+  emptyContainer: { alignItems: 'center', marginTop: 100 },
+  emptyText: { fontSize: 20, fontWeight: '300', color: '#1A234E' },
+  emptySub: { fontSize: 14, color: '#AAA', marginTop: 5 },
+  bottomSection: { alignItems: 'center', paddingBottom: 20 },
+  logoutText: { color: '#BDC4D4', fontSize: 13, textDecorationLine: 'underline', fontWeight: '300' }
 });
