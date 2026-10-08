@@ -136,9 +136,9 @@ export default function ParentChoreReview() {
 
         {/* action buttons at the bottom */}
         <View style={styles.actionRow}>
-          <TouchableOpacity 
-            style={[styles.btn, styles.rejectBtn]} 
-            onPress={() => {}}
+          <TouchableOpacity
+            style={[styles.btn, styles.rejectBtn]}
+            onPress={handleReject}
             disabled={busy}
           >
             <Text style={styles.btnText}>reject</Text>

@@ -215,7 +215,16 @@ export default function ChoreSubmissionMachine() {
 
         <View style={styles.middleSection}>
           <View style={styles.cameraContainer}>
-            {capturedPhoto ? <Image source={{ uri: capturedPhoto }} style={styles.camera} /> : <CameraView style={styles.camera} facing="back" ref={cameraRef} />}
+            {capturedPhoto ? (
+              <Image source={{ uri: capturedPhoto }} style={styles.camera} />
+            ) : !permission?.granted ? (
+              <TouchableOpacity style={[styles.camera, styles.permissionPrompt]} onPress={requestPermission}>
+                <Ionicons name="camera-outline" size={32} color="#FFF" />
+                <Text style={styles.permissionText}>tap to enable camera</Text>
+              </TouchableOpacity>
+            ) : (
+              <CameraView style={styles.camera} facing="back" ref={cameraRef} />
+            )}
             <View style={styles.overlay}>
               {capturedPhoto ? (
                 <View style={styles.actionRow}>
@@ -224,9 +233,9 @@ export default function ChoreSubmissionMachine() {
                     {isProcessing ? <ActivityIndicator color="#FFF" /> : buttonState === 'checkmark' ? <Ionicons name="checkmark" size={28} color="#FFF" /> : buttonState === 'verified' ? <Text style={styles.btnTextMini}>OK</Text> : <Ionicons name="arrow-up" size={28} color="#FFF" />}
                   </TouchableOpacity>
                 </View>
-              ) : (
+              ) : permission?.granted ? (
                 <TouchableOpacity style={styles.snapButton} onPress={handleCapture}><View style={styles.innerSnap} /></TouchableOpacity>
-              )}
+              ) : null}
             </View>
           </View>
         </View>
@@ -246,6 +255,8 @@ const styles = StyleSheet.create({
   middleSection: { flex: 1, justifyContent: 'center' },
   cameraContainer: { width: width * 0.88, height: width * 1.1, borderRadius: 50, overflow: 'hidden', backgroundColor: '#000' },
   camera: { flex: 1 },
+  permissionPrompt: { justifyContent: 'center', alignItems: 'center', gap: 10 },
+  permissionText: { color: '#FFF', fontSize: 13, fontWeight: '500' },
   overlay: { position: 'absolute', bottom: 30, width: '100%', alignItems: 'center' },
   snapButton: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
   innerSnap: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#FFF' },
