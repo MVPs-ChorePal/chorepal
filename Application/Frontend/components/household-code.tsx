@@ -14,24 +14,12 @@ export default function HouseholdCode() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('family_id')
-        .eq('id', session.user.id)
-        .single();
-      if (profileError) throw profileError;
-      if (!profile.family_id) return;
-
-      //the code belongs to whoever created the household, which may not be this parent
-      const { data: owner, error: ownerError } = await supabase
-        .from('users')
-        .select('secret_code')
-        .eq('family_id', profile.family_id)
-        .not('secret_code', 'is', null)
-        .limit(1)
-        .maybeSingle();
-      if (ownerError) throw ownerError;
-      setCode(owner?.secret_code ?? null);
+      //the code belongs to whoever created the household, which may not be
+      //this parent - looked up server-side so this never needs to read
+      //other users' rows directly
+      const { data, error } = await supabase.rpc('get_household_code');
+      if (error) throw error;
+      setCode(data ?? null);
     } catch (e: any) {
       console.error('FETCH CODE ERROR:', e.message);
     } finally {

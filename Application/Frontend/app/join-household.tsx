@@ -28,14 +28,11 @@ export default function JoinHousehold() {
 
     console.log("joining household with code:", secretCode);
 
-    //find whoever owns this code
-    const { data: owner, error: findError } = await supabase
-      .from('users')
-      .select('id, family_id')
-      .eq('secret_code', secretCode)
-      .single();
+    //find which family this code belongs to, without reading the whole users table
+    const { data: familyId, error: findError } = await supabase
+      .rpc('find_family_by_code', { p_code: secretCode });
 
-    if (findError || !owner || !owner.family_id) {
+    if (findError || !familyId) {
       Alert.alert("error", "invalid code. check with your parent.");
       return;
     }
@@ -46,7 +43,7 @@ export default function JoinHousehold() {
     //link this user to that household
     const { error: linkError } = await supabase
       .from('users')
-      .update({ family_id: owner.family_id })
+      .update({ family_id: familyId })
       .eq('id', user?.id);
 
     if (linkError) {
