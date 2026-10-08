@@ -6,7 +6,6 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingVi
 const DismissKeyboardWrapper = Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
 const dismissKeyboardProps = Platform.OS === 'web' ? {} : { onPress: Keyboard.dismiss };
 import { supabase } from '../utils/supabase';
-import { showAlert } from '../utils/alert';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,10 +14,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async () => {
+    setError('');
     if (!email || !password) {
-      showAlert('error', 'please enter email and password');
+      setError('please enter email and password');
       return;
     }
 
@@ -31,7 +32,7 @@ export default function LoginPage() {
     });
 
     if (authError) {
-      showAlert('error', authError.message.toLowerCase());
+      setError(authError.message.toLowerCase());
       setLoading(false);
       return;
     }
@@ -88,6 +89,8 @@ export default function LoginPage() {
                 autoCapitalize="none"
               />
 
+              {!!error && <Text style={styles.errorText}>{error}</Text>}
+
               <TouchableOpacity
                 style={styles.mainButton}
                 onPress={handleLogin}
@@ -113,6 +116,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 32, fontWeight: '300', color: '#1A234E', textAlign: 'center', marginBottom: 50, letterSpacing: -1 },
   form: { width: '100%' },
   input: { borderBottomWidth: 1, borderBottomColor: '#BDC4D4', paddingVertical: 15, marginBottom: 20, fontSize: 16, color: '#1A234E' },
+  errorText: { color: '#D32F2F', fontSize: 13, marginBottom: 15, textAlign: 'center' },
   mainButton: { backgroundColor: '#005DA7', paddingVertical: 18, borderRadius: 5, marginTop: 20, alignItems: 'center' },
   mainButtonText: { color: '#FFF', fontWeight: '600', fontSize: 16 },
   linkContainer: { marginTop: 30, alignItems: 'center' },

@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView, Platform, Keyboard
 } from 'react-native';
 import { supabase } from '../utils/supabase';
-import { showAlert } from '../utils/alert';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,15 +25,17 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   //handles sign up logic
   const handleSignUp = async () => {
+    setError('');
     if (!fullName || !email || !password) {
-      showAlert('error', 'please fill all fields');
+      setError('please fill all fields');
       return;
     }
     if (password.length < 6) {
-      showAlert('error', 'password must be at least 6 characters');
+      setError('password must be at least 6 characters');
       return;
     }
     setLoading(true);
@@ -45,7 +46,7 @@ export default function SignupPage() {
     const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
 
     if (authError) {
-      showAlert('error', authError.message.toLowerCase());
+      setError(authError.message.toLowerCase());
       setLoading(false);
       return;
     }
@@ -60,7 +61,7 @@ export default function SignupPage() {
       if (isNewHousehold) {
         const { error: familyError } = await supabase.from('families').insert([{ id: familyId }]);
         if (familyError) {
-          showAlert('error', familyError.message.toLowerCase());
+          setError(familyError.message.toLowerCase());
           setLoading(false);
           return;
         }
@@ -72,7 +73,7 @@ export default function SignupPage() {
 
       //if error, show alert or else navigate to dashboard
       if (dbError) {
-        showAlert('error', dbError.message.toLowerCase());
+        setError(dbError.message.toLowerCase());
         setLoading(false);
       } else {
         setTimeout(() => {
@@ -130,7 +131,9 @@ export default function SignupPage() {
           />
           <Text style={styles.hint}>must be at least 6 characters</Text>
 
-          <TouchableOpacity 
+          {!!error && <Text style={styles.errorText}>{error}</Text>}
+
+          <TouchableOpacity
             style={[styles.mainButton, { backgroundColor: accentColor }]} 
             onPress={handleSignUp}
             disabled={loading}
@@ -193,6 +196,7 @@ const styles = StyleSheet.create({
   form: { width: '100%' },
   input: { borderBottomWidth: 1, borderBottomColor: '#BDC4D4', paddingVertical: 15, marginBottom: 20, fontSize: 16, color: '#1A234E' },
   hint: { fontSize: 12, color: '#AAA', marginTop: -14, marginBottom: 20 },
+  errorText: { color: '#D32F2F', fontSize: 13, marginBottom: 15, textAlign: 'center' },
   mainButton: { paddingVertical: 18, borderRadius: 5, marginTop: 20, alignItems: 'center' },
   mainButtonText: { fontWeight: '600', fontSize: 16, letterSpacing: 0.5 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 60, gap: 30 },
