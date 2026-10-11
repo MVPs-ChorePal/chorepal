@@ -7,6 +7,12 @@
 
 ALTER TABLE public.users ADD COLUMN email TEXT UNIQUE;
 
+-- backfill: any existing account's real email is already in auth.users
+UPDATE public.users u
+SET email = a.email
+FROM auth.users a
+WHERE u.id = a.id AND u.email IS NULL;
+
 CREATE OR REPLACE FUNCTION public.find_email_by_username(p_username TEXT)
 RETURNS TEXT
 LANGUAGE sql
