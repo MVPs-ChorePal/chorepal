@@ -27,12 +27,13 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const isFormValid = !!fullName && isValidEmail(email) && password.length >= 6;
+  const isChild = role === 'child';
+  const isFormValid = !!fullName && (isChild || isValidEmail(email)) && password.length >= 6;
 
   //handles sign up logic
   const handleSignUp = async () => {
     setError('');
-    if (!fullName || !email || !password) {
+    if (!fullName || (!isChild && !email) || !password) {
       setError('please fill all fields');
       return;
     }
@@ -44,8 +45,12 @@ export default function SignupPage() {
     //converts full name to username by removing spaces and lowercasing
     const username = fullName.toLowerCase().replace(/\s/g, "");
 
+    //children log in by username, not email - they get an internal address
+    //they never see, which only exists to satisfy supabase auth's requirement for one
+    const authEmail = isChild ? `${username}@chorepal.internal` : email;
+
     //sign up with supabase auth and insert into users table
-    const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+    const { data: authData, error: authError } = await supabase.auth.signUp({ email: authEmail, password });
 
     if (authError) {
       setError(authError.message.toLowerCase());
@@ -70,7 +75,7 @@ export default function SignupPage() {
       }
 
       const { error: dbError } = await supabase.from('users').insert([
-        { id: authData.user.id, family_id: familyId, secret_code: secretCode, username: username, display_name: fullName, role: role, current_balance: 0 }
+        { id: authData.user.id, family_id: familyId, secret_code: secretCode, username: username, email: authEmail, display_name: fullName, role: role, current_balance: 0 }
       ]);
 
       //if error, show alert or else navigate to dashboard
@@ -113,15 +118,17 @@ export default function SignupPage() {
           />
           <Text style={styles.hint}>your username is generated from this (lowercase, no spaces) and must be unique</Text>
 
-          <TextInput
-            placeholder="email address"
-            placeholderTextColor="#999"
-            style={styles.input}
-            onChangeText={setEmail}
-            value={email}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
+          {!isChild && (
+            <TextInput
+              placeholder="email address"
+              placeholderTextColor="#999"
+              style={styles.input}
+              onChangeText={setEmail}
+              value={email}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          )}
           <TextInput
             placeholder="password"
             placeholderTextColor="#999"

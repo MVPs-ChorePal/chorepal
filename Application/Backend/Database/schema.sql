@@ -15,7 +15,8 @@ CREATE TABLE public.users (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   family_id UUID REFERENCES public.families(id), -- Household this user belongs to
   role TEXT CHECK (role IN ('parent', 'child')),
-  username TEXT UNIQUE NOT NULL,
+  username TEXT UNIQUE NOT NULL, -- what the app logs in with
+  email TEXT UNIQUE, -- real for parents; a synthetic @chorepal.internal address for children, who never see or type it
   display_name TEXT,
   avatar_url TEXT,
   secret_code TEXT UNIQUE, -- the household's persistent join code
