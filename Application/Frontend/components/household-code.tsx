@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Share, ActivityIndicator } fr
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../utils/supabase';
+import { colors, typography, radius } from '../constants/theme';
 
 //shows the household's join code so the parent can give it to their kids
 export default function HouseholdCode() {
@@ -38,13 +39,13 @@ export default function HouseholdCode() {
     <View style={styles.card}>
       <Text style={styles.label}>household code</Text>
       {loading ? (
-        <ActivityIndicator color="#005DA7" style={{ marginVertical: 10 }} />
+        <ActivityIndicator color={colors.brand.primary} style={{ marginVertical: 10 }} />
       ) : code ? (
         <>
           <Text style={styles.code} selectable>{code}</Text>
           <Text style={styles.hint}>kids enter this after signing up to join your household</Text>
           <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-            <Ionicons name="share-outline" size={16} color="#FFF" />
+            <Ionicons name="share-outline" size={16} color={colors.text.inverse} />
             <Text style={styles.shareText}>share code</Text>
           </TouchableOpacity>
         </>
@@ -56,10 +57,10 @@ export default function HouseholdCode() {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#FFF', borderRadius: 25, padding: 25, alignItems: 'center', width: '100%' },
-  label: { fontSize: 11, fontWeight: '800', color: '#005DA7', textTransform: 'uppercase' },
-  code: { fontSize: 34, fontWeight: '200', color: '#1A234E', letterSpacing: 6, marginTop: 10 },
-  hint: { fontSize: 12, color: '#8E8E93', textAlign: 'center', marginTop: 8 },
-  shareBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#005DA7', borderRadius: 20, paddingHorizontal: 18, paddingVertical: 10, marginTop: 15 },
-  shareText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
+  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 25, alignItems: 'center', width: '100%' },
+  label: { ...typography.labelSmall, color: colors.brand.primary, textTransform: 'uppercase' },
+  code: { fontSize: 34, fontWeight: '200', color: colors.text.primary, letterSpacing: 6, marginTop: 10 },
+  hint: { fontSize: 12, color: colors.text.secondary, textAlign: 'center', marginTop: 8 },
+  shareBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.brand.primary, borderRadius: radius.button, paddingHorizontal: 18, paddingVertical: 10, marginTop: 15 },
+  shareText: { color: colors.text.inverse, fontWeight: '700', fontSize: 13 },
 });

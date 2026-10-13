@@ -3,6 +3,7 @@ import { StyleSheet, Animated, Easing } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors } from '../constants/theme';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -86,6 +87,6 @@ export default function SplashScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center' },
   logo: { width: 50, height: 50, resizeMode: 'contain' }
 });

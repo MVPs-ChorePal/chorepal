@@ -8,6 +8,7 @@ import { supabase } from '../../../utils/supabase';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, radius } from '../../../constants/theme';
 
 const { width } = Dimensions.get('window');
 const S3_BUCKET = process.env.EXPO_PUBLIC_AWS_S3_BUCKET_NAME;
@@ -78,7 +79,7 @@ export default function ParentChoreReview() {
     setBusy(false);
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator color="#005DA7" /></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator color={colors.brand.primary} /></View>;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -89,7 +90,7 @@ export default function ParentChoreReview() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>‹ back</Text>
         </TouchableOpacity>
-        <View style={[styles.statusBadge, (chore?.status === 'approved' || chore?.status === 'completed') && { backgroundColor: '#339d39' }]}>
+        <View style={[styles.statusBadge, (chore?.status === 'approved' || chore?.status === 'completed') && { backgroundColor: colors.status.success }]}>
           <Text style={styles.statusBadgeText}>{chore?.status || 'pending'}</Text>
         </View>
       </View>
@@ -113,7 +114,7 @@ export default function ParentChoreReview() {
               {chore?.before_image_key ? (
                 <Image source={{ uri: S3_PATH + chore.before_image_key }} style={styles.img} />
               ) : (
-                <Ionicons name="image-outline" size={32} color="#BDC4D4" />
+                <Ionicons name="image-outline" size={32} color={colors.icon.secondary} />
               )}
             </View>
           </View>
@@ -123,7 +124,7 @@ export default function ParentChoreReview() {
               {chore?.after_image_key ? (
                 <Image source={{ uri: S3_PATH + chore.after_image_key }} style={styles.img} />
               ) : (
-                <Ionicons name="image-outline" size={32} color="#BDC4D4" />
+                <Ionicons name="image-outline" size={32} color={colors.icon.secondary} />
               )}
             </View>
           </View>
@@ -149,7 +150,7 @@ export default function ParentChoreReview() {
             onPress={handleApprove}
             disabled={busy}
           >
-            {busy ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>approve</Text>}
+            {busy ? <ActivityIndicator color={colors.text.inverse} /> : <Text style={styles.btnText}>approve</Text>}
           </TouchableOpacity>
         </View>
 
@@ -159,30 +160,30 @@ export default function ParentChoreReview() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingHorizontal: 30, paddingBottom: 60, alignItems: 'center' },
   header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25, paddingVertical: 15 },
-  backText: { color: '#8E8E93', fontSize: 18, fontWeight: '300' },
-  statusBadge: { backgroundColor: '#005DA7', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 15 },
-  statusBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  title: { fontSize: 32, fontWeight: '800', color: '#1A234E', marginTop: 10 },
-  childName: { fontSize: 14, color: '#005DA7', fontWeight: '500', marginTop: 5 },
-  infoCard: { backgroundColor: '#FFF', width: '100%', borderRadius: 30, padding: 25, marginTop: 25, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
-  infoTitle: { fontSize: 11, fontWeight: '800', color: '#005DA7', textTransform: 'uppercase', marginBottom: 10 },
-  infoText: { fontSize: 15, color: '#1A234E', lineHeight: 22, fontWeight: '500' },
-  confidenceText: { fontSize: 10, color: '#BDC4D4', marginTop: 10, fontWeight: '600' },
+  backText: { color: colors.text.secondary, fontSize: 18, fontWeight: '300' },
+  statusBadge: { backgroundColor: colors.brand.primary, paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.small },
+  statusBadgeText: { color: colors.text.inverse, fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+  title: { ...typography.h1, color: colors.text.primary, marginTop: 10 },
+  childName: { fontSize: 14, color: colors.brand.primary, fontWeight: '500', marginTop: 5 },
+  infoCard: { backgroundColor: colors.surface.white, width: '100%', borderRadius: radius.medium, padding: 25, marginTop: 25, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
+  infoTitle: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase', marginBottom: 10 },
+  infoText: { fontSize: 15, color: colors.text.primary, lineHeight: 22, fontWeight: '500' },
+  confidenceText: { fontSize: 10, color: colors.text.tertiary, marginTop: 10, fontWeight: '600' },
   imageGrid: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 25 },
   imageBox: { width: '47%' },
-  imgLabel: { fontSize: 11, color: '#8E8E93', marginBottom: 10, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
-  imgContainer: { width: '100%', height: 180, borderRadius: 25, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', borderWidth: 1, borderColor: '#D1D9FF' },
+  imgLabel: { fontSize: 11, color: colors.text.secondary, marginBottom: 10, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
+  imgContainer: { width: '100%', height: 180, borderRadius: radius.card, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', borderWidth: 1, borderColor: colors.border.default },
   img: { width: '100%', height: '100%' },
   rewardSection: { marginTop: 30, alignItems: 'center' },
-  rewardPoints: { fontSize: 28, fontWeight: '800', color: '#005DA7' },
-  descriptionText: { fontSize: 14, color: '#8E8E93', marginTop: 5, textAlign: 'center' },
+  rewardPoints: { fontSize: 28, fontWeight: '800', color: colors.brand.primary },
+  descriptionText: { fontSize: 14, color: colors.text.secondary, marginTop: 5, textAlign: 'center' },
   actionRow: { flexDirection: 'row', gap: 12, marginTop: 40, width: '100%' },
-  btn: { flex: 1, paddingVertical: 18, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
-  rejectBtn: { backgroundColor: '#FF4B4B', borderWidth: 1, borderColor: '#FF4B4B' },
-  approveBtn: { backgroundColor: '#339d39' },
-  btnText: { color: '#FFF', fontWeight: '700', textTransform: 'lowercase' }
+  btn: { flex: 1, paddingVertical: 18, borderRadius: radius.card, alignItems: 'center', justifyContent: 'center' },
+  rejectBtn: { backgroundColor: colors.status.error, borderWidth: 1, borderColor: colors.status.error },
+  approveBtn: { backgroundColor: colors.status.success },
+  btnText: { color: colors.text.inverse, fontWeight: '700', textTransform: 'lowercase' }
 });

@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, typography } from '../../../constants/theme';
 
 export default function ChoresList() {
   return (
@@ -13,8 +14,8 @@ export default function ChoresList() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF', padding: 25 },
-  title: { fontSize: 24, fontWeight: '300', color: '#FFD700', letterSpacing: -1 },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground, padding: 25 },
+  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  placeholder: { color: '#BDC4D4', fontWeight: '300' }
+  placeholder: { color: colors.text.tertiary, fontWeight: '300' }
 });

@@ -8,6 +8,7 @@ import { supabase } from '../../utils/supabase';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, radius } from '../../constants/theme';
 
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
 
@@ -81,7 +82,7 @@ export default function ParentDashboard() {
     fetchData();
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator color="#005DA7" /></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator color={colors.brand.primary} /></View>;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -90,7 +91,7 @@ export default function ParentDashboard() {
       <ScrollView 
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#005DA7" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
         <Text style={styles.title}>parent dashboard</Text>
 
@@ -108,7 +109,7 @@ export default function ParentDashboard() {
                   <Text style={styles.choreTitle}>{chore.title}</Text>
                   <Text style={styles.childName}>{chore.childName} • {chore.status}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#BDC4D4" />
+                <Ionicons name="chevron-forward" size={20} color={colors.icon.secondary} />
               </View>
             </TouchableOpacity>
           ))
@@ -136,24 +137,24 @@ export default function ParentDashboard() {
         style={styles.fab} 
         onPress={() => router.push('/chores/create-chore')}
       >
-        <Ionicons name="add" size={32} color="#FFF" />
+        <Ionicons name="add" size={32} color={colors.icon.inverse} />
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingHorizontal: 25, paddingTop: 20, paddingBottom: 150 },
-  title: { fontSize: 24, fontWeight: '800', color: '#1A234E', letterSpacing: -0.5, marginBottom: 10 },
-  sectionTitle: { fontSize: 11, fontWeight: '800', color: '#1A234E', textTransform: 'uppercase', marginTop: 30, marginBottom: 15 },
-  emptyText: { color: '#BDC4D4', fontSize: 14, fontWeight: '300' },
-  card: { backgroundColor: '#FFF', borderRadius: 25, padding: 20, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  waitingCard: { borderLeftWidth: 7, borderLeftColor: '#339d39' },
+  title: { ...typography.h2, color: colors.text.primary, letterSpacing: -0.5, marginBottom: 10 },
+  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase', marginTop: 30, marginBottom: 15 },
+  emptyText: { color: colors.text.tertiary, fontSize: 14, fontWeight: '300' },
+  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  waitingCard: { borderLeftWidth: 7, borderLeftColor: colors.status.success },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flex: 1 },
-  choreTitle: { fontSize: 16, fontWeight: '700', color: '#1A234E' },
-  childName: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
-  points: { fontSize: 14, fontWeight: '800', color: '#005DA7' },
-  fab: { position: 'absolute', bottom: 120, right: 25, width: 64, height: 64, borderRadius: 32, backgroundColor: '#005DA7', justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  choreTitle: { ...typography.bodyMediumStrong, color: colors.text.primary },
+  childName: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
+  points: { fontSize: 14, fontWeight: '800', color: colors.brand.primary },
+  fab: { position: 'absolute', bottom: 120, right: 25, width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', elevation: 5 },
 });

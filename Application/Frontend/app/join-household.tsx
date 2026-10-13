@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Keyb
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { showAlert } from '@/utils/alert';
+import { colors, typography, radius } from '@/constants/theme';
 
 export default function JoinHousehold() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function JoinHousehold() {
           autoCapitalize="characters"
           maxLength={7} //3 letters + 4 numbers
           placeholder="MVP0115"
-          placeholderTextColor="#BDC4D4"
+          placeholderTextColor={colors.text.tertiary}
           autoCorrect={false}
         />
 
@@ -94,21 +95,21 @@ export default function JoinHousehold() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   inner: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  label: { fontSize: 16, fontWeight: '300', marginBottom: 20, color: '#1A234E' },
+  label: { ...typography.bodyMedium, marginBottom: 20, color: colors.text.primary },
   codeInput: {
     width: '100%',
     borderBottomWidth: 1,
-    borderBottomColor: '#BDC4D4',
+    borderBottomColor: colors.border.default,
     fontSize: 32,
     textAlign: 'center',
     letterSpacing: 5,
     fontWeight: '200',
-    color: '#1A234E'
+    color: colors.text.primary
   },
-  joinButton: { backgroundColor: '#FFD700', paddingVertical: 18, width: '100%', borderRadius: 10, marginTop: 40, alignItems: 'center' },
-  joinButtonText: { fontWeight: '600', color: '#000' },
+  joinButton: { backgroundColor: colors.brand.primary, paddingVertical: 18, width: '100%', borderRadius: radius.button, marginTop: 40, alignItems: 'center' },
+  joinButtonText: { fontWeight: '600', color: colors.text.inverse },
   bypassButton: { marginTop: 50 },
-  bypassText: { color: '#005DA7', fontSize: 12, fontWeight: '300' }
+  bypassText: { color: colors.brand.primary, fontSize: 12, fontWeight: '300' }
 });

@@ -10,6 +10,7 @@ import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { colors, typography, radius } from '../../../constants/theme';
 
 //silences error box
 LogBox.ignoreAllLogs();
@@ -146,7 +147,7 @@ export default function CreateChore() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={24} color="#005DA7" />
+          <Ionicons name="chevron-back" size={24} color={colors.brand.primary} />
           <Text style={styles.backText}>back</Text>
         </TouchableOpacity>
       </View>
@@ -162,24 +163,24 @@ export default function CreateChore() {
                 onPress={() => setSelectedAiTag(cat.aiTag)} 
                 style={[styles.catItem, selectedAiTag === cat.aiTag && styles.activeCat]}
               >
-                <Ionicons name={cat.icon} size={28} color={selectedAiTag === cat.aiTag ? '#FFF' : '#005DA7'} />
-                <Text style={[styles.catLabel, selectedAiTag === cat.aiTag && {color: '#FFF'}]}>{cat.label}</Text>
+                <Ionicons name={cat.icon} size={28} color={selectedAiTag === cat.aiTag ? colors.icon.inverse : colors.brand.primary} />
+                <Text style={[styles.catLabel, selectedAiTag === cat.aiTag && {color: colors.text.inverse}]}>{cat.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
           <View style={styles.formCard}>
             <Text style={styles.label}>chore title</Text>
-            <TextInput placeholder="e.g. Unload the Dishwasher" placeholderTextColor="#BDC4D4" style={styles.input} value={title} onChangeText={setTitle} />
-            
+            <TextInput placeholder="e.g. Unload the Dishwasher" placeholderTextColor={colors.text.tertiary} style={styles.input} value={title} onChangeText={setTitle} />
+
             <Text style={styles.label}>details</Text>
-            <TextInput placeholder="Tell them exactly how to complete..." placeholderTextColor="#BDC4D4" style={[styles.input, styles.textArea]} multiline value={description} onChangeText={setDescription} />
+            <TextInput placeholder="Tell them exactly how to complete..." placeholderTextColor={colors.text.tertiary} style={[styles.input, styles.textArea]} multiline value={description} onChangeText={setDescription} />
 
             <Text style={styles.label}>assign to:</Text>
             <View style={styles.childList}>
               <View style={styles.childItem}>
                 <TouchableOpacity style={[styles.childCircle, selectedChildId === 'all' && styles.activeChild]} onPress={() => setSelectedChildId('all')}>
-                  <Text style={[styles.childInitial, selectedChildId === 'all' && {color: '#FFF'}]}>All</Text>
+                  <Text style={[styles.childInitial, selectedChildId === 'all' && {color: colors.text.inverse}]}>All</Text>
                 </TouchableOpacity>
               </View>
 
@@ -189,7 +190,7 @@ export default function CreateChore() {
                     style={[styles.childCircle, selectedChildId === child.id && styles.activeChild]} 
                     onPress={() => setSelectedChildId(child.id)}
                   >
-                    <Text style={[styles.childInitial, selectedChildId === child.id && {color: '#FFF'}]}>
+                    <Text style={[styles.childInitial, selectedChildId === child.id && {color: colors.text.inverse}]}>
                       {formatFirstName(child.display_name).charAt(0)}
                     </Text>
                   </TouchableOpacity>
@@ -208,7 +209,7 @@ export default function CreateChore() {
               <View style={{flex: 1}}>
                  <Text style={styles.label}>reward</Text>
                  <View style={styles.pillInput}>
-                    <TextInput keyboardType="numeric" value={reward} onChangeText={setReward} style={styles.valueText} placeholder="500" placeholderTextColor="#BDC4D4" />
+                    <TextInput keyboardType="numeric" value={reward} onChangeText={setReward} style={styles.valueText} placeholder="500" placeholderTextColor={colors.text.tertiary} />
                     <Text style={styles.unitText}>pts</Text>
                  </View>
               </View>
@@ -220,9 +221,9 @@ export default function CreateChore() {
             disabled={loading || isSuccess}
           >
             {isSuccess ? (
-              <Ionicons name="checkmark-sharp" size={32} color="#FFF" />
+              <Ionicons name="checkmark-sharp" size={32} color={colors.icon.inverse} />
             ) : loading ? (
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color={colors.text.inverse} />
             ) : (
               <Text style={styles.submitBtnText}>Submit</Text>
             )}
@@ -234,7 +235,7 @@ export default function CreateChore() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalHeader}>Select Deadline</Text>
-            <DateTimePicker value={date} mode="date" display="spinner" onChange={onDateChange} minimumDate={new Date()} textColor="#1A234E" />
+            <DateTimePicker value={date} mode="date" display="spinner" onChange={onDateChange} minimumDate={new Date()} textColor={colors.text.primary} />
             <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.modalDoneBtn}>
               <Text style={styles.modalDoneText}>Done</Text>
             </TouchableOpacity>
@@ -247,35 +248,35 @@ export default function CreateChore() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
-  header: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
+  header: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: colors.surface.appBackground },
   backBtn: { flexDirection: 'row', alignItems: 'center' },
-  backText: { color: '#005DA7', fontSize: 18, fontWeight: '600', marginLeft: 5 },
+  backText: { color: colors.brand.primary, fontSize: 18, fontWeight: '600', marginLeft: 5 },
   scroll: { paddingHorizontal: 25, paddingBottom: 150 },
-  sectionTitle: { fontSize: 13, color: '#005DA7', fontWeight: '800', marginBottom: 15, textTransform: 'uppercase' },
+  sectionTitle: { fontSize: 13, color: colors.brand.primary, fontWeight: '800', marginBottom: 15, textTransform: 'uppercase' },
   catScroll: { marginBottom: 30 },
-  catItem: { width: 85, height: 85, borderRadius: 45, backgroundColor: '#FFF', justifyContent: 'center', alignItems: 'center', marginRight: 15, elevation: 2 },
-  activeCat: { backgroundColor: '#005DA7' },
-  catLabel: { fontSize: 9, fontWeight: '900', marginTop: 5, color: '#005DA7' },
-  formCard: { backgroundColor: '#FFFFFF', borderRadius: 40, padding: 25, marginBottom: 30 },
-  label: { fontSize: 11, fontWeight: '800', color: '#1A234E', marginBottom: 10, textTransform: 'uppercase' },
-  input: { backgroundColor: '#EDF0FF', borderRadius: 20, padding: 18, marginBottom: 25, color: '#1A234E', fontSize: 15 },
+  catItem: { width: 85, height: 85, borderRadius: radius.full, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center', marginRight: 15, elevation: 2 },
+  activeCat: { backgroundColor: colors.brand.primary },
+  catLabel: { fontSize: 9, fontWeight: '900', marginTop: 5, color: colors.brand.primary },
+  formCard: { backgroundColor: colors.surface.white, borderRadius: radius.medium, padding: 25, marginBottom: 30 },
+  label: { fontSize: 11, fontWeight: '800', color: colors.text.primary, marginBottom: 10, textTransform: 'uppercase' },
+  input: { backgroundColor: colors.surface.neutral, borderRadius: radius.button, padding: 18, marginBottom: 25, color: colors.text.primary, fontSize: 15 },
   textArea: { height: 100, textAlignVertical: 'top' },
   childList: { flexDirection: 'row', gap: 20, marginBottom: 35, flexWrap: 'wrap' },
   childItem: { alignItems: 'center', width: 60 },
-  childCircle: { width: 55, height: 55, borderRadius: 30, borderWidth: 2, borderColor: '#005DA7', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
-  activeChild: { backgroundColor: '#005DA7' },
-  childInitial: { fontWeight: '800', color: '#005DA7', fontSize: 14 },
-  childName: { fontSize: 10, color: '#1A234E', fontWeight: '600', marginTop: 8, textAlign: 'center' },
+  childCircle: { width: 55, height: 55, borderRadius: radius.full, borderWidth: 2, borderColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.surface.white },
+  activeChild: { backgroundColor: colors.brand.primary },
+  childInitial: { fontWeight: '800', color: colors.brand.primary, fontSize: 14 },
+  childName: { fontSize: 10, color: colors.text.primary, fontWeight: '600', marginTop: 8, textAlign: 'center' },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
-  pillInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EDF0FF', borderRadius: 20, paddingHorizontal: 15, height: 55 },
-  valueText: { color: '#1A234E', fontWeight: '700', fontSize: 15, flex: 1 },
-  unitText: { color: '#1A234E', fontWeight: '400', fontSize: 13, marginLeft: 5 },
-  submitBtn: { backgroundColor: '#005DA7', paddingVertical: 22, borderRadius: 35, alignItems: 'center', minHeight: 70, justifyContent: 'center' },
-  submitBtnText: { color: '#FFF', fontSize: 18, fontWeight: '700' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(237, 240, 255, 0.95)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
-  modalContent: { backgroundColor: '#FFF', padding: 30, borderRadius: 40, width: '100%', alignItems: 'center' },
-  modalHeader: { fontSize: 14, fontWeight: '800', color: '#005DA7', textTransform: 'uppercase', marginBottom: 10 },
-  modalDoneBtn: { width: '100%', alignItems: 'center', padding: 20, backgroundColor: '#005DA7', borderRadius: 25, marginTop: 20 },
-  modalDoneText: { color: '#FFF', fontWeight: '800', textTransform: 'uppercase' }
+  pillInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface.neutral, borderRadius: radius.button, paddingHorizontal: 15, height: 55 },
+  valueText: { color: colors.text.primary, fontWeight: '700', fontSize: 15, flex: 1 },
+  unitText: { color: colors.text.primary, fontWeight: '400', fontSize: 13, marginLeft: 5 },
+  submitBtn: { backgroundColor: colors.brand.primary, paddingVertical: 22, borderRadius: radius.medium, alignItems: 'center', minHeight: 70, justifyContent: 'center' },
+  submitBtnText: { color: colors.text.inverse, fontSize: 18, fontWeight: '700' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(255, 247, 232, 0.95)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
+  modalContent: { backgroundColor: colors.surface.white, padding: 30, borderRadius: radius.medium, width: '100%', alignItems: 'center' },
+  modalHeader: { fontSize: 14, fontWeight: '800', color: colors.brand.primary, textTransform: 'uppercase', marginBottom: 10 },
+  modalDoneBtn: { width: '100%', alignItems: 'center', padding: 20, backgroundColor: colors.brand.primary, borderRadius: radius.card, marginTop: 20 },
+  modalDoneText: { color: colors.text.inverse, fontWeight: '800', textTransform: 'uppercase' }
 });

@@ -9,6 +9,7 @@ import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, typography, radius } from '../constants/theme';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -92,21 +93,21 @@ export default function LoginPage() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <DismissKeyboardWrapper {...dismissKeyboardProps}>
           <View style={styles.inner}>
-            <Text style={styles.title}>welcome back</Text>
+            <Text style={styles.title}>elcome Back</Text>
 
             <View style={styles.toggleContainer}>
               <TouchableOpacity
                 onPress={() => setRole('parent')}
-                style={[styles.roleLabel, isParent && { borderBottomColor: '#005DA7' }]}
+                style={[styles.roleLabel, isParent && { borderBottomColor: colors.brand.primary }]}
               >
-                <Text style={[styles.roleText, isParent && { color: '#005DA7' }]}>parent</Text>
+                <Text style={[styles.roleText, isParent && { color: colors.brand.primary }]}>parent</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setRole('child')}
-                style={[styles.roleLabel, !isParent && { borderBottomColor: '#FFD700' }]}
+                style={[styles.roleLabel, !isParent && { borderBottomColor: colors.brand.primary }]}
               >
-                <Text style={[styles.roleText, !isParent && { color: '#FFD700' }]}>child</Text>
+                <Text style={[styles.roleText, !isParent && { color: colors.brand.primary }]}>child</Text>
               </TouchableOpacity>
             </View>
 
@@ -114,7 +115,7 @@ export default function LoginPage() {
               {isParent ? (
                 <TextInput
                   placeholder="email address"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={colors.text.tertiary}
                   style={styles.input}
                   onChangeText={setEmail}
                   value={email}
@@ -123,7 +124,7 @@ export default function LoginPage() {
               ) : (
                 <TextInput
                   placeholder="username"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={colors.text.tertiary}
                   style={styles.input}
                   onChangeText={setUsername}
                   value={username}
@@ -132,7 +133,7 @@ export default function LoginPage() {
               )}
               <TextInput
                 placeholder="password"
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.text.tertiary}
                 style={styles.input}
                 onChangeText={setPassword}
                 value={password}
@@ -152,7 +153,7 @@ export default function LoginPage() {
             </View>
 
             <TouchableOpacity onPress={() => router.push('/signup-page')} style={styles.linkContainer}>
-              <Text style={styles.linkText}>new here? <Text style={{ color: '#005DA7', fontWeight: '600' }}>sign up</Text></Text>
+              <Text style={styles.linkText}>new here? <Text style={{ color: colors.brand.primary, fontWeight: '600' }}>sign up</Text></Text>
             </TouchableOpacity>
           </View>
         </DismissKeyboardWrapper>
@@ -162,18 +163,18 @@ export default function LoginPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 40 },
-  title: { fontSize: 32, fontWeight: '300', color: '#1A234E', textAlign: 'center', marginBottom: 30, letterSpacing: -1 },
+  title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', marginBottom: 30, letterSpacing: -1 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 40, gap: 30 },
   roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  roleText: { fontSize: 14, color: '#AAA', fontWeight: '500' },
+  roleText: { ...typography.bodySmall, color: colors.text.tertiary },
   form: { width: '100%' },
-  input: { borderBottomWidth: 1, borderBottomColor: '#BDC4D4', paddingVertical: 15, marginBottom: 20, fontSize: 16, color: '#1A234E' },
-  errorText: { color: '#D32F2F', fontSize: 13, marginBottom: 15, textAlign: 'center' },
-  mainButton: { backgroundColor: '#005DA7', paddingVertical: 18, borderRadius: 5, marginTop: 20, alignItems: 'center' },
+  input: { borderBottomWidth: 1, borderBottomColor: colors.border.default, paddingVertical: 15, marginBottom: 20, fontSize: 16, color: colors.text.primary },
+  errorText: { color: colors.status.error, fontSize: 13, marginBottom: 15, textAlign: 'center' },
+  mainButton: { backgroundColor: colors.brand.primary, paddingVertical: 18, borderRadius: radius.button, marginTop: 20, alignItems: 'center' },
   mainButtonDisabled: { opacity: 0.4 },
-  mainButtonText: { color: '#FFF', fontWeight: '600', fontSize: 16 },
+  mainButtonText: { color: colors.text.inverse, fontWeight: '600', fontSize: 16 },
   linkContainer: { marginTop: 30, alignItems: 'center' },
-  linkText: { color: '#AAA', fontSize: 14 }
+  linkText: { color: colors.text.tertiary, fontSize: 14 }
 });

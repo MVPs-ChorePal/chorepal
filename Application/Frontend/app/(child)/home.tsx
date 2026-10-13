@@ -7,6 +7,7 @@ import {
 import { supabase } from '../../utils/supabase';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, radius } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -74,7 +75,7 @@ export default function Dashboard() {
 
   if (loading) return (
     <View style={[styles.container, styles.center]}>
-      <ActivityIndicator color="#005DA7" />
+      <ActivityIndicator color={colors.brand.primary} />
     </View>
   );
 
@@ -104,7 +105,7 @@ export default function Dashboard() {
               >
                 <View style={styles.cardLeft}>
                   <View style={styles.iconCircle}>
-                    <Ionicons name="flash-outline" size={20} color="#005DA7" />
+                    <Ionicons name="flash-outline" size={20} color={colors.brand.primary} />
                   </View>
                   <View>
                     <Text style={styles.choreName}>{item.title.toLowerCase()}</Text>
@@ -113,17 +114,17 @@ export default function Dashboard() {
                 </View>
                 <View style={[
                   styles.statusBadge,
-                  (item.status === 'pending' ) && { backgroundColor: '#FFF9C4' },
-                  item.status === 'approved' || item.status === 'completed' && { backgroundColor: '#E8F5E9' },
+                  item.status === 'pending' && { backgroundColor: colors.status.warningSubtle },
+                  (item.status === 'approved' || item.status === 'completed') && { backgroundColor: colors.status.successSubtle },
                 ]}>
                   <Text style={[
                     styles.statusText,
-                    (item.status === 'pending' ) && { color: '#FBC02D' },
-                    item.status === 'approved' || item.status === 'completed' && { color: '#339d39' },
+                    item.status === 'pending' && { color: colors.status.warningText },
+                    (item.status === 'approved' || item.status === 'completed') && { color: colors.status.successText },
                   ]}>
                     {item.status === 'todo' ? 'to-do' : item.status}
                   </Text>
-                <Ionicons name="chevron-forward" size={14} color="#BDC4D4" style={{marginLeft: 5}}/>
+                <Ionicons name="chevron-forward" size={14} color={colors.icon.secondary} style={{marginLeft: 5}}/>
                 </View>
               </TouchableOpacity>
             )}
@@ -149,21 +150,21 @@ export default function Dashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   center: { justifyContent: 'center', alignItems: 'center' },
   mainWrapper: { flex: 1, paddingHorizontal: 30, paddingTop: 30 },
-  
+
   //top styles
   topSection: { marginBottom: 30 },
-  greeting: { fontSize: 16, color: '#005DA7', fontWeight: '300' },
-  title: { fontSize: 32, fontWeight: '800', color: '#1A234E', letterSpacing: -1 },
+  greeting: { fontSize: 16, color: colors.brand.primary, fontWeight: '300' },
+  title: { ...typography.h1, color: colors.text.primary, letterSpacing: -1 },
 
   //list styles
   middleSection: { flex: 1 },
   listPadding: { paddingBottom: 100 },
   choreCard: {
-    backgroundColor: '#FFF',
-    borderRadius: 25,
+    backgroundColor: colors.surface.white,
+    borderRadius: radius.card,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -175,14 +176,14 @@ const styles = StyleSheet.create({
     elevation: 2
   },
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  iconCircle: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#EDF0FF', justifyContent: 'center', alignItems: 'center' },
-  choreName: { fontSize: 16, fontWeight: '700', color: '#1A234E' },
-  choreReward: { fontSize: 13, color: '#005DA7', fontWeight: '600', marginTop: 2 },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: '#EDF0FF' },
-  statusText: { fontSize: 10, fontWeight: '800', color: '#005DA7', textTransform: 'uppercase' },
+  iconCircle: { width: 45, height: 45, borderRadius: radius.full, backgroundColor: colors.surface.neutral, justifyContent: 'center', alignItems: 'center' },
+  choreName: { ...typography.bodyMediumStrong, color: colors.text.primary },
+  choreReward: { fontSize: 13, color: colors.brand.primary, fontWeight: '600', marginTop: 2 },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.small, backgroundColor: colors.surface.neutral },
+  statusText: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase' },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
-  emptyText: { fontSize: 20, fontWeight: '300', color: '#1A234E' },
-  emptySub: { fontSize: 14, color: '#AAA', marginTop: 5 },
+  emptyText: { fontSize: 20, fontWeight: '300', color: colors.text.primary },
+  emptySub: { fontSize: 14, color: colors.text.tertiary, marginTop: 5 },
   bottomSection: { alignItems: 'center', paddingBottom: 20 },
-  logoutText: { color: '#BDC4D4', fontSize: 13, textDecorationLine: 'underline', fontWeight: '300' }
+  logoutText: { color: colors.text.tertiary, fontSize: 13, textDecorationLine: 'underline', fontWeight: '300' }
 });

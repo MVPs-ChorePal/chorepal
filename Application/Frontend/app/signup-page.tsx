@@ -7,6 +7,7 @@ import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, typography, radius } from '../constants/theme';
 
 export default function SignupPage() {
   //generates family code
@@ -93,8 +94,6 @@ export default function SignupPage() {
   };
 
   const isParent = role === 'parent';
-  const accentColor = isParent ? '#005DA7' : '#FFD700'; 
-  const btnText = isParent ? '#FFFFFF' : '#000000';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -110,7 +109,7 @@ export default function SignupPage() {
         <View style={styles.form}>
           <TextInput
             placeholder="full name"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.text.tertiary}
             style={styles.input}
             onChangeText={setFullName}
             value={fullName}
@@ -121,7 +120,7 @@ export default function SignupPage() {
           {!isChild && (
             <TextInput
               placeholder="email address"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.text.tertiary}
               style={styles.input}
               onChangeText={setEmail}
               value={email}
@@ -131,7 +130,7 @@ export default function SignupPage() {
           )}
           <TextInput
             placeholder="password"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.text.tertiary}
             style={styles.input}
             onChangeText={setPassword}
             value={password}
@@ -143,29 +142,29 @@ export default function SignupPage() {
           {!!error && <Text style={styles.errorText}>{error}</Text>}
 
           <TouchableOpacity
-            style={[styles.mainButton, { backgroundColor: accentColor }, !isFormValid && styles.mainButtonDisabled]}
+            style={[styles.mainButton, { backgroundColor: colors.brand.primary }, !isFormValid && styles.mainButtonDisabled]}
             onPress={handleSignUp}
             disabled={loading || !isFormValid}
           >
-            <Text style={[styles.mainButtonText, { color: btnText }]}>
+            <Text style={[styles.mainButtonText, { color: colors.text.inverse }]}>
               {loading ? '...' : 'sign up'}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.toggleContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setRole('parent')}
-            style={[styles.roleLabel, isParent && { borderBottomColor: '#005DA7' }]}
+            style={[styles.roleLabel, isParent && { borderBottomColor: colors.brand.primary }]}
           >
-            <Text style={[styles.roleText, isParent && { color: '#005DA7' }]}>parent</Text>
+            <Text style={[styles.roleText, isParent && { color: colors.brand.primary }]}>parent</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setRole('child')}
-            style={[styles.roleLabel, !isParent && { borderBottomColor: '#FFD700' }]}
+            style={[styles.roleLabel, !isParent && { borderBottomColor: colors.brand.primary }]}
           >
-            <Text style={[styles.roleText, !isParent && { color: '#FFD700' }]}>child</Text>
+            <Text style={[styles.roleText, !isParent && { color: colors.brand.primary }]}>child</Text>
           </TouchableOpacity>
         </View>
 
@@ -173,23 +172,23 @@ export default function SignupPage() {
           <View style={[styles.toggleContainer, { marginTop: 20 }]}>
             <TouchableOpacity
               onPress={() => setParentMode('create')}
-              style={[styles.roleLabel, parentMode === 'create' && { borderBottomColor: '#005DA7' }]}
+              style={[styles.roleLabel, parentMode === 'create' && { borderBottomColor: colors.brand.primary }]}
             >
-              <Text style={[styles.roleText, parentMode === 'create' && { color: '#005DA7' }]}>create household</Text>
+              <Text style={[styles.roleText, parentMode === 'create' && { color: colors.brand.primary }]}>create household</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => setParentMode('join')}
-              style={[styles.roleLabel, parentMode === 'join' && { borderBottomColor: '#005DA7' }]}
+              style={[styles.roleLabel, parentMode === 'join' && { borderBottomColor: colors.brand.primary }]}
             >
-              <Text style={[styles.roleText, parentMode === 'join' && { color: '#005DA7' }]}>join household</Text>
+              <Text style={[styles.roleText, parentMode === 'join' && { color: colors.brand.primary }]}>join household</Text>
             </TouchableOpacity>
           </View>
         )}
 
         <TouchableOpacity onPress={() => router.push('/login-page')} style={{ marginTop: 50, alignItems: 'center' }}>
-          <Text style={{ color: '#AAA', fontSize: 14 }}>
-            already have an account? <Text style={{ color: '#005DA7', fontWeight: '600' }}>login</Text>
+          <Text style={{ color: colors.text.tertiary, fontSize: 14 }}>
+            already have an account? <Text style={{ color: colors.brand.primary, fontWeight: '600' }}>login</Text>
           </Text>
         </TouchableOpacity>
       </KeyboardAvoidingView>
@@ -198,18 +197,18 @@ export default function SignupPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 40 },
   headerArea: { marginBottom: 50 },
-  title: { fontSize: 32, fontWeight: '300', color: '#1A234E', textAlign: 'center', letterSpacing: -1 },
+  title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
   form: { width: '100%' },
-  input: { borderBottomWidth: 1, borderBottomColor: '#BDC4D4', paddingVertical: 15, marginBottom: 20, fontSize: 16, color: '#1A234E' },
-  hint: { fontSize: 12, color: '#AAA', marginTop: -14, marginBottom: 20 },
-  errorText: { color: '#D32F2F', fontSize: 13, marginBottom: 15, textAlign: 'center' },
-  mainButton: { paddingVertical: 18, borderRadius: 5, marginTop: 20, alignItems: 'center' },
+  input: { borderBottomWidth: 1, borderBottomColor: colors.border.default, paddingVertical: 15, marginBottom: 20, fontSize: 16, color: colors.text.primary },
+  hint: { fontSize: 12, color: colors.text.tertiary, marginTop: -14, marginBottom: 20 },
+  errorText: { color: colors.status.error, fontSize: 13, marginBottom: 15, textAlign: 'center' },
+  mainButton: { paddingVertical: 18, borderRadius: radius.button, marginTop: 20, alignItems: 'center' },
   mainButtonDisabled: { opacity: 0.4 },
   mainButtonText: { fontWeight: '600', fontSize: 16, letterSpacing: 0.5 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', marginTop: 60, gap: 30 },
   roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  roleText: { fontSize: 14, color: '#AAA', fontWeight: '500' }
+  roleText: { ...typography.bodySmall, color: colors.text.tertiary }
 });

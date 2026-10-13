@@ -9,6 +9,7 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
 import { showAlert } from '../../utils/alert';
+import { colors, typography, radius } from '../../constants/theme';
 
 //formats an ISO date string into something like "sep 12"
 const formatDate = (isoDate) =>
@@ -108,7 +109,7 @@ export default function ChildRewards() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#FFD700" />
+        <ActivityIndicator color={colors.brand.primary} />
       </SafeAreaView>
     );
   }
@@ -118,14 +119,14 @@ export default function ChildRewards() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FFD700" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
         <Text style={styles.title}>rewards</Text>
 
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>your points</Text>
           <View style={styles.balanceRow}>
-            <Ionicons name="star" size={28} color="#000" />
+            <Ionicons name="star" size={28} color={colors.icon.inverse} />
             <Text style={styles.balanceValue}>{balance}</Text>
           </View>
         </View>
@@ -149,8 +150,8 @@ export default function ChildRewards() {
                 disabled={!canAfford || redeemingId !== null}
               >
                 {redeemingId === reward.id
-                  ? <ActivityIndicator color="#000" />
-                  : <Text style={[styles.redeemText, !canAfford && { color: '#8E8E93' }]}>{cost} pts</Text>}
+                  ? <ActivityIndicator color={colors.text.inverse} />
+                  : <Text style={[styles.redeemText, !canAfford && { color: colors.text.secondary }]}>{cost} pts</Text>}
               </TouchableOpacity>
             </View>
           );
@@ -168,13 +169,13 @@ export default function ChildRewards() {
                   <Ionicons
                     name={isCredit ? 'checkmark-circle' : 'gift'}
                     size={20}
-                    color={isCredit ? '#43A047' : '#FBC02D'}
+                    color={isCredit ? colors.status.success : colors.status.pending}
                   />
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.historyLabel}>{t.label.toLowerCase()}</Text>
                     <Text style={styles.historyDate}>{formatDate(t.created_at)}</Text>
                   </View>
-                  <Text style={[styles.historyAmount, { color: isCredit ? '#43A047' : '#1A234E' }]}>
+                  <Text style={[styles.historyAmount, { color: isCredit ? colors.status.success : colors.text.primary }]}>
                     {isCredit ? '+' : '-'}{Number(t.amount)}
                   </Text>
                 </View>
@@ -188,26 +189,26 @@ export default function ChildRewards() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { padding: 25, paddingBottom: 140 },
-  title: { fontSize: 24, fontWeight: '300', color: '#FFD700', letterSpacing: -1, marginBottom: 15 },
-  balanceCard: { backgroundColor: '#FFD700', borderRadius: 30, padding: 25, alignItems: 'center' },
-  balanceLabel: { fontSize: 11, fontWeight: '800', color: '#000', textTransform: 'uppercase' },
+  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1, marginBottom: 15 },
+  balanceCard: { backgroundColor: colors.brand.primary, borderRadius: radius.medium, padding: 25, alignItems: 'center' },
+  balanceLabel: { ...typography.labelSmall, color: colors.text.inverse, textTransform: 'uppercase' },
   balanceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  balanceValue: { fontSize: 44, fontWeight: '800', color: '#000' },
-  sectionTitle: { fontSize: 11, fontWeight: '800', color: '#8E8E93', textTransform: 'uppercase', marginTop: 25, marginBottom: 12 },
-  emptyText: { color: '#BDC4D4', fontWeight: '300' },
-  card: { backgroundColor: '#FFF', borderRadius: 25, padding: 20, marginBottom: 12, flexDirection: 'row', alignItems: 'center' },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1A234E' },
-  cardSub: { fontSize: 12, color: '#8E8E93', marginTop: 3 },
-  redeemBtn: { backgroundColor: '#FFD700', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10, minWidth: 80, alignItems: 'center' },
-  redeemBtnDisabled: { backgroundColor: '#EDF0FF' },
-  redeemText: { fontWeight: '800', color: '#000', fontSize: 13 },
-  historyCard: { backgroundColor: '#FFF', borderRadius: 25, paddingHorizontal: 20, paddingVertical: 5 },
+  balanceValue: { fontSize: 44, fontWeight: '800', color: colors.text.inverse },
+  sectionTitle: { ...typography.captionStrong, color: colors.text.secondary, textTransform: 'uppercase', marginTop: 25, marginBottom: 12 },
+  emptyText: { color: colors.text.tertiary, fontWeight: '300' },
+  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, marginBottom: 12, flexDirection: 'row', alignItems: 'center' },
+  cardTitle: { ...typography.bodyMediumStrong, color: colors.text.primary },
+  cardSub: { fontSize: 12, color: colors.text.secondary, marginTop: 3 },
+  redeemBtn: { backgroundColor: colors.brand.primary, borderRadius: radius.button, paddingHorizontal: 16, paddingVertical: 10, minWidth: 80, alignItems: 'center' },
+  redeemBtnDisabled: { backgroundColor: colors.surface.neutral },
+  redeemText: { fontWeight: '800', color: colors.text.inverse, fontSize: 13 },
+  historyCard: { backgroundColor: colors.surface.white, borderRadius: radius.card, paddingHorizontal: 20, paddingVertical: 5 },
   historyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
-  rowDivider: { borderTopWidth: 1, borderTopColor: '#EDF0FF' },
-  historyLabel: { fontSize: 14, fontWeight: '600', color: '#1A234E' },
-  historyDate: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+  rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },
+  historyLabel: { ...typography.bodySmallStrong, color: colors.text.primary },
+  historyDate: { fontSize: 12, color: colors.text.secondary, marginTop: 2 },
   historyAmount: { fontSize: 15, fontWeight: '800' },
 });

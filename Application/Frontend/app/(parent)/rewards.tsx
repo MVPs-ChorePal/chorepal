@@ -9,6 +9,7 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
 import { showAlert } from '../../utils/alert';
+import { colors, typography, radius } from '../../constants/theme';
 
 //grabs only the first "word" of a name, lowercased to match the app's style
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
@@ -108,7 +109,7 @@ export default function ParentRewards() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.center]}>
-        <ActivityIndicator color="#005DA7" />
+        <ActivityIndicator color={colors.brand.primary} />
       </SafeAreaView>
     );
   }
@@ -119,7 +120,7 @@ export default function ParentRewards() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#005DA7" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
         <Text style={styles.title}>rewards</Text>
 
@@ -149,7 +150,7 @@ export default function ParentRewards() {
                 <Text style={styles.cardSub}>{Number(reward.point_cost)} pts</Text>
               </View>
               <TouchableOpacity onPress={() => handleRemoveReward(reward)} disabled={busyId !== null}>
-                <Ionicons name="trash-outline" size={20} color="#BDC4D4" />
+                <Ionicons name="trash-outline" size={20} color={colors.icon.secondary} />
               </TouchableOpacity>
             </View>
           ))}
@@ -157,21 +158,21 @@ export default function ParentRewards() {
           <View style={[styles.addRow, rewards.length > 0 && styles.rowDivider]}>
             <TextInput
               placeholder="e.g. 30 min screen time"
-              placeholderTextColor="#BDC4D4"
+              placeholderTextColor={colors.text.tertiary}
               style={[styles.input, { flex: 1 }]}
               value={newTitle}
               onChangeText={setNewTitle}
             />
             <TextInput
               placeholder="pts"
-              placeholderTextColor="#BDC4D4"
+              placeholderTextColor={colors.text.tertiary}
               keyboardType="numeric"
               style={[styles.input, styles.costInput]}
               value={newCost}
               onChangeText={setNewCost}
             />
             <TouchableOpacity style={styles.addBtn} onPress={handleAddReward} disabled={busyId !== null}>
-              {busyId === 'new' ? <ActivityIndicator color="#FFF" /> : <Ionicons name="add" size={24} color="#FFF" />}
+              {busyId === 'new' ? <ActivityIndicator color={colors.text.inverse} /> : <Ionicons name="add" size={24} color={colors.icon.inverse} />}
             </TouchableOpacity>
           </View>
         </View>
@@ -181,20 +182,20 @@ export default function ParentRewards() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { padding: 25, paddingBottom: 140 },
-  title: { fontSize: 24, fontWeight: '300', color: '#005DA7', letterSpacing: -1, marginBottom: 10 },
-  sectionTitle: { fontSize: 11, fontWeight: '800', color: '#1A234E', textTransform: 'uppercase', marginTop: 25, marginBottom: 12 },
-  emptyText: { color: '#BDC4D4', fontWeight: '300', marginBottom: 5 },
-  card: { backgroundColor: '#FFF', borderRadius: 25, padding: 20, marginBottom: 15 },
-  cardSub: { fontSize: 13, color: '#8E8E93', marginTop: 2 },
+  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1, marginBottom: 10 },
+  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase', marginTop: 25, marginBottom: 12 },
+  emptyText: { color: colors.text.tertiary, fontWeight: '300', marginBottom: 5 },
+  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, marginBottom: 15 },
+  cardSub: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
   balanceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  rowDivider: { borderTopWidth: 1, borderTopColor: '#EDF0FF' },
-  balanceName: { fontSize: 15, fontWeight: '600', color: '#1A234E' },
-  balanceValue: { fontSize: 15, fontWeight: '800', color: '#005DA7' },
+  rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },
+  balanceName: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
+  balanceValue: { fontSize: 15, fontWeight: '800', color: colors.brand.primary },
   addRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 12 },
-  input: { backgroundColor: '#EDF0FF', borderRadius: 15, paddingHorizontal: 14, paddingVertical: 12, color: '#1A234E', fontSize: 14 },
+  input: { backgroundColor: colors.surface.neutral, borderRadius: radius.small, paddingHorizontal: 14, paddingVertical: 12, color: colors.text.primary, fontSize: 14 },
   costInput: { width: 70, textAlign: 'center' },
-  addBtn: { backgroundColor: '#005DA7', width: 46, height: 46, borderRadius: 23, justifyContent: 'center', alignItems: 'center' },
+  addBtn: { backgroundColor: colors.brand.primary, width: 46, height: 46, borderRadius: radius.full, justifyContent: 'center', alignItems: 'center' },
 });

@@ -9,6 +9,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, typography, radius } from '../../../constants/theme';
 
 //ignore log warnings
 LogBox.ignoreAllLogs();
@@ -158,7 +159,7 @@ export default function ChoreSubmissionMachine() {
     }
   };
 
-  if (loading) return <View style={styles.center}><ActivityIndicator color="#005DA7" /></View>;
+  if (loading) return <View style={styles.center}><ActivityIndicator color={colors.brand.primary} /></View>;
 
   //VIEW 3: SUMMARY
   if (chore?.status === 'completed' || chore?.status === 'approved') {
@@ -169,7 +170,7 @@ export default function ChoreSubmissionMachine() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}><Text style={styles.backLink}>‹ back</Text></TouchableOpacity>
-          <View style={[styles.badge, (chore.status === 'approved' || chore.status === 'completed') && { backgroundColor: '#339d39' }]}>
+          <View style={[styles.badge, (chore.status === 'approved' || chore.status === 'completed') && { backgroundColor: colors.status.success }]}>
             <Text style={styles.badgeText}>{chore.status}</Text>
           </View>
         </View>
@@ -219,7 +220,7 @@ export default function ChoreSubmissionMachine() {
               <Image source={{ uri: capturedPhoto }} style={styles.camera} />
             ) : !permission?.granted ? (
               <TouchableOpacity style={[styles.camera, styles.permissionPrompt]} onPress={requestPermission}>
-                <Ionicons name="camera-outline" size={32} color="#FFF" />
+                <Ionicons name="camera-outline" size={32} color={colors.icon.inverse} />
                 <Text style={styles.permissionText}>tap to enable camera</Text>
               </TouchableOpacity>
             ) : (
@@ -228,9 +229,9 @@ export default function ChoreSubmissionMachine() {
             <View style={styles.overlay}>
               {capturedPhoto ? (
                 <View style={styles.actionRow}>
-                  <TouchableOpacity style={[styles.roundBtn, {backgroundColor: '#FF4B4B'}]} onPress={() => setCapturedPhoto(null)} disabled={isProcessing}><Ionicons name="close" size={28} color="#FFF" /></TouchableOpacity>
-                  <TouchableOpacity style={[styles.roundBtn, {backgroundColor: '#43A047'}]} onPress={handleSubmit} disabled={isProcessing}>
-                    {isProcessing ? <ActivityIndicator color="#FFF" /> : buttonState === 'checkmark' ? <Ionicons name="checkmark" size={28} color="#FFF" /> : buttonState === 'verified' ? <Text style={styles.btnTextMini}>OK</Text> : <Ionicons name="arrow-up" size={28} color="#FFF" />}
+                  <TouchableOpacity style={[styles.roundBtn, {backgroundColor: colors.status.error}]} onPress={() => setCapturedPhoto(null)} disabled={isProcessing}><Ionicons name="close" size={28} color={colors.icon.inverse} /></TouchableOpacity>
+                  <TouchableOpacity style={[styles.roundBtn, {backgroundColor: colors.status.success}]} onPress={handleSubmit} disabled={isProcessing}>
+                    {isProcessing ? <ActivityIndicator color={colors.text.inverse} /> : buttonState === 'checkmark' ? <Ionicons name="checkmark" size={28} color={colors.icon.inverse} /> : buttonState === 'verified' ? <Text style={styles.btnTextMini}>OK</Text> : <Ionicons name="arrow-up" size={28} color={colors.icon.inverse} />}
                   </TouchableOpacity>
                 </View>
               ) : permission?.granted ? (
@@ -245,35 +246,37 @@ export default function ChoreSubmissionMachine() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#EDF0FF' },
+  container: { flex: 1, backgroundColor: colors.surface.appBackground },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   mainWrapper: { flex: 1, paddingVertical: 20, alignItems: 'center' },
   topSection: { alignItems: 'center', width: '100%', paddingHorizontal: 30 },
-  backLink: { color: '#8E8E93', fontSize: 18 },
-  title: { fontSize: 32, fontWeight: '800', color: '#1A234E', marginTop: 10 },
-  instruction: { fontSize: 14, color: '#005DA7', fontWeight: '500', marginTop: 10, textAlign: 'center', paddingHorizontal: 20 },
+  backLink: { color: colors.text.secondary, fontSize: 18 },
+  title: { ...typography.h1, color: colors.text.primary, marginTop: 10 },
+  instruction: { fontSize: 14, color: colors.brand.primary, fontWeight: '500', marginTop: 10, textAlign: 'center', paddingHorizontal: 20 },
   middleSection: { flex: 1, justifyContent: 'center' },
-  cameraContainer: { width: width * 0.88, height: width * 1.1, borderRadius: 50, overflow: 'hidden', backgroundColor: '#000' },
+  // Live camera viewfinder — deliberate dark camera chrome, not a themed surface.
+  cameraContainer: { width: width * 0.88, height: width * 1.1, borderRadius: radius.large, overflow: 'hidden', backgroundColor: '#000' },
   camera: { flex: 1 },
   permissionPrompt: { justifyContent: 'center', alignItems: 'center', gap: 10 },
   permissionText: { color: '#FFF', fontSize: 13, fontWeight: '500' },
   overlay: { position: 'absolute', bottom: 30, width: '100%', alignItems: 'center' },
-  snapButton: { width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
-  innerSnap: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#FFF' },
+  snapButton: { width: 60, height: 60, borderRadius: radius.full, backgroundColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
+  innerSnap: { width: 46, height: 46, borderRadius: radius.full, backgroundColor: '#FFF' },
   actionRow: { flexDirection: 'row', gap: 30 },
-  roundBtn: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
-  btnTextMini: { color: '#FFF', fontWeight: '800', fontSize: 12 },
+  roundBtn: { width: 60, height: 60, borderRadius: radius.full, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
+  btnTextMini: { color: colors.text.inverse, fontWeight: '800', fontSize: 12 },
   summaryWrapper: { paddingHorizontal: 30, alignItems: 'center', paddingBottom: 120 },
-  summaryTitle: { fontSize: 28, fontWeight: '800', color: '#1A234E', alignSelf: 'center', marginTop: 10 },
-  badge: { backgroundColor: '#005DA7', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 15 },
-  badgeText: { color: '#FFF', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+  summaryTitle: { fontSize: 28, fontWeight: '800', color: colors.text.primary, alignSelf: 'center', marginTop: 10 },
+  badge: { backgroundColor: colors.brand.primary, paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.small },
+  badgeText: { color: colors.text.inverse, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   imageGrid: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 20 },
   imageBox: { width: '47%' },
-  imgLabel: { fontSize: 11, color: '#8E8E93', marginBottom: 10, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
-  imgDisplay: { width: '100%', height: 180, borderRadius: 25, backgroundColor: '#000' },
-  infoCard: { backgroundColor: '#FFF', width: '100%', borderRadius: 30, padding: 25, marginTop: 20, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
-  infoTitle: { fontSize: 11, fontWeight: '800', color: '#005DA7', textTransform: 'uppercase', marginBottom: 10 },
-  infoText: { fontSize: 15, color: '#1A234E', lineHeight: 22 },
-  rewardLarge: { fontSize: 32, fontWeight: '800', color: '#005DA7' },
+  imgLabel: { fontSize: 11, color: colors.text.secondary, marginBottom: 10, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
+  // Post-capture placeholder box — not camera chrome, matches the parent review screen's white imgContainer.
+  imgDisplay: { width: '100%', height: 180, borderRadius: radius.card, backgroundColor: colors.surface.white },
+  infoCard: { backgroundColor: colors.surface.white, width: '100%', borderRadius: radius.medium, padding: 25, marginTop: 20, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
+  infoTitle: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase', marginBottom: 10 },
+  infoText: { fontSize: 15, color: colors.text.primary, lineHeight: 22 },
+  rewardLarge: { fontSize: 32, fontWeight: '800', color: colors.brand.primary },
   header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 30, paddingTop: 10 }
 });
