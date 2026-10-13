@@ -98,8 +98,7 @@ export default function Button({
     <View style={[fullWidth && styles.fullWidth, style]}>
       {hasLedge && ledgeColor && (
         <View
-          pointerEvents="none"
-          style={[styles.ledge, { borderRadius: cornerRadius, backgroundColor: ledgeColor }]}
+          style={[styles.ledge, { borderRadius: cornerRadius, backgroundColor: ledgeColor, pointerEvents: 'none' }]}
         />
       )}
       <TouchableOpacity
