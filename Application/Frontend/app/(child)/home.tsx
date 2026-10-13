@@ -7,7 +7,7 @@ import {
 import { supabase } from '../../utils/supabase';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius } from '../../constants/theme';
+import { colors, typography, radius, spacing } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
 
@@ -74,13 +74,13 @@ export default function Dashboard() {
   };
 
   if (loading) return (
-    <View style={[styles.container, styles.center]}>
+    <View style={[styles.root, styles.center]}>
       <ActivityIndicator color={colors.brand.primary} />
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
       
       <View style={styles.mainWrapper}>
@@ -97,7 +97,7 @@ export default function Dashboard() {
             data={chores}
             keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listPadding}
+            contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <TouchableOpacity 
                 style={styles.choreCard}
@@ -150,18 +150,19 @@ export default function Dashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(child)/_layout.tsx).
+  root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
-  mainWrapper: { flex: 1, paddingHorizontal: 30, paddingTop: 30 },
+  mainWrapper: { flex: 1, gap: spacing.xl },
 
   //top styles
-  topSection: { marginBottom: 30 },
+  topSection: {},
   greeting: { fontSize: 16, color: colors.brand.primary, fontWeight: '300' },
   title: { ...typography.h1, color: colors.text.primary, letterSpacing: -1 },
 
   //list styles
   middleSection: { flex: 1 },
-  listPadding: { paddingBottom: 100 },
+  list: { paddingBottom: 100, gap: spacing.xl },
   choreCard: {
     backgroundColor: colors.surface.white,
     borderRadius: radius.card,
@@ -169,7 +170,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 15,
     shadowColor: '#000',
     shadowOpacity: 0.02,
     shadowRadius: 10,

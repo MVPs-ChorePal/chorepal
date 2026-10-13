@@ -3,12 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
 import HouseholdCode from '../../components/household-code';
-import { colors, typography } from '../../constants/theme';
+import { colors, typography, spacing } from '../../constants/theme';
 
 export default function ParentAccount() {
   const router = useRouter();
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Text style={styles.title}>account</Text>
       <View style={styles.content}>
         <HouseholdCode />
@@ -24,7 +24,8 @@ export default function ParentAccount() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground, padding: 25 },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
+  root: { flex: 1, gap: spacing.xl },
   title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   placeholder: { color: colors.text.tertiary, fontWeight: '300' },

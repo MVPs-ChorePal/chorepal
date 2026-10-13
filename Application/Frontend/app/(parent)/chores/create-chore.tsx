@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, TextInput, TouchableOpacity,
-  ScrollView, ActivityIndicator, Platform, KeyboardAvoidingView, Modal, Dimensions, LogBox
+  ScrollView, Platform, KeyboardAvoidingView, Modal, Dimensions, LogBox
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
 import { showAlert } from '../../../utils/alert';
@@ -10,7 +10,9 @@ import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors, typography, radius } from '../../../constants/theme';
+import { colors, typography, radius, spacing } from '../../../constants/theme';
+import Button from '../../../components/Button';
+import Input from '../../../components/Input';
 
 //silences error box
 LogBox.ignoreAllLogs();
@@ -143,7 +145,7 @@ export default function CreateChore() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.root} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -170,43 +172,55 @@ export default function CreateChore() {
           </ScrollView>
 
           <View style={styles.formCard}>
-            <Text style={styles.label}>chore title</Text>
-            <TextInput placeholder="e.g. Unload the Dishwasher" placeholderTextColor={colors.text.tertiary} style={styles.input} value={title} onChangeText={setTitle} />
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>chore title</Text>
+              <Input placeholder="e.g. Unload the Dishwasher" value={title} onChangeText={setTitle} />
+            </View>
 
-            <Text style={styles.label}>details</Text>
-            <TextInput placeholder="Tell them exactly how to complete..." placeholderTextColor={colors.text.tertiary} style={[styles.input, styles.textArea]} multiline value={description} onChangeText={setDescription} />
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>details</Text>
+              <Input
+                placeholder="Tell them exactly how to complete..."
+                style={styles.textArea}
+                multiline
+                value={description}
+                onChangeText={setDescription}
+              />
+            </View>
 
-            <Text style={styles.label}>assign to:</Text>
-            <View style={styles.childList}>
-              <View style={styles.childItem}>
-                <TouchableOpacity style={[styles.childCircle, selectedChildId === 'all' && styles.activeChild]} onPress={() => setSelectedChildId('all')}>
-                  <Text style={[styles.childInitial, selectedChildId === 'all' && {color: colors.text.inverse}]}>All</Text>
-                </TouchableOpacity>
-              </View>
-
-              {children.map(child => (
-                <View key={child.id} style={styles.childItem}>
-                  <TouchableOpacity 
-                    style={[styles.childCircle, selectedChildId === child.id && styles.activeChild]} 
-                    onPress={() => setSelectedChildId(child.id)}
-                  >
-                    <Text style={[styles.childInitial, selectedChildId === child.id && {color: colors.text.inverse}]}>
-                      {formatFirstName(child.display_name).charAt(0)}
-                    </Text>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>assign to:</Text>
+              <View style={styles.childList}>
+                <View style={styles.childItem}>
+                  <TouchableOpacity style={[styles.childCircle, selectedChildId === 'all' && styles.activeChild]} onPress={() => setSelectedChildId('all')}>
+                    <Text style={[styles.childInitial, selectedChildId === 'all' && {color: colors.text.inverse}]}>All</Text>
                   </TouchableOpacity>
-                  <Text style={styles.childName} numberOfLines={1}>{formatFirstName(child.display_name)}</Text>
                 </View>
-              ))}
+
+                {children.map(child => (
+                  <View key={child.id} style={styles.childItem}>
+                    <TouchableOpacity
+                      style={[styles.childCircle, selectedChildId === child.id && styles.activeChild]}
+                      onPress={() => setSelectedChildId(child.id)}
+                    >
+                      <Text style={[styles.childInitial, selectedChildId === child.id && {color: colors.text.inverse}]}>
+                        {formatFirstName(child.display_name).charAt(0)}
+                      </Text>
+                    </TouchableOpacity>
+                    <Text style={styles.childName} numberOfLines={1}>{formatFirstName(child.display_name)}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
 
             <View style={styles.row}>
-              <View style={{flex: 1.2, marginRight: 15}}>
+              <View style={styles.dateBox}>
                  <Text style={styles.label}>deadline</Text>
                  <TouchableOpacity style={styles.pillInput} onPress={() => setShowDatePicker(true)}>
                     <Text style={styles.valueText}>{date.toLocaleDateString()}</Text>
                  </TouchableOpacity>
               </View>
-              <View style={{flex: 1}}>
+              <View style={styles.rewardBox}>
                  <Text style={styles.label}>reward</Text>
                  <View style={styles.pillInput}>
                     <TextInput keyboardType="numeric" value={reward} onChangeText={setReward} style={styles.valueText} placeholder="500" placeholderTextColor={colors.text.tertiary} />
@@ -215,19 +229,14 @@ export default function CreateChore() {
               </View>
             </View>
           </View>
-          <TouchableOpacity 
-            style={styles.submitBtn} 
-            onPress={handleSubmit} 
-            disabled={loading || isSuccess}
-          >
-            {isSuccess ? (
-              <Ionicons name="checkmark-sharp" size={32} color={colors.icon.inverse} />
-            ) : loading ? (
-              <ActivityIndicator color={colors.text.inverse} />
-            ) : (
-              <Text style={styles.submitBtnText}>Submit</Text>
-            )}
-          </TouchableOpacity>
+          <Button
+            title="Submit"
+            onPress={handleSubmit}
+            loading={loading}
+            disabled={isSuccess}
+            icon={isSuccess ? <Ionicons name="checkmark-sharp" size={32} color={colors.icon.inverse} /> : undefined}
+            fullWidth
+          />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -236,9 +245,7 @@ export default function CreateChore() {
           <View style={styles.modalContent}>
             <Text style={styles.modalHeader}>Select Deadline</Text>
             <DateTimePicker value={date} mode="date" display="spinner" onChange={onDateChange} minimumDate={new Date()} textColor={colors.text.primary} />
-            <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.modalDoneBtn}>
-              <Text style={styles.modalDoneText}>Done</Text>
-            </TouchableOpacity>
+            <Button title="Done" onPress={() => setShowDatePicker(false)} fullWidth />
           </View>
         </View>
       </Modal>
@@ -248,35 +255,35 @@ export default function CreateChore() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
-  header: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: colors.surface.appBackground },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx)
+  // — this screen is registered on that Tabs navigator (href: null hides it from the bar).
+  root: { flex: 1 },
+  header: { paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center' },
   backText: { color: colors.brand.primary, fontSize: 18, fontWeight: '600', marginLeft: 5 },
-  scroll: { paddingHorizontal: 25, paddingBottom: 150 },
-  sectionTitle: { fontSize: 13, color: colors.brand.primary, fontWeight: '800', marginBottom: 15, textTransform: 'uppercase' },
-  catScroll: { marginBottom: 30 },
+  scroll: { paddingBottom: 150, gap: spacing.xl },
+  sectionTitle: { fontSize: 13, color: colors.brand.primary, fontWeight: '800', textTransform: 'uppercase' },
+  catScroll: {},
   catItem: { width: 85, height: 85, borderRadius: radius.full, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center', marginRight: 15, elevation: 2 },
   activeCat: { backgroundColor: colors.brand.primary },
   catLabel: { fontSize: 9, fontWeight: '900', marginTop: 5, color: colors.brand.primary },
-  formCard: { backgroundColor: colors.surface.white, borderRadius: radius.medium, padding: 25, marginBottom: 30 },
-  label: { fontSize: 11, fontWeight: '800', color: colors.text.primary, marginBottom: 10, textTransform: 'uppercase' },
-  input: { backgroundColor: colors.surface.neutral, borderRadius: radius.button, padding: 18, marginBottom: 25, color: colors.text.primary, fontSize: 15 },
+  formCard: { backgroundColor: colors.surface.white, borderRadius: radius.medium, padding: 25, gap: spacing.lg },
+  fieldGroup: { gap: spacing.sm },
+  label: { fontSize: 11, fontWeight: '800', color: colors.text.primary, textTransform: 'uppercase' },
   textArea: { height: 100, textAlignVertical: 'top' },
-  childList: { flexDirection: 'row', gap: 20, marginBottom: 35, flexWrap: 'wrap' },
-  childItem: { alignItems: 'center', width: 60 },
+  childList: { flexDirection: 'row', gap: spacing.xl, flexWrap: 'wrap' },
+  childItem: { alignItems: 'center', width: 60, gap: spacing.sm },
   childCircle: { width: 55, height: 55, borderRadius: radius.full, borderWidth: 2, borderColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.surface.white },
   activeChild: { backgroundColor: colors.brand.primary },
   childInitial: { fontWeight: '800', color: colors.brand.primary, fontSize: 14 },
-  childName: { fontSize: 10, color: colors.text.primary, fontWeight: '600', marginTop: 8, textAlign: 'center' },
-  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  childName: { fontSize: 10, color: colors.text.primary, fontWeight: '600', textAlign: 'center' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+  dateBox: { flex: 1.2, gap: spacing.sm },
+  rewardBox: { flex: 1, gap: spacing.sm },
   pillInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface.neutral, borderRadius: radius.button, paddingHorizontal: 15, height: 55 },
   valueText: { color: colors.text.primary, fontWeight: '700', fontSize: 15, flex: 1 },
   unitText: { color: colors.text.primary, fontWeight: '400', fontSize: 13, marginLeft: 5 },
-  submitBtn: { backgroundColor: colors.brand.primary, paddingVertical: 22, borderRadius: radius.medium, alignItems: 'center', minHeight: 70, justifyContent: 'center' },
-  submitBtnText: { color: colors.text.inverse, fontSize: 18, fontWeight: '700' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(255, 247, 232, 0.95)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
-  modalContent: { backgroundColor: colors.surface.white, padding: 30, borderRadius: radius.medium, width: '100%', alignItems: 'center' },
-  modalHeader: { fontSize: 14, fontWeight: '800', color: colors.brand.primary, textTransform: 'uppercase', marginBottom: 10 },
-  modalDoneBtn: { width: '100%', alignItems: 'center', padding: 20, backgroundColor: colors.brand.primary, borderRadius: radius.card, marginTop: 20 },
-  modalDoneText: { color: colors.text.inverse, fontWeight: '800', textTransform: 'uppercase' }
+  modalContent: { backgroundColor: colors.surface.white, padding: 30, borderRadius: radius.medium, width: '100%', alignItems: 'center', gap: spacing.md },
+  modalHeader: { fontSize: 14, fontWeight: '800', color: colors.brand.primary, textTransform: 'uppercase' },
 });

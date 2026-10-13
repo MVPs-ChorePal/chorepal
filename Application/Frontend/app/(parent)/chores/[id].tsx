@@ -8,7 +8,8 @@ import { supabase } from '../../../utils/supabase';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius } from '../../../constants/theme';
+import { colors, typography, radius, spacing } from '../../../constants/theme';
+import Button from '../../../components/Button';
 
 const { width } = Dimensions.get('window');
 const S3_BUCKET = process.env.EXPO_PUBLIC_AWS_S3_BUCKET_NAME;
@@ -82,7 +83,7 @@ export default function ParentChoreReview() {
   if (loading) return <View style={styles.center}><ActivityIndicator color={colors.brand.primary} /></View>;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
       
       {/* header */}
@@ -137,21 +138,21 @@ export default function ParentChoreReview() {
 
         {/* action buttons at the bottom */}
         <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.btn, styles.rejectBtn]}
+          <Button
+            title="reject"
+            color="error"
             onPress={handleReject}
             disabled={busy}
-          >
-            <Text style={styles.btnText}>reject</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.btn, styles.approveBtn]} 
+            style={styles.actionBtn}
+          />
+
+          <Button
+            title="approve"
+            color="success"
             onPress={handleApprove}
-            disabled={busy}
-          >
-            {busy ? <ActivityIndicator color={colors.text.inverse} /> : <Text style={styles.btnText}>approve</Text>}
-          </TouchableOpacity>
+            loading={busy}
+            style={styles.actionBtn}
+          />
         </View>
 
       </ScrollView>
@@ -160,30 +161,28 @@ export default function ParentChoreReview() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
+  root: { flex: 1, gap: spacing.sm },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { paddingHorizontal: 30, paddingBottom: 60, alignItems: 'center' },
-  header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 25, paddingVertical: 15 },
+  scroll: { paddingBottom: 60, alignItems: 'center', gap: spacing.xl },
+  header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 15 },
   backText: { color: colors.text.secondary, fontSize: 18, fontWeight: '300' },
   statusBadge: { backgroundColor: colors.brand.primary, paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.small },
   statusBadgeText: { color: colors.text.inverse, fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  title: { ...typography.h1, color: colors.text.primary, marginTop: 10 },
-  childName: { fontSize: 14, color: colors.brand.primary, fontWeight: '500', marginTop: 5 },
-  infoCard: { backgroundColor: colors.surface.white, width: '100%', borderRadius: radius.medium, padding: 25, marginTop: 25, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
-  infoTitle: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase', marginBottom: 10 },
+  title: { ...typography.h1, color: colors.text.primary },
+  childName: { fontSize: 14, color: colors.brand.primary, fontWeight: '500' },
+  infoCard: { backgroundColor: colors.surface.white, width: '100%', borderRadius: radius.medium, padding: 25, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2, gap: spacing.sm },
+  infoTitle: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase' },
   infoText: { fontSize: 15, color: colors.text.primary, lineHeight: 22, fontWeight: '500' },
-  confidenceText: { fontSize: 10, color: colors.text.tertiary, marginTop: 10, fontWeight: '600' },
-  imageGrid: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 25 },
-  imageBox: { width: '47%' },
-  imgLabel: { fontSize: 11, color: colors.text.secondary, marginBottom: 10, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
+  confidenceText: { fontSize: 10, color: colors.text.tertiary, fontWeight: '600' },
+  imageGrid: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
+  imageBox: { width: '47%', gap: spacing.sm },
+  imgLabel: { fontSize: 11, color: colors.text.secondary, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
   imgContainer: { width: '100%', height: 180, borderRadius: radius.card, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', borderWidth: 1, borderColor: colors.border.default },
   img: { width: '100%', height: '100%' },
-  rewardSection: { marginTop: 30, alignItems: 'center' },
+  rewardSection: { alignItems: 'center', gap: spacing.xs },
   rewardPoints: { fontSize: 28, fontWeight: '800', color: colors.brand.primary },
-  descriptionText: { fontSize: 14, color: colors.text.secondary, marginTop: 5, textAlign: 'center' },
-  actionRow: { flexDirection: 'row', gap: 12, marginTop: 40, width: '100%' },
-  btn: { flex: 1, paddingVertical: 18, borderRadius: radius.card, alignItems: 'center', justifyContent: 'center' },
-  rejectBtn: { backgroundColor: colors.status.error, borderWidth: 1, borderColor: colors.status.error },
-  approveBtn: { backgroundColor: colors.status.success },
-  btnText: { color: colors.text.inverse, fontWeight: '700', textTransform: 'lowercase' }
+  descriptionText: { fontSize: 14, color: colors.text.secondary, textAlign: 'center' },
+  actionRow: { flexDirection: 'row', gap: spacing.md, width: '100%' },
+  actionBtn: { flex: 1 },
 });

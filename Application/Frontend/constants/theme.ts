@@ -24,6 +24,7 @@ export const colors = {
     appBackground: '#FFF7E8',
   },
   border: { default: '#F0E4CF' },
+  shadow: { ledge: '#EADBC1' },
   status: {
     success: '#3CC38A', successText: '#1E7A52', successSubtle: '#E1F5EE', successShadow: '#279A69',
     warning: '#FFC940', warningText: '#7A4F00', warningSubtle: '#FFF1C9',
@@ -44,6 +45,16 @@ export const spacing = {
 
 export const radius = {
   none: 0, small: 14, button: 20, card: 24, medium: 32, large: 48, full: 9999,
+};
+
+// Shared per-screen frame — every screen's background + outer margins.
+// Applied once via Stack/Tabs contentStyle/sceneContainerStyle in the *_layout.tsx
+// files, so individual screens never need to define their own "container" style.
+export const screen = {
+  flex: 1,
+  backgroundColor: colors.surface.appBackground,
+  paddingTop: spacing.xl,
+  paddingHorizontal: spacing.xxl,
 };
 
 // fontFamily names match the @expo-google-fonts export names loaded in app/_layout.tsx.

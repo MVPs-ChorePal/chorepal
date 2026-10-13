@@ -1,7 +1,7 @@
 //@ts-nocheck
 import React, { useCallback, useState } from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, TouchableOpacity,
+  StyleSheet, Text, View, ScrollView,
   ActivityIndicator, RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +9,8 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
 import { showAlert } from '../../utils/alert';
-import { colors, typography, radius } from '../../constants/theme';
+import { colors, typography, radius, spacing } from '../../constants/theme';
+import Button from '../../components/Button';
 
 //formats an ISO date string into something like "sep 12"
 const formatDate = (isoDate) =>
@@ -108,14 +109,14 @@ export default function ChildRewards() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.center]}>
+      <SafeAreaView style={[styles.root, styles.center]}>
         <ActivityIndicator color={colors.brand.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -144,15 +145,14 @@ export default function ChildRewards() {
                 {!!reward.description && <Text style={styles.cardSub}>{reward.description}</Text>}
                 {!canAfford && <Text style={styles.cardSub}>{cost - balance} more pts needed</Text>}
               </View>
-              <TouchableOpacity
-                style={[styles.redeemBtn, !canAfford && styles.redeemBtnDisabled]}
+              <Button
+                title={`${cost} pts`}
+                size="small"
                 onPress={() => handleRedeem(reward)}
                 disabled={!canAfford || redeemingId !== null}
-              >
-                {redeemingId === reward.id
-                  ? <ActivityIndicator color={colors.text.inverse} />
-                  : <Text style={[styles.redeemText, !canAfford && { color: colors.text.secondary }]}>{cost} pts</Text>}
-              </TouchableOpacity>
+                loading={redeemingId === reward.id}
+                style={styles.redeemBtn}
+              />
             </View>
           );
         })}
@@ -189,22 +189,21 @@ export default function ChildRewards() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(child)/_layout.tsx).
+  root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
-  scroll: { padding: 25, paddingBottom: 140 },
-  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1, marginBottom: 15 },
+  scroll: { paddingBottom: 140, gap: spacing.xl },
+  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
   balanceCard: { backgroundColor: colors.brand.primary, borderRadius: radius.medium, padding: 25, alignItems: 'center' },
   balanceLabel: { ...typography.labelSmall, color: colors.text.inverse, textTransform: 'uppercase' },
   balanceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   balanceValue: { fontSize: 44, fontWeight: '800', color: colors.text.inverse },
-  sectionTitle: { ...typography.captionStrong, color: colors.text.secondary, textTransform: 'uppercase', marginTop: 25, marginBottom: 12 },
+  sectionTitle: { ...typography.captionStrong, color: colors.text.secondary, textTransform: 'uppercase' },
   emptyText: { color: colors.text.tertiary, fontWeight: '300' },
-  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, marginBottom: 12, flexDirection: 'row', alignItems: 'center' },
+  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, flexDirection: 'row', alignItems: 'center' },
   cardTitle: { ...typography.bodyMediumStrong, color: colors.text.primary },
   cardSub: { fontSize: 12, color: colors.text.secondary, marginTop: 3 },
-  redeemBtn: { backgroundColor: colors.brand.primary, borderRadius: radius.button, paddingHorizontal: 16, paddingVertical: 10, minWidth: 80, alignItems: 'center' },
-  redeemBtnDisabled: { backgroundColor: colors.surface.neutral },
-  redeemText: { fontWeight: '800', color: colors.text.inverse, fontSize: 13 },
+  redeemBtn: { minWidth: 80 },
   historyCard: { backgroundColor: colors.surface.white, borderRadius: radius.card, paddingHorizontal: 20, paddingVertical: 5 },
   historyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },

@@ -9,7 +9,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius } from '../../../constants/theme';
+import { colors, typography, radius, spacing } from '../../../constants/theme';
 
 //ignore log warnings
 LogBox.ignoreAllLogs();
@@ -166,7 +166,7 @@ export default function ChoreSubmissionMachine() {
     const s3Path = `https://${process.env.EXPO_PUBLIC_AWS_S3_BUCKET_NAME}.s3.${process.env.EXPO_PUBLIC_AWS_REGION}.amazonaws.com/`;
 
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.root}>
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}><Text style={styles.backLink}>‹ back</Text></TouchableOpacity>
@@ -194,7 +194,7 @@ export default function ChoreSubmissionMachine() {
             </View>
           </View>
 
-          <View style={{ marginTop: 40, alignItems: 'center' }}>
+          <View style={styles.rewardSection}>
             <Text style={styles.rewardLarge}>{chore.reward_amount} pts</Text>
             <Text style={styles.infoText}>{chore.description || ''}</Text>
           </View>
@@ -205,7 +205,7 @@ export default function ChoreSubmissionMachine() {
 
   //VIEW 1 & 2: CAMERA
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.mainWrapper}>
         <View style={styles.topSection}>
@@ -246,13 +246,14 @@ export default function ChoreSubmissionMachine() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(child)/_layout.tsx).
+  root: { flex: 1, gap: spacing.sm },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  mainWrapper: { flex: 1, paddingVertical: 20, alignItems: 'center' },
-  topSection: { alignItems: 'center', width: '100%', paddingHorizontal: 30 },
+  mainWrapper: { flex: 1, paddingBottom: spacing.xl, alignItems: 'center', gap: spacing.xl },
+  topSection: { alignItems: 'center', width: '100%', gap: spacing.sm },
   backLink: { color: colors.text.secondary, fontSize: 18 },
-  title: { ...typography.h1, color: colors.text.primary, marginTop: 10 },
-  instruction: { fontSize: 14, color: colors.brand.primary, fontWeight: '500', marginTop: 10, textAlign: 'center', paddingHorizontal: 20 },
+  title: { ...typography.h1, color: colors.text.primary },
+  instruction: { fontSize: 14, color: colors.brand.primary, fontWeight: '500', textAlign: 'center', paddingHorizontal: 20 },
   middleSection: { flex: 1, justifyContent: 'center' },
   // Live camera viewfinder — deliberate dark camera chrome, not a themed surface.
   cameraContainer: { width: width * 0.88, height: width * 1.1, borderRadius: radius.large, overflow: 'hidden', backgroundColor: '#000' },
@@ -265,18 +266,19 @@ const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 30 },
   roundBtn: { width: 60, height: 60, borderRadius: radius.full, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
   btnTextMini: { color: colors.text.inverse, fontWeight: '800', fontSize: 12 },
-  summaryWrapper: { paddingHorizontal: 30, alignItems: 'center', paddingBottom: 120 },
-  summaryTitle: { fontSize: 28, fontWeight: '800', color: colors.text.primary, alignSelf: 'center', marginTop: 10 },
+  summaryWrapper: { alignItems: 'center', paddingBottom: 120, gap: spacing.xl },
+  summaryTitle: { fontSize: 28, fontWeight: '800', color: colors.text.primary, alignSelf: 'center' },
   badge: { backgroundColor: colors.brand.primary, paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.small },
   badgeText: { color: colors.text.inverse, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
-  imageGrid: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginTop: 20 },
-  imageBox: { width: '47%' },
-  imgLabel: { fontSize: 11, color: colors.text.secondary, marginBottom: 10, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
+  imageGrid: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
+  imageBox: { width: '47%', gap: spacing.sm },
+  imgLabel: { fontSize: 11, color: colors.text.secondary, textTransform: 'uppercase', textAlign: 'center', fontWeight: '700' },
   // Post-capture placeholder box — not camera chrome, matches the parent review screen's white imgContainer.
   imgDisplay: { width: '100%', height: 180, borderRadius: radius.card, backgroundColor: colors.surface.white },
-  infoCard: { backgroundColor: colors.surface.white, width: '100%', borderRadius: radius.medium, padding: 25, marginTop: 20, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 },
-  infoTitle: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase', marginBottom: 10 },
+  infoCard: { backgroundColor: colors.surface.white, width: '100%', borderRadius: radius.medium, padding: 25, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2, gap: spacing.sm },
+  infoTitle: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase' },
   infoText: { fontSize: 15, color: colors.text.primary, lineHeight: 22 },
+  rewardSection: { alignItems: 'center', gap: spacing.xs },
   rewardLarge: { fontSize: 32, fontWeight: '800', color: colors.brand.primary },
-  header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 30, paddingTop: 10 }
+  header: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }
 });

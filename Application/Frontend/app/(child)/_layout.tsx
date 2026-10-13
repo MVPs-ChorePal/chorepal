@@ -1,7 +1,7 @@
 import { Tabs, useSegments } from 'expo-router';
 import { Text, View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius } from '../../constants/theme';
+import { colors, typography, radius, screen } from '../../constants/theme';
 
 const ChildTabItem = ({ label, icon, isActive }: { label: string, icon: string, isActive: boolean }) => {
   const activeColor = colors.brand.primary;
@@ -32,8 +32,9 @@ export default function ChildLayout() {
     <Tabs screenOptions={{
       headerShown: false,
       animation: 'none',
-      tabBarShowLabel: false, 
+      tabBarShowLabel: false,
       tabBarStyle: styles.tabBar,
+      sceneStyle: screen,
       tabBarItemStyle: {
         justifyContent: 'center',
         alignItems: 'center',

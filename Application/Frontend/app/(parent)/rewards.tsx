@@ -9,7 +9,7 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
 import { showAlert } from '../../utils/alert';
-import { colors, typography, radius } from '../../constants/theme';
+import { colors, typography, radius, spacing } from '../../constants/theme';
 
 //grabs only the first "word" of a name, lowercased to match the app's style
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
@@ -108,14 +108,14 @@ export default function ParentRewards() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.center]}>
+      <SafeAreaView style={[styles.root, styles.center]}>
         <ActivityIndicator color={colors.brand.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -182,13 +182,14 @@ export default function ParentRewards() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
+  root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
-  scroll: { padding: 25, paddingBottom: 140 },
-  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1, marginBottom: 10 },
-  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase', marginTop: 25, marginBottom: 12 },
-  emptyText: { color: colors.text.tertiary, fontWeight: '300', marginBottom: 5 },
-  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, marginBottom: 15 },
+  scroll: { paddingBottom: 140, gap: spacing.xl },
+  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
+  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase' },
+  emptyText: { color: colors.text.tertiary, fontWeight: '300' },
+  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20 },
   cardSub: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
   balanceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },

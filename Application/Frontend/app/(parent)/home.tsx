@@ -8,7 +8,7 @@ import { supabase } from '../../utils/supabase';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius } from '../../constants/theme';
+import { colors, typography, radius, spacing } from '../../constants/theme';
 
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
 
@@ -85,7 +85,7 @@ export default function ParentDashboard() {
   if (loading) return <View style={styles.center}><ActivityIndicator color={colors.brand.primary} /></View>;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
       
       <ScrollView 
@@ -144,13 +144,14 @@ export default function ParentDashboard() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
+  // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
+  root: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { paddingHorizontal: 25, paddingTop: 20, paddingBottom: 150 },
-  title: { ...typography.h2, color: colors.text.primary, letterSpacing: -0.5, marginBottom: 10 },
-  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase', marginTop: 30, marginBottom: 15 },
+  scroll: { paddingBottom: 150, gap: spacing.xl },
+  title: { ...typography.h2, color: colors.text.primary, letterSpacing: -0.5 },
+  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase' },
   emptyText: { color: colors.text.tertiary, fontSize: 14, fontWeight: '300' },
-  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   waitingCard: { borderLeftWidth: 7, borderLeftColor: colors.status.success },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flex: 1 },
   choreTitle: { ...typography.bodyMediumStrong, color: colors.text.primary },

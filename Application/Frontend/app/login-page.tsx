@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 // TouchableWithoutFeedback's tap-outside-to-dismiss steals pointer focus from
 // TextInput on react-native-web, so only wrap with it on native.
@@ -9,7 +9,9 @@ import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, typography, radius } from '../constants/theme';
+import { colors, typography, spacing } from '../constants/theme';
+import Button from '../components/Button';
+import Input from '../components/Input';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -88,12 +90,12 @@ export default function LoginPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <DismissKeyboardWrapper {...dismissKeyboardProps}>
           <View style={styles.inner}>
-            <Text style={styles.title}>elcome Back</Text>
+            <Text style={styles.title}>Welcome Back</Text>
 
             <View style={styles.toggleContainer}>
               <TouchableOpacity
@@ -113,28 +115,22 @@ export default function LoginPage() {
 
             <View style={styles.form}>
               {isParent ? (
-                <TextInput
+                <Input
                   placeholder="email address"
-                  placeholderTextColor={colors.text.tertiary}
-                  style={styles.input}
                   onChangeText={setEmail}
                   value={email}
                   autoCapitalize="none"
                 />
               ) : (
-                <TextInput
+                <Input
                   placeholder="username"
-                  placeholderTextColor={colors.text.tertiary}
-                  style={styles.input}
                   onChangeText={setUsername}
                   value={username}
                   autoCapitalize="none"
                 />
               )}
-              <TextInput
+              <Input
                 placeholder="password"
-                placeholderTextColor={colors.text.tertiary}
-                style={styles.input}
                 onChangeText={setPassword}
                 value={password}
                 secureTextEntry
@@ -143,13 +139,13 @@ export default function LoginPage() {
 
               {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-              <TouchableOpacity
-                style={[styles.mainButton, !isFormValid && styles.mainButtonDisabled]}
+              <Button
+                title="login"
                 onPress={handleLogin}
-                disabled={loading || !isFormValid}
-              >
-                <Text style={styles.mainButtonText}>{loading ? '...' : 'login'}</Text>
-              </TouchableOpacity>
+                loading={loading}
+                disabled={!isFormValid}
+                fullWidth
+              />
             </View>
 
             <TouchableOpacity onPress={() => router.push('/signup-page')} style={styles.linkContainer}>
@@ -163,18 +159,15 @@ export default function LoginPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
-  inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 40 },
-  title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', marginBottom: 30, letterSpacing: -1 },
-  toggleContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 40, gap: 30 },
+  // Background + top/side margins come from the Stack's contentStyle (app/_layout.tsx).
+  root: { flex: 1 },
+  inner: { flex: 1, justifyContent: 'center', gap: spacing.xl },
+  title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
+  toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl },
   roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   roleText: { ...typography.bodySmall, color: colors.text.tertiary },
-  form: { width: '100%' },
-  input: { borderBottomWidth: 1, borderBottomColor: colors.border.default, paddingVertical: 15, marginBottom: 20, fontSize: 16, color: colors.text.primary },
-  errorText: { color: colors.status.error, fontSize: 13, marginBottom: 15, textAlign: 'center' },
-  mainButton: { backgroundColor: colors.brand.primary, paddingVertical: 18, borderRadius: radius.button, marginTop: 20, alignItems: 'center' },
-  mainButtonDisabled: { opacity: 0.4 },
-  mainButtonText: { color: colors.text.inverse, fontWeight: '600', fontSize: 16 },
-  linkContainer: { marginTop: 30, alignItems: 'center' },
-  linkText: { color: colors.text.tertiary, fontSize: 14 }
+  form: { width: '100%', gap: spacing.xl },
+  errorText: { color: colors.status.error, fontSize: 13, textAlign: 'center' },
+  linkContainer: { alignItems: 'center' },
+  linkText: { color: colors.text.tertiary}
 });

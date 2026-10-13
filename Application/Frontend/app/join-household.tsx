@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { showAlert } from '@/utils/alert';
-import { colors, typography, radius } from '@/constants/theme';
+import { colors, typography, spacing } from '@/constants/theme';
+import Button from '@/components/Button';
 
 export default function JoinHousehold() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function JoinHousehold() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
 
@@ -74,19 +75,15 @@ export default function JoinHousehold() {
           autoCorrect={false}
         />
 
-        <TouchableOpacity
-          style={styles.joinButton}
-          onPress={handleJoin}>
-          <Text style={styles.joinButtonText}>join household</Text>
-        </TouchableOpacity>
+        <Button title="join household" onPress={handleJoin} fullWidth />
 
         {role === 'child' && (
-          <TouchableOpacity
-            style={styles.bypassButton}
+          <Button
+            title="skip to camera dashboard"
+            variant="text"
+            size="small"
             onPress={() => router.push('/(child)/home')}
-          >
-            <Text style={styles.bypassText}>skip to camera dashboard</Text>
-          </TouchableOpacity>
+          />
         )}
 
       </KeyboardAvoidingView>
@@ -95,9 +92,10 @@ export default function JoinHousehold() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.appBackground },
-  inner: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
-  label: { ...typography.bodyMedium, marginBottom: 20, color: colors.text.primary },
+  // Background + top/side margins come from the Stack's contentStyle (app/_layout.tsx).
+  root: { flex: 1 },
+  inner: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.xl },
+  label: { ...typography.bodyMedium, color: colors.text.primary },
   codeInput: {
     width: '100%',
     borderBottomWidth: 1,
@@ -108,8 +106,4 @@ const styles = StyleSheet.create({
     fontWeight: '200',
     color: colors.text.primary
   },
-  joinButton: { backgroundColor: colors.brand.primary, paddingVertical: 18, width: '100%', borderRadius: radius.button, marginTop: 40, alignItems: 'center' },
-  joinButtonText: { fontWeight: '600', color: colors.text.inverse },
-  bypassButton: { marginTop: 50 },
-  bypassText: { color: colors.brand.primary, fontSize: 12, fontWeight: '300' }
 });
