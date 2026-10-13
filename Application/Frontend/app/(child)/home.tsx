@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
 
   //list styles
   middleSection: { flex: 1 },
-  list: { paddingBottom: 100, gap: spacing.xl },
+  list: { paddingBottom: spacing.xl, gap: spacing.xl },
   choreCard: {
     backgroundColor: colors.surface.white,
     borderRadius: radius.card,

@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   header: { paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center' },
   backText: { color: colors.brand.primary, fontSize: 18, fontWeight: '600', marginLeft: 5 },
-  scroll: { paddingBottom: 150, gap: spacing.xl },
+  scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   sectionTitle: { fontSize: 13, color: colors.brand.primary, fontWeight: '800', textTransform: 'uppercase' },
   catScroll: {},
   catItem: { width: 85, height: 85, borderRadius: radius.full, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center', marginRight: 15, elevation: 2 },
