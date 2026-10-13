@@ -17,7 +17,7 @@ import { colors, radius, spacing, typography } from '../constants/theme';
 
 type ButtonVariant = 'filled' | 'outline' | 'text';
 type ButtonSize = 'large' | 'small';
-type ButtonColor = 'primary' | 'success' | 'error';
+type ButtonColor = 'primary' |'secondary' | 'success' | 'error';
 
 type ColorSet = {
   bg: string;
@@ -35,6 +35,13 @@ const COLOR_SETS: Record<ButtonColor, ColorSet> = {
     outlineText: colors.text.primary,
     filledText: colors.text.inverse,
     textVariantText: colors.brand.primaryShadow,
+  },
+  secondary: {
+    bg: colors.surface.white,
+    shadow: colors.border.default,
+    outlineText: colors.text.secondary,
+    filledText: colors.text.primary,
+    textVariantText: colors.border.default,
   },
   success: {
     bg: colors.status.success,
