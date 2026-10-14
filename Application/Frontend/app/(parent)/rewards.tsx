@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
   root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
-  scroll: { paddingBottom: 140, gap: spacing.xl },
+  scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
   sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase' },
   emptyText: { color: colors.text.tertiary, fontWeight: '300' },

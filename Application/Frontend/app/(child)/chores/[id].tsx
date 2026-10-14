@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 30 },
   roundBtn: { width: 60, height: 60, borderRadius: radius.full, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
   btnTextMini: { color: colors.text.inverse, fontWeight: '800', fontSize: 12 },
-  summaryWrapper: { alignItems: 'center', paddingBottom: 120, gap: spacing.xl },
+  summaryWrapper: { alignItems: 'center', paddingBottom: spacing.xl, gap: spacing.xl },
   summaryTitle: { fontSize: 28, fontWeight: '800', color: colors.text.primary, alignSelf: 'center' },
   badge: { backgroundColor: colors.brand.primary, paddingHorizontal: 12, paddingVertical: 4, borderRadius: radius.small },
   badgeText: { color: colors.text.inverse, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },

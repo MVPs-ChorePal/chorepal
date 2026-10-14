@@ -55,6 +55,11 @@ export const screen = {
   backgroundColor: colors.surface.appBackground,
   paddingTop: spacing.xl,
   paddingHorizontal: spacing.xxl,
+  // clears the floating tab bar (height: 100, absolutely positioned in both
+  // (parent)/_layout.tsx and (child)/_layout.tsx) - without this, anything
+  // near the bottom of a tab screen (e.g. the logout button on account.tsx)
+  // renders underneath it and is both hidden and untappable.
+  paddingBottom: 130,
 };
 
 // fontFamily names match the @expo-google-fonts export names loaded in app/_layout.tsx.

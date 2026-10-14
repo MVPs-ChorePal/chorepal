@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity,
-  KeyboardAvoidingView, Platform, Keyboard
+  KeyboardAvoidingView, Platform, Keyboard, ScrollView
 } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '../constants/theme';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -100,11 +101,31 @@ export default function SignupPage() {
   return (
     <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
+      {/* always goes to login (the home screen of the auth flow) - not a
+          "wherever you came from" back, since signup is always conceptually
+          reached from there regardless of actual navigation history.
+          own row, not absolutely positioned over the centered content below -
+          otherwise a short/narrow viewport can render something on top of it
+          that silently intercepts the tap even though the button is visible */}
+      <TouchableOpacity
+        onPress={() => router.replace('/login-page')}
+        style={styles.backBtn}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Ionicons name="chevron-back" size={24} color={colors.brand.primary} />
+        <Text style={styles.backText}>back</Text>
+      </TouchableOpacity>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.inner}
+        style={{ flex: 1 }}
       >
-        <View style={styles.headerArea}>
+        <ScrollView
+          contentContainerStyle={styles.inner}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.headerArea}>
           <Text style={styles.title}>Welcome to ChorePal</Text>
           <Text style={styles.subtitle}>Who is setting up this account?</Text>
         </View>
@@ -197,6 +218,7 @@ export default function SignupPage() {
             Already have an account? <Text style={[styles.linkText, { color: colors.brand.primaryShadow, fontWeight: '600' }]}>Login</Text>
           </Text>
         </TouchableOpacity>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -205,7 +227,14 @@ export default function SignupPage() {
 const styles = StyleSheet.create({
   // Background + top/side margins come from the Stack's contentStyle (app/_layout.tsx).
   root: { flex: 1 },
-  inner: { flex: 1, justifyContent: 'center', gap: spacing.xl },
+  // flexGrow (not flex) because this is a ScrollView's contentContainerStyle -
+  // centers short content, but scrolls instead of overflowing/clipping when
+  // the content (role-dependent: parent vs child fields) is taller than the
+  // viewport, rather than bleeding past its own box into the back button above it.
+  inner: { flexGrow: 1, justifyContent: 'center', gap: spacing.xl },
+  // horizontal/top margins already come from the Stack's contentStyle (app/_layout.tsx)
+  backBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
+  backText: { color: colors.brand.primary, fontSize: 16, fontWeight: '600', marginLeft: 5 },
   headerArea: { gap: spacing.sm },
   title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
   subtitle: { ...typography.bodyMedium, color: colors.text.tertiary, textAlign: 'center' },

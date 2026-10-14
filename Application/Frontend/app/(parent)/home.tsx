@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
   root: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { paddingBottom: 150, gap: spacing.xl },
+  scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   title: { ...typography.h2, color: colors.text.primary, letterSpacing: -0.5 },
   sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase' },
   emptyText: { color: colors.text.tertiary, fontSize: 14, fontWeight: '300' },
@@ -157,5 +157,5 @@ const styles = StyleSheet.create({
   choreTitle: { ...typography.bodyMediumStrong, color: colors.text.primary },
   childName: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
   points: { fontSize: 14, fontWeight: '800', color: colors.brand.primary },
-  fab: { position: 'absolute', bottom: 120, right: 25, width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  fab: { position: 'absolute', bottom: spacing.xl, right: 25, width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', elevation: 5 },
 });

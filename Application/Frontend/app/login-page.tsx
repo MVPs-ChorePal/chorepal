@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 
 // TouchableWithoutFeedback's tap-outside-to-dismiss steals pointer focus from
 // TextInput on react-native-web, so only wrap with it on native.
@@ -92,9 +92,15 @@ export default function LoginPage() {
   return (
     <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
+      {/* no back button here - login is the home screen of the auth flow,
+          there's nothing to go back to */}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <DismissKeyboardWrapper {...dismissKeyboardProps}>
-          <View style={styles.inner}>
+          <ScrollView
+            contentContainerStyle={styles.inner}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <Text style={styles.title}>Welcome Back</Text>
 
       <View style={styles.toggleContainer}>
@@ -155,7 +161,7 @@ export default function LoginPage() {
             <TouchableOpacity onPress={() => router.push('/signup-page')} style={styles.linkContainer}>
               <Text style={styles.linkText}>New here? <Text style={{ color: colors.brand.primaryShadow, fontWeight: '600' }}>Sign up</Text></Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </DismissKeyboardWrapper>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -165,7 +171,12 @@ export default function LoginPage() {
 const styles = StyleSheet.create({
   // Background + top/side margins come from the Stack's contentStyle (app/_layout.tsx).
   root: { flex: 1 },
-  inner: { flex: 1, justifyContent: 'center', gap: spacing.xl },
+  // flexGrow (not flex) because this is a ScrollView's contentContainerStyle -
+  // centers short content, but scrolls instead of overflowing/clipping when
+  // the content (role-dependent: parent vs child fields) is taller than the
+  // viewport, rather than bleeding past its own box into whatever's above it.
+  inner: { flexGrow: 1, justifyContent: 'center', gap: spacing.xl },
+  // horizontal/top margins already come from the Stack's contentStyle (app/_layout.tsx)
   title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl },
   toggleButton: {

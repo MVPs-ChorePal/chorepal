@@ -68,11 +68,6 @@ export default function Dashboard() {
     setLoading(false);
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace('/login-page');
-  };
-
   if (loading) return (
     <View style={[styles.root, styles.center]}>
       <ActivityIndicator color={colors.brand.primary} />
@@ -137,13 +132,6 @@ export default function Dashboard() {
           />
         </View>
 
-        {/* utility actions */}
-        <View style={styles.bottomSection}>
-          <TouchableOpacity onPress={handleLogout}>
-            <Text style={styles.logoutText}>logout</Text>
-          </TouchableOpacity>
-        </View>
-
       </View>
     </SafeAreaView>
   );
@@ -162,7 +150,7 @@ const styles = StyleSheet.create({
 
   //list styles
   middleSection: { flex: 1 },
-  list: { paddingBottom: 100, gap: spacing.xl },
+  list: { paddingBottom: spacing.xl, gap: spacing.xl },
   choreCard: {
     backgroundColor: colors.surface.white,
     borderRadius: radius.card,
@@ -184,6 +172,4 @@ const styles = StyleSheet.create({
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   emptyText: { fontSize: 20, fontWeight: '300', color: colors.text.primary },
   emptySub: { fontSize: 14, color: colors.text.tertiary, marginTop: 5 },
-  bottomSection: { alignItems: 'center', paddingBottom: 20 },
-  logoutText: { color: colors.text.tertiary, fontSize: 13, textDecorationLine: 'underline', fontWeight: '300' }
 });

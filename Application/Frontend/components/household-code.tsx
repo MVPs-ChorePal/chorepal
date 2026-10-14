@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Share, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../utils/supabase';
+import { showShare } from '../utils/share';
 import { colors, typography, radius } from '../constants/theme';
 
 //shows the household's join code so the parent can give it to their kids
@@ -32,7 +33,7 @@ export default function HouseholdCode() {
 
   const handleShare = () => {
     if (!code) return;
-    Share.share({ message: `join our household on chorepal with this code: ${code}` });
+    showShare(`join our household on chorepal with this code: ${code}`);
   };
 
   return (

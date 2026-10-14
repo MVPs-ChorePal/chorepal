@@ -26,6 +26,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "ChorePal needs camera access to let kids take before/after photos of chores."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/favicon.png",
