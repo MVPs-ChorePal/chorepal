@@ -136,24 +136,26 @@ export default function ParentChoreReview() {
           <Text style={styles.descriptionText}>{chore?.description || 'no notes provided'}</Text>
         </View>
 
-        {/* action buttons at the bottom */}
-        <View style={styles.actionRow}>
-          <Button
-            title="reject"
-            color="error"
-            onPress={handleReject}
-            disabled={busy}
-            style={styles.actionBtn}
-          />
+        {/* action buttons at the bottom - only while still waiting for review */}
+        {chore?.status === 'completed' && (
+          <View style={styles.actionRow}>
+            <Button
+              title="reject"
+              color="error"
+              onPress={handleReject}
+              disabled={busy}
+              style={styles.actionBtn}
+            />
 
-          <Button
-            title="approve"
-            color="success"
-            onPress={handleApprove}
-            loading={busy}
-            style={styles.actionBtn}
-          />
-        </View>
+            <Button
+              title="approve"
+              color="success"
+              onPress={handleApprove}
+              loading={busy}
+              style={styles.actionBtn}
+            />
+          </View>
+        )}
 
       </ScrollView>
     </SafeAreaView>
