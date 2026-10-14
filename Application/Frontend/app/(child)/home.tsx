@@ -9,6 +9,10 @@ import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, radius, spacing } from '../../constants/theme';
 
+import CoinBadge from '../../components/CoinBadge';
+import CoinLabel from '../../components/CoinLabel';
+
+
 const { width } = Dimensions.get('window');
 
 export default function Dashboard() {
@@ -80,10 +84,12 @@ export default function Dashboard() {
       
       <View style={styles.mainWrapper}>
         
-        {/* top */}
+        {/* Top, MIGHT CONVERT TO COMPONENT */}
         <View style={styles.topSection}>
-          <Text style={styles.greeting}>hi, {userName.toLowerCase()}</Text>
-          <Text style={styles.title}>to-do list</Text>
+          {/* NEED PROFILE PIC */}
+          <Text style={styles.greeting}>Hi, {userName}!</Text>
+
+          <CoinBadge amount={0} />
         </View>
 
         {/* the chores list */}
@@ -104,7 +110,7 @@ export default function Dashboard() {
                   </View>
                   <View>
                     <Text style={styles.choreName}>{item.title.toLowerCase()}</Text>
-                    <Text style={styles.choreReward}>{item.reward_amount} pts</Text>
+                    <CoinLabel amount={item.reward_amount} size={13} color={colors.brand.primary} style={{ marginTop: 2 }} />
                   </View>
                 </View>
                 <View style={[
@@ -144,8 +150,8 @@ const styles = StyleSheet.create({
   mainWrapper: { flex: 1, gap: spacing.xl },
 
   //top styles
-  topSection: {},
-  greeting: { fontSize: 16, color: colors.brand.primary, fontWeight: '300' },
+  topSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  greeting: { ...typography.h2},
   title: { ...typography.h1, color: colors.text.primary, letterSpacing: -1 },
 
   //list styles
@@ -166,7 +172,6 @@ const styles = StyleSheet.create({
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   iconCircle: { width: 45, height: 45, borderRadius: radius.full, backgroundColor: colors.surface.neutral, justifyContent: 'center', alignItems: 'center' },
   choreName: { ...typography.bodyMediumStrong, color: colors.text.primary },
-  choreReward: { fontSize: 13, color: colors.brand.primary, fontWeight: '600', marginTop: 2 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.small, backgroundColor: colors.surface.neutral },
   statusText: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase' },
   emptyContainer: { alignItems: 'center', marginTop: 100 },

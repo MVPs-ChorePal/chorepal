@@ -93,7 +93,7 @@ export default function ParentDashboard() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={styles.title}>parent dashboard</Text>
+        <Text style={styles.title}>Good morning!</Text>
 
         {/* chores waiting for manual parent approval */}
         <Text style={styles.sectionTitle}>waiting for approval</Text>
