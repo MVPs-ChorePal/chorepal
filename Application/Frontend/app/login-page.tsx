@@ -97,29 +97,32 @@ export default function LoginPage() {
           <View style={styles.inner}>
             <Text style={styles.title}>Welcome Back</Text>
 
-            <View style={styles.toggleContainer}>
-              <TouchableOpacity
-                onPress={() => setRole('parent')}
-                style={[styles.roleLabel, isParent && { borderBottomColor: colors.brand.primary }]}
-              >
-                <Text style={[styles.roleText, isParent && { color: colors.brand.primary }]}>parent</Text>
-              </TouchableOpacity>
+      <View style={styles.toggleContainer}>
+                <Button
+                  title="I'm a grown-up"
+                  variant={isParent ? 'filled' : 'outline'}
+                  size="small"
+                  style={styles.toggleButton}
+                  onPress={() => setRole('parent')}
+                />
 
-              <TouchableOpacity
-                onPress={() => setRole('child')}
-                style={[styles.roleLabel, !isParent && { borderBottomColor: colors.brand.primary }]}
-              >
-                <Text style={[styles.roleText, !isParent && { color: colors.brand.primary }]}>child</Text>
-              </TouchableOpacity>
+                <Button
+                  title="I'm a child"
+                  variant={!isParent ? 'filled' : 'outline'}
+                  size="small"
+                  style={styles.toggleButton}
+                  onPress={() => setRole('child')}
+                />
             </View>
 
             <View style={styles.form}>
               {isParent ? (
                 <Input
-                  placeholder="email address"
+                  placeholder="you@email.com"
                   onChangeText={setEmail}
                   value={email}
                   autoCapitalize="none"
+                  label="Email"
                 />
               ) : (
                 <Input
@@ -127,6 +130,7 @@ export default function LoginPage() {
                   onChangeText={setUsername}
                   value={username}
                   autoCapitalize="none"
+                  label="Username"
                 />
               )}
               <Input
@@ -135,6 +139,7 @@ export default function LoginPage() {
                 value={password}
                 secureTextEntry
                 autoCapitalize="none"
+                label="Password"
               />
 
               {!!error && <Text style={styles.errorText}>{error}</Text>}
@@ -143,13 +148,12 @@ export default function LoginPage() {
                 title="login"
                 onPress={handleLogin}
                 loading={loading}
-                disabled={!isFormValid}
                 fullWidth
               />
             </View>
 
             <TouchableOpacity onPress={() => router.push('/signup-page')} style={styles.linkContainer}>
-              <Text style={styles.linkText}>new here? <Text style={{ color: colors.brand.primary, fontWeight: '600' }}>sign up</Text></Text>
+              <Text style={styles.linkText}>New here? <Text style={{ color: colors.brand.primaryShadow, fontWeight: '600' }}>Sign up</Text></Text>
             </TouchableOpacity>
           </View>
         </DismissKeyboardWrapper>
@@ -164,8 +168,9 @@ const styles = StyleSheet.create({
   inner: { flex: 1, justifyContent: 'center', gap: spacing.xl },
   title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl },
-  roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  roleText: { ...typography.bodySmall, color: colors.text.tertiary },
+  toggleButton: {
+    flex: 1,
+  },
   form: { width: '100%', gap: spacing.xl },
   errorText: { color: colors.status.error, fontSize: 13, textAlign: 'center' },
   linkContainer: { alignItems: 'center' },
