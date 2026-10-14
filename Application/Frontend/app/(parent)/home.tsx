@@ -157,5 +157,5 @@ const styles = StyleSheet.create({
   choreTitle: { ...typography.bodyMediumStrong, color: colors.text.primary },
   childName: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
   points: { fontSize: 14, fontWeight: '800', color: colors.brand.primary },
-  fab: { position: 'absolute', bottom: 120, right: 25, width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', elevation: 5 },
+  fab: { position: 'absolute', bottom: spacing.xl, right: 25, width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', elevation: 5 },
 });
