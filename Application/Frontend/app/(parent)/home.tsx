@@ -69,12 +69,18 @@ export default function ParentDashboard() {
     }
   }, []);
 
-  //heartbeat to keep dashboard updated every second
+  //realtime listener to keep dashboard updated, instead of polling
   useEffect(() => {
-    const interval = setInterval(() => { fetchData(); }, 1000);
-    return () => clearInterval(interval);
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chores' }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [fetchData]);
-  
+
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   const onRefresh = () => {
