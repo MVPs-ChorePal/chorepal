@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import Button from '../../../components/Button';
+import Input from '../../../components/Input';
 
 const { width } = Dimensions.get('window');
 const S3_BUCKET = process.env.EXPO_PUBLIC_AWS_S3_BUCKET_NAME;
@@ -22,6 +23,7 @@ export default function ParentChoreReview() {
   const [chore, setChore] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false); //handles loading state for buttons
+  const [rejectNote, setRejectNote] = useState(''); //optional feedback shown to the child on retry
 
   useEffect(() => {
     fetchReviewDetails();
@@ -71,7 +73,7 @@ export default function ParentChoreReview() {
   //moves status back to todo/pending so child can redo it
   const handleReject = async () => {
     setBusy(true);
-    const { error } = await supabase.rpc('reject_chore', { p_chore_id: id });
+    const { error } = await supabase.rpc('reject_chore', { p_chore_id: id, p_note: rejectNote });
     if (error) {
       console.error("rejection error:", error.message);
     } else {
@@ -138,23 +140,36 @@ export default function ParentChoreReview() {
 
         {/* action buttons at the bottom - only while still waiting for review */}
         {chore?.status === 'completed' && (
-          <View style={styles.actionRow}>
-            <Button
-              title="reject"
-              color="error"
-              onPress={handleReject}
-              disabled={busy}
-              style={styles.actionBtn}
+          <>
+            <Input
+              placeholder="e.g. the dishes are still in the sink"
+              onChangeText={setRejectNote}
+              value={rejectNote}
+              multiline
+              textAlignVertical="top"
+              style={styles.noteInput}
+              containerStyle={styles.noteContainer}
+              label="note for child if rejecting (optional)"
             />
 
-            <Button
-              title="approve"
-              color="success"
-              onPress={handleApprove}
-              loading={busy}
-              style={styles.actionBtn}
-            />
-          </View>
+            <View style={styles.actionRow}>
+              <Button
+                title="reject"
+                color="error"
+                onPress={handleReject}
+                disabled={busy}
+                style={styles.actionBtn}
+              />
+
+              <Button
+                title="approve"
+                color="success"
+                onPress={handleApprove}
+                loading={busy}
+                style={styles.actionBtn}
+              />
+            </View>
+          </>
         )}
 
       </ScrollView>
@@ -185,6 +200,8 @@ const styles = StyleSheet.create({
   rewardSection: { alignItems: 'center', gap: spacing.xs },
   rewardPoints: { fontSize: 28, fontWeight: '800', color: colors.brand.primary },
   descriptionText: { fontSize: 14, color: colors.text.secondary, textAlign: 'center' },
+  noteContainer: { width: '100%' },
+  noteInput: { height: 90, paddingTop: spacing.sm },
   actionRow: { flexDirection: 'row', gap: spacing.md, width: '100%' },
   actionBtn: { flex: 1 },
 });
