@@ -99,6 +99,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     ...typography.captionStrong,
+    color: colors.icon.secondary,
     marginTop: 4,
   }
 });

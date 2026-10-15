@@ -48,7 +48,6 @@ export default Input;
 const styles = StyleSheet.create({
   label: {
     ...typography.bodySmall,
-    color: colors.text.secondary,
     marginBottom: spacing.sm,
   },
   base: {

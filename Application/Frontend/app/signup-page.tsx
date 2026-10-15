@@ -38,11 +38,11 @@ export default function SignupPage() {
   const handleSignUp = async () => {
     setError('');
     if (!fullName || (!isChild && !email) || !password) {
-      setError('please fill all fields');
+      setError('Please fill all fields');
       return;
     }
     if (password.length < 6) {
-      setError('password must be at least 6 characters');
+      setError('Password must be at least 6 characters');
       return;
     }
     setLoading(true);
@@ -131,36 +131,38 @@ export default function SignupPage() {
         </View>
 
         <View style={styles.toggleContainer}>
-          <TouchableOpacity
+          <Button
+            title="I'm a grown-up"
+            variant={isParent ? 'filled' : 'outline'}
+            size="small"
+            style={styles.toggleButton}
             onPress={() => setRole('parent')}
-            style={[styles.roleLabel, isParent && { borderBottomColor: colors.brand.primary }]}
-          >
-            <Text style={[styles.roleText, isParent && { color: colors.brand.primary }]}>parent</Text>
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity
+          <Button
+            title="I'm a child"
+            variant={!isParent ? 'filled' : 'outline'}
+            size="small"
+            style={styles.toggleButton}
             onPress={() => setRole('child')}
-            style={[styles.roleLabel, !isParent && { borderBottomColor: colors.brand.primary }]}
-          >
-            <Text style={[styles.roleText, !isParent && { color: colors.brand.primary }]}>child</Text>
-          </TouchableOpacity>
+          />
         </View>
 
         <View style={styles.form}>
           <View style={styles.fieldGroup}>
             <Input
-              placeholder="full name"
+              placeholder="e.g. John Doe"
               onChangeText={setFullName}
               value={fullName}
               autoCapitalize="none"
               label="Your name"
             />
-            <Text style={styles.hint}>your username is generated from this (lowercase, no spaces) and must be unique</Text>
+            {/* <Text style={styles.hint}>your username is generated from this (lowercase, no spaces) and must be unique</Text> */}
           </View>
 
           {!isChild && (
             <Input
-              placeholder="email address"
+              placeholder="you@email.com"
               onChangeText={setEmail}
               value={email}
               autoCapitalize="none"
@@ -171,28 +173,29 @@ export default function SignupPage() {
 
           <View style={styles.fieldGroup}>
             <Input
-              placeholder="password"
+              placeholder="********"
               onChangeText={setPassword}
               value={password}
               secureTextEntry
               autoCapitalize="none"
               label="Password"
             />
-            <Text style={styles.hint}>must be at least 6 characters</Text>
+            {/* <Text style={styles.hint}>must be at least 6 characters</Text> */}
           </View>
 
           {!!error && <Text style={styles.errorText}>{error}</Text>}
 
           <Button
-            title="Sign up"
+            title={role === 'parent' ? 'Create family account' : 'Sign up'}
             onPress={handleSignUp}
             loading={loading}
-            disabled={!isFormValid}
+            // disabled={!isFormValid}
             fullWidth
           />
         </View>
 
-        {isParent && (
+        {/* NOT SURE IF WE NEED THIS */}
+        {/* {isParent && (
           <View style={styles.toggleContainer}>
             <TouchableOpacity
               onPress={() => setParentMode('create')}
@@ -208,11 +211,11 @@ export default function SignupPage() {
               <Text style={[styles.roleText, parentMode === 'join' && { color: colors.brand.primary }]}>join household</Text>
             </TouchableOpacity>
           </View>
-        )}
+        )} */}
 
         <TouchableOpacity onPress={() => router.push('/login-page')} style={styles.linkContainer}>
           <Text style={styles.linkText}>
-            already have an account? <Text style={[styles.linkText, { color: colors.brand.primary, fontWeight: '600' }]}>login</Text>
+            Already have an account? <Text style={[styles.linkText, { color: colors.brand.primaryShadow, fontWeight: '600' }]}>Login</Text>
           </Text>
         </TouchableOpacity>
         </ScrollView>
@@ -240,10 +243,13 @@ const styles = StyleSheet.create({
   // form's general item spacing.
   fieldGroup: { gap: spacing.xs },
   hint: { fontSize: 12, color: colors.text.tertiary },
-  errorText: { color: colors.status.error, fontSize: 13, textAlign: 'center' },
-  toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl },
+  errorText: { color: colors.status.error, fontSize: 13},
+  toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl},
   roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   roleText: { ...typography.bodySmall, color: colors.text.tertiary },
   linkContainer: { alignItems: 'center' },
-  linkText: { color: colors.text.tertiary, fontSize: 14 }
+  linkText: { color: colors.text.secondary, fontSize: 14 },
+  toggleButton: {
+    flex: 1,
+  }
 });

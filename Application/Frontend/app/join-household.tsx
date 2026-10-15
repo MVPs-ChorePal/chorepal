@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
 import { showAlert } from '@/utils/alert';
 import { colors, typography, spacing } from '@/constants/theme';
 import Button from '@/components/Button';
+import CodeBoxes from '@/components/CodeBoxes';
 
 export default function JoinHousehold() {
   const router = useRouter();
@@ -62,20 +63,25 @@ export default function JoinHousehold() {
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
 
-        <Text style={styles.label}>enter household code:</Text>
+        <Button
+            title="Hi! Ask your grown-up for the household code."
+            size="small"
+            color="secondary"
+        ></Button>
 
-        <TextInput
-          style={styles.codeInput}
+        <Text style={styles.label}>Join your household</Text>
+
+        <CodeBoxes
           value={secretCode}
           onChangeText={(text) => setSecretCode(text.toUpperCase())} //forces uppercase
-          autoCapitalize="characters"
-          maxLength={7} //3 letters + 4 numbers
-          placeholder="MVP0115"
-          placeholderTextColor={colors.text.tertiary}
-          autoCorrect={false}
+          length={7} //3 letters + 4 numbers
         />
 
-        <Button title="join household" onPress={handleJoin} fullWidth />
+        <Text style={styles.hint}>Your grown-up can find it in their ChorePal app under Account.</Text>
+        
+        <Button title="Join my household" onPress={handleJoin} fullWidth />
+
+
 
         {role === 'child' && (
           <Button
@@ -95,15 +101,6 @@ const styles = StyleSheet.create({
   // Background + top/side margins come from the Stack's contentStyle (app/_layout.tsx).
   root: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.xl },
-  label: { ...typography.bodyMedium, color: colors.text.primary },
-  codeInput: {
-    width: '100%',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border.default,
-    fontSize: 32,
-    textAlign: 'center',
-    letterSpacing: 5,
-    fontWeight: '200',
-    color: colors.text.primary
-  },
+  label: { ...typography.h1, color: colors.text.primary },
+  hint: { ...typography.bodySmall, color: colors.text.secondary, textAlign: 'center'},
 });
