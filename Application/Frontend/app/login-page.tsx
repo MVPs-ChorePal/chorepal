@@ -1,10 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
-
-// TouchableWithoutFeedback's tap-outside-to-dismiss steals pointer focus from
-// TextInput on react-native-web, so only wrap with it on native.
-const DismissKeyboardWrapper = Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
-const dismissKeyboardProps = Platform.OS === 'web' ? {} : { onPress: Keyboard.dismiss };
 import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
 import { useRouter, Stack } from 'expo-router';
@@ -12,6 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing } from '../constants/theme';
 import Button from '../components/Button';
 import Input from '../components/Input';
+
+// TouchableWithoutFeedback's tap-outside-to-dismiss steals pointer focus from
+// TextInput on react-native-web, so only wrap with it on native.
+const DismissKeyboardWrapper = Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
+const dismissKeyboardProps = Platform.OS === 'web' ? {} : { onPress: Keyboard.dismiss };
 
 export default function LoginPage() {
   const router = useRouter();
@@ -159,7 +159,7 @@ export default function LoginPage() {
             </View>
 
             <TouchableOpacity onPress={() => router.push('/signup-page')} style={styles.linkContainer}>
-              <Text style={styles.linkText}>New here? <Text style={{ color: colors.brand.primaryShadow, fontWeight: '600' }}>Sign up</Text></Text>
+              <Text style={{ ...typography.bodySecondary }}>New here? <Text style={{ ...typography.body, color: colors.brand.primaryShadow }}>Sign up</Text></Text>
             </TouchableOpacity>
           </ScrollView>
         </DismissKeyboardWrapper>
@@ -177,13 +177,13 @@ const styles = StyleSheet.create({
   // viewport, rather than bleeding past its own box into whatever's above it.
   inner: { flexGrow: 1, justifyContent: 'center', gap: spacing.xl },
   // horizontal/top margins already come from the Stack's contentStyle (app/_layout.tsx)
-  title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
+  title: { ...typography.display, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl },
   toggleButton: {
     flex: 1,
   },
   form: { width: '100%', gap: spacing.xl },
-  errorText: { color: colors.status.error, fontSize: 13, textAlign: 'center' },
+  errorText: { ...typography.body, color: colors.status.error, textAlign: 'center' },
   linkContainer: { alignItems: 'center' },
-  linkText: { color: colors.text.tertiary}
+  linkText: { ...typography.bodyTertiary }
 });

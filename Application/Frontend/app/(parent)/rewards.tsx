@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
-  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase' },
+  sectionTitle: { ...typography.body, color: colors.text.primary, textTransform: 'uppercase' },
   emptyText: { color: colors.text.tertiary, fontWeight: '300' },
   card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20 },
   cardSub: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },

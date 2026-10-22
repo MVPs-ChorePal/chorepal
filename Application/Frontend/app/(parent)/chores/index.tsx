@@ -108,11 +108,11 @@ const styles = StyleSheet.create({
   center: { justifyContent: 'center', alignItems: 'center' },
   title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
   scroll: { paddingBottom: spacing.xl },
-  sectionTitle: { ...typography.captionStrong, color: colors.text.primary, textTransform: 'uppercase', marginTop: spacing.lg, marginBottom: spacing.sm },
+  sectionTitle: { ...typography.body, color: colors.text.primary, textTransform: 'uppercase', marginTop: spacing.lg, marginBottom: spacing.sm },
   emptyText: { color: colors.text.tertiary, fontSize: 14, fontWeight: '300' },
   card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
   waitingCard: { borderLeftWidth: 7, borderLeftColor: colors.status.success },
-  choreTitle: { ...typography.bodyMediumStrong, color: colors.text.primary },
+  choreTitle: { ...typography.body, color: colors.text.primary },
   choreSub: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
   points: { fontSize: 14, fontWeight: '800', color: colors.brand.primary },
 });

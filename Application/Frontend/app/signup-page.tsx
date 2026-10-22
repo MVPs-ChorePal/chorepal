@@ -212,12 +212,10 @@ export default function SignupPage() {
             </TouchableOpacity>
           </View>
         )} */}
-
         <TouchableOpacity onPress={() => router.push('/login-page')} style={styles.linkContainer}>
-          <Text style={styles.linkText}>
-            Already have an account? <Text style={[styles.linkText, { color: colors.brand.primaryShadow, fontWeight: '600' }]}>Login</Text>
-          </Text>
+          <Text style={{ ...typography.bodySecondary }}>Already have an account? <Text style={{ ...typography.body, color: colors.brand.primaryShadow }}>Login</Text></Text>
         </TouchableOpacity>
+        
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -236,8 +234,8 @@ const styles = StyleSheet.create({
   backBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
   backText: { color: colors.brand.primary, fontSize: 16, fontWeight: '600', marginLeft: 5 },
   headerArea: { gap: spacing.sm },
-  title: { ...typography.h1, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
-  subtitle: { ...typography.bodyMedium, color: colors.text.tertiary, textAlign: 'center' },
+  title: { ...typography.display, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
+  subtitle: { ...typography.body, color: colors.text.tertiary, textAlign: 'center' },
   form: { width: '100%', gap: spacing.xl },
   // Pairs an input with its own caption directly beneath it, tighter than the
   // form's general item spacing.
@@ -246,9 +244,9 @@ const styles = StyleSheet.create({
   errorText: { color: colors.status.error, fontSize: 13},
   toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl},
   roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  roleText: { ...typography.bodySmall, color: colors.text.tertiary },
+  roleText: { ...typography.body, color: colors.text.tertiary },
   linkContainer: { alignItems: 'center' },
-  linkText: { color: colors.text.secondary, fontSize: 14 },
+  // linkText: { color: colors.text.secondary},
   toggleButton: {
     flex: 1,
   }

@@ -6,11 +6,11 @@ import {
 } from 'react-native';
 import { supabase } from '../../utils/supabase';
 import { Stack, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius, spacing } from '../../constants/theme';
+import { colors, typography, spacing } from '../../constants/theme';
 
 import CoinBadge from '../../components/CoinBadge';
-import CoinLabel from '../../components/CoinLabel';
+import ChoreHero from '../../components/ChoreHero';
+import Chore from '../../components/Chore';
 
 
 const { width } = Dimensions.get('window');
@@ -21,6 +21,14 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [chores, setChores] = useState([]); //stores chores from database
   const [userName, setUserName] = useState('');
+  
+  const testChores = [
+    { id: 1, title: 'Clean your room', reward_amount: 10, status: 'todo', category: 'clean' },
+    { id: 2, title: 'Do the dishes', reward_amount: 15, status: 'pending', category: 'kitchen' },
+    { id: 4, title: 'Mow the lawn', reward_amount: 20, status: 'todo', category: 'outdoor' },
+    { id: 5, title: 'Walk the dog', reward_amount: 8, status: 'todo' },
+    { id: 6, title: 'Feed the cat', reward_amount: 6, status: 'pending', category: 'other' },
+  ]
 
   useEffect(() => {
     fetchInitialData();
@@ -92,47 +100,36 @@ export default function Dashboard() {
           <CoinBadge amount={0} />
         </View>
 
+        <View>
+          {/* PLACEHOLDER */}
+          <ChoreHero numOfChores={5} totalChores={10} />
+        </View>
+
         {/* the chores list */}
         <View style={styles.middleSection}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
+            <Text style={typography.h2}>Today's Chores</Text>
+            <TouchableOpacity onPress={() => router.push('/chores')}>
+              <Text style={{ ...typography.body, color: colors.brand.primary }}>See all</Text>
+            </TouchableOpacity>
+          </View>
           <FlatList
-            data={chores}
+            data={testChores}
             keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
-              <TouchableOpacity 
-                style={styles.choreCard}
+              <Chore
+                title={item.title.toLowerCase()}
+                reward_amount={item.reward_amount}
+                status={item.status}
+                category={item.category}
                 onPress={() => router.push(`/chores/${item.id}`)}
-              >
-                <View style={styles.cardLeft}>
-                  <View style={styles.iconCircle}>
-                    <Ionicons name="flash-outline" size={20} color={colors.brand.primary} />
-                  </View>
-                  <View>
-                    <Text style={styles.choreName}>{item.title.toLowerCase()}</Text>
-                    <CoinLabel amount={item.reward_amount} size={13} color={colors.brand.primary} style={{ marginTop: 2 }} />
-                  </View>
-                </View>
-                <View style={[
-                  styles.statusBadge,
-                  item.status === 'pending' && { backgroundColor: colors.status.warningSubtle },
-                  (item.status === 'approved' || item.status === 'completed') && { backgroundColor: colors.status.successSubtle },
-                ]}>
-                  <Text style={[
-                    styles.statusText,
-                    item.status === 'pending' && { color: colors.status.warningText },
-                    (item.status === 'approved' || item.status === 'completed') && { color: colors.status.successText },
-                  ]}>
-                    {item.status === 'todo' ? 'to-do' : item.status}
-                  </Text>
-                <Ionicons name="chevron-forward" size={14} color={colors.icon.secondary} style={{marginLeft: 5}}/>
-                </View>
-              </TouchableOpacity>
+              />
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>all caught up</Text>
-                <Text style={styles.emptySub}>no pending chores assigned.</Text>
+                <Text style={styles.emptySub}>You're all caught up!</Text>
               </View>
             }
           />
@@ -152,29 +149,11 @@ const styles = StyleSheet.create({
   //top styles
   topSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   greeting: { ...typography.h2},
-  title: { ...typography.h1, color: colors.text.primary, letterSpacing: -1 },
 
   //list styles
   middleSection: { flex: 1 },
   list: { paddingBottom: spacing.xl, gap: spacing.xl },
-  choreCard: {
-    backgroundColor: colors.surface.white,
-    borderRadius: radius.card,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOpacity: 0.02,
-    shadowRadius: 10,
-    elevation: 2
-  },
-  cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  iconCircle: { width: 45, height: 45, borderRadius: radius.full, backgroundColor: colors.surface.neutral, justifyContent: 'center', alignItems: 'center' },
-  choreName: { ...typography.bodyMediumStrong, color: colors.text.primary },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.small, backgroundColor: colors.surface.neutral },
-  statusText: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase' },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
-  emptyText: { fontSize: 20, fontWeight: '300', color: colors.text.primary },
-  emptySub: { fontSize: 14, color: colors.text.tertiary, marginTop: 5 },
+  emptyText: { ...typography.body },
+  emptySub: { ...typography.bodyTertiary, marginTop: 5 },
 });

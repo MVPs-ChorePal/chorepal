@@ -47,7 +47,7 @@ export default Input;
 
 const styles = StyleSheet.create({
   label: {
-    ...typography.bodySmall,
+    ...typography.body,
     marginBottom: spacing.sm,
   },
   base: {
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.small,
     height: 56,
     paddingHorizontal: spacing.xxl,
-    ...typography.bodyMedium,
+    ...typography.body,
     color: colors.text.primary,
   },
 });

@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   mainWrapper: { flex: 1, paddingBottom: spacing.xl, alignItems: 'center', gap: spacing.xl },
   topSection: { alignItems: 'center', width: '100%', gap: spacing.sm },
   backLink: { color: colors.text.secondary, fontSize: 18 },
-  title: { ...typography.h1, color: colors.text.primary },
+  title: { ...typography.display, color: colors.text.primary },
   instruction: { fontSize: 14, color: colors.brand.primary, fontWeight: '500', textAlign: 'center', paddingHorizontal: 20 },
   middleSection: { flex: 1, justifyContent: 'center' },
   // Live camera viewfinder — deliberate dark camera chrome, not a themed surface.
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   // Post-capture placeholder box — not camera chrome, matches the parent review screen's white imgContainer.
   imgDisplay: { width: '100%', height: 180, borderRadius: radius.card, backgroundColor: colors.surface.white },
   infoCard: { backgroundColor: colors.surface.white, width: '100%', borderRadius: radius.medium, padding: 25, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 10, elevation: 2, gap: spacing.sm },
-  infoTitle: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase' },
+  infoTitle: { ...typography.body, color: colors.brand.primary, textTransform: 'uppercase' },
   infoText: { fontSize: 15, color: colors.text.primary, lineHeight: 22 },
   rewardSection: { alignItems: 'center', gap: spacing.xs },
   rewardLarge: { fontSize: 32, fontWeight: '800', color: colors.brand.primary },

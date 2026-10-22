@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
   },
   tabText: {
-    ...typography.captionStrong,
+    ...typography.body,
     color: colors.icon.secondary,
     marginTop: 4,
   }

@@ -13,7 +13,7 @@ export interface CoinLabelProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export default function CoinLabel({ amount, size = 15, color = colors.text.primary, style }: CoinLabelProps) {
+export default function CoinLabel({ amount, size = 16, color = colors.text.primary, style }: CoinLabelProps) {
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, style]}>
       <Coin size={Math.round(size * 1.2)} />

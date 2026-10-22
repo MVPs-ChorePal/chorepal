@@ -59,7 +59,7 @@ export default function HouseholdCode() {
 
 const styles = StyleSheet.create({
   card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 25, alignItems: 'center', width: '100%' },
-  label: { ...typography.labelSmall, color: colors.brand.primary, textTransform: 'uppercase' },
+  label: { ...typography.body, color: colors.brand.primary, textTransform: 'uppercase' },
   code: { fontSize: 34, fontWeight: '200', color: colors.text.primary, letterSpacing: 6, marginTop: 10 },
   hint: { fontSize: 12, color: colors.text.secondary, textAlign: 'center', marginTop: 8 },
   shareBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.brand.primary, borderRadius: radius.button, paddingHorizontal: 18, paddingVertical: 10, marginTop: 15 },

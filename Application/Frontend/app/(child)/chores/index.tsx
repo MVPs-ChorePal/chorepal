@@ -107,10 +107,10 @@ const styles = StyleSheet.create({
   },
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   iconCircle: { width: 45, height: 45, borderRadius: radius.full, backgroundColor: colors.surface.neutral, justifyContent: 'center', alignItems: 'center' },
-  choreName: { ...typography.bodyMediumStrong, color: colors.text.primary },
+  choreName: { ...typography.body, color: colors.text.primary },
   choreReward: { fontSize: 13, color: colors.brand.primary, fontWeight: '600', marginTop: 2 },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.small, backgroundColor: colors.surface.neutral },
-  statusText: { ...typography.captionStrong, color: colors.brand.primary, textTransform: 'uppercase' },
+  statusText: { ...typography.body, color: colors.brand.primary, textTransform: 'uppercase' },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   emptyText: { fontSize: 16, color: colors.text.tertiary, fontWeight: '300' },
 });

@@ -64,21 +64,10 @@ export const screen = {
 
 // fontFamily names match the @expo-google-fonts export names loaded in app/_layout.tsx.
 export const typography = {
-  h1: { fontFamily: 'Fredoka_700Bold', fontWeight: '700' as const, fontSize: 32, lineHeight: 40 },
-  display: { fontFamily: 'Fredoka_700Bold', fontWeight: '700' as const, fontSize: 48, lineHeight: 60 },
-  h2: { fontFamily: 'Fredoka_700Bold', fontWeight: '700' as const, fontSize: 24, lineHeight: 32 },
-  h3: { fontFamily: 'Fredoka_600SemiBold', fontWeight: '600' as const, fontSize: 20, lineHeight: 28 },
-  h4: { fontFamily: 'Fredoka_600SemiBold', fontWeight: '600' as const, fontSize: 18, lineHeight: 28 },
-  h5: { fontFamily: 'Fredoka_600SemiBold', fontWeight: '600' as const, fontSize: 16, lineHeight: 24 },
-  navLabel: { fontFamily: 'Fredoka_700Bold', fontWeight: '700' as const, fontSize: 16, lineHeight: 16 },
-  label: { fontFamily: 'Nunito_800ExtraBold', fontWeight: '800' as const, fontSize: 14, lineHeight: 20 },
-  labelSmall: { fontFamily: 'Nunito_800ExtraBold', fontWeight: '800' as const, fontSize: 12, lineHeight: 18 },
-  captionStrong: { fontFamily: 'Nunito_800ExtraBold', fontWeight: '800' as const, fontSize: 10, lineHeight: 15 },
-  bodyLarge: { fontFamily: 'Nunito_700Bold', fontWeight: '700' as const, fontSize: 18, lineHeight: 28 },
-  bodyMedium: { fontFamily: 'Nunito_600SemiBold', fontWeight: '600' as const, fontSize: 16, lineHeight: 24 },
-  bodyMediumStrong: { fontFamily: 'Nunito_800ExtraBold', fontWeight: '800' as const, fontSize: 16, lineHeight: 24 },
-  bodySmall: { fontFamily: 'Nunito_600SemiBold', fontWeight: '600' as const, fontSize: 14, lineHeight: 20 },
-  bodySmallStrong: { fontFamily: 'Nunito_800ExtraBold', fontWeight: '800' as const, fontSize: 14, lineHeight: 20 },
-  bodyCaption: { fontFamily: 'Nunito_800ExtraBold', fontWeight: '800' as const, fontSize: 10, lineHeight: 15 },
-  bodyMeta: { fontFamily: 'Nunito_700Bold', fontWeight: '700' as const, fontSize: 12, lineHeight: 16 },
+  display: { fontFamily: 'Fredoka_700Bold', fontWeight: '700' as const, fontSize: 32, color: colors.text.primary},
+  h2: { fontFamily: 'Fredoka_700Bold', fontWeight: '700' as const, fontSize: 24, color: colors.text.primary},
+  h3: { fontFamily: 'Fredoka_700Bold', fontWeight: '700' as const, fontSize: 20, color: colors.text.primary},
+  body: { fontFamily: 'Nunito_700Bold', fontWeight: '700' as const, fontSize: 16, color: colors.text.primary},
+  bodySecondary: { fontFamily: 'Nunito_700Bold', fontWeight: '700' as const, fontSize: 16, color: colors.text.secondary},
+  bodyTertiary: { fontFamily: 'Nunito_700Bold', fontWeight: '700' as const, fontSize: 16, color: colors.text.tertiary},
 };

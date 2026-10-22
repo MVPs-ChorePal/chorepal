@@ -97,7 +97,7 @@ export default function Button({
     ? { paddingHorizontal: spacing.xxxl, paddingVertical: spacing.xxl }
     : { paddingHorizontal: spacing.xxl, paddingVertical: spacing.md };
 
-  const textFont = isLarge ? typography.h4 : typography.label;
+  const textFont = isLarge ? typography.h2 : typography.h3;
   const textColor =
     variant === 'filled' ? set.filledText : variant === 'outline' ? set.outlineText : set.textVariantText;
 

@@ -101,6 +101,6 @@ const styles = StyleSheet.create({
   // Background + top/side margins come from the Stack's contentStyle (app/_layout.tsx).
   root: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: spacing.xl },
-  label: { ...typography.h1, color: colors.text.primary },
-  hint: { ...typography.bodySmall, color: colors.text.secondary, textAlign: 'center'},
+  label: { ...typography.display, color: colors.text.primary },
+  hint: { ...typography.body, color: colors.text.secondary, textAlign: 'center'},
 });
