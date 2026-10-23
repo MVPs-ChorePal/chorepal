@@ -25,12 +25,12 @@ export default function ChildRewards() {
   const [history, setHistory] = useState([]);
 
   const testRewards = [
-    { id: 1, title: 'extra screen time', point_cost: 50, category: 'entertainment' },
-    { id: 2, title: 'ice cream treat', point_cost: 30, category: 'food' },
-    { id: 3, title: 'choose dinner', point_cost: 40, category: 'food' },
-    { id: 4, title: 'movie night', point_cost: 60, category: 'entertainment' },
-    { id: 5, title: 'new toy', point_cost: 100, category: 'toys' },
-    { id: 6, title: 'playdate with friend', point_cost: 70, category: 'social' },
+    { id: 1, title: 'Extra screen time', point_cost: 50, category: 'entertainment' },
+    { id: 2, title: 'Ice cream treat', point_cost: 30, category: 'food' },
+    { id: 3, title: 'Choose dinner', point_cost: 40, category: 'food' },
+    { id: 4, title: 'Movie night', point_cost: 60, category: 'entertainment' },
+    { id: 5, title: 'New toy', point_cost: 100, category: 'toys' },
+    { id: 6, title: 'Playdate with friend', point_cost: 70, category: 'social' },
     { id: 7, title: 'stay up late', point_cost: 80, category: 'entertainment' },
     { id: 8, title: 'choose family activity', point_cost: 90, category: 'entertainment' },
   ];

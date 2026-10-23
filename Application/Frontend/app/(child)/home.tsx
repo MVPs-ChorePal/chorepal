@@ -113,26 +113,28 @@ export default function Dashboard() {
               <Text style={{ ...typography.body, color: colors.brand.primary }}>See all</Text>
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={testChores}
-            keyExtractor={(item) => item.id.toString()}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.list}
-            renderItem={({ item }) => (
-              <Chore
-                title={item.title.toLowerCase()}
-                reward_amount={item.reward_amount}
-                status={item.status}
-                category={item.category}
-                onPress={() => router.push(`/chores/${item.id}`)}
-              />
-            )}
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <Text style={{...typography.bodyTertiary}}>No chores yet</Text>
-              </View>
-            }
-          />
+          <View style={styles.rewardList}>
+            <FlatList
+              data={testChores}
+              keyExtractor={(item) => item.id.toString()}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.list}
+              renderItem={({ item }) => (
+                <Chore
+                  title={item.title}
+                  reward_amount={item.reward_amount}
+                  status={item.status}
+                  category={item.category}
+                  onPress={() => router.push(`/chores/${item.id}`)}
+                />
+              )}
+              ListEmptyComponent={
+                <View style={styles.emptyContainer}>
+                  <Text style={{...typography.bodyTertiary}}>No chores yet</Text>
+                </View>
+              }
+            />
+          </View>
         </View>
 
       </View>
@@ -151,6 +153,7 @@ const styles = StyleSheet.create({
   greeting: { ...typography.h2},
 
   //list styles
+
   middleSection: { flex: 1 },
   list: { paddingBottom: spacing.xl, gap: spacing.xl },
   emptyContainer: { alignItems: 'center', marginTop: 100 },

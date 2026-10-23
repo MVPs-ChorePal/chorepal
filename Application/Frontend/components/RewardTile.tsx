@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { IconStarFilled } from '@tabler/icons-react-native';
+import { IconStarFilled, IconCash, IconBuildingCarousel, IconCandy } from '@tabler/icons-react-native';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import Button from './Button';
 import CoinLabel from './CoinLabel';
@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     padding: spacing.md,
     gap: 10,
+    flex: 1,
   },
   art: {
     height: 100,
@@ -89,6 +90,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     alignItems: 'center',
+    alignSelf: 'stretch',
   },
   lockedText: { ...typography.body, color: colors.text.secondary },
 });
