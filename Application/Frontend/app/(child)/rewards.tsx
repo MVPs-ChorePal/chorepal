@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../utils/supabase';
 import { showAlert } from '../../utils/alert';
 import { colors, typography, radius, spacing } from '../../constants/theme';
-import Button from '../../components/Button';
+import RewardTile from '../../components/RewardTile';
 
 //formats an ISO date string into something like "sep 12"
 const formatDate = (isoDate) =>
@@ -23,6 +23,17 @@ export default function ChildRewards() {
   const [balance, setBalance] = useState(0);
   const [rewards, setRewards] = useState([]);
   const [history, setHistory] = useState([]);
+
+  const testRewards = [
+    { id: 1, title: 'extra screen time', point_cost: 50, category: 'entertainment' },
+    { id: 2, title: 'ice cream treat', point_cost: 30, category: 'food' },
+    { id: 3, title: 'choose dinner', point_cost: 40, category: 'food' },
+    { id: 4, title: 'movie night', point_cost: 60, category: 'entertainment' },
+    { id: 5, title: 'new toy', point_cost: 100, category: 'toys' },
+    { id: 6, title: 'playdate with friend', point_cost: 70, category: 'social' },
+    { id: 7, title: 'stay up late', point_cost: 80, category: 'entertainment' },
+    { id: 8, title: 'choose family activity', point_cost: 90, category: 'entertainment' },
+  ];
 
   const fetchData = useCallback(async () => {
     try {
@@ -48,7 +59,7 @@ export default function ChildRewards() {
 
         const { data: rewardsData, error: rewardsError } = await supabase
           .from('rewards')
-          .select('id, title, description, point_cost')
+          .select('id, title, description, point_cost, category')
           .in('created_by', parents.map(p => p.id))
           .eq('archived', false)
           .order('point_cost', { ascending: true });
@@ -122,44 +133,36 @@ export default function ChildRewards() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={styles.title}>Rewards</Text>
+        <Text style={styles.title}>Reward Shop</Text>
 
-        <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>your points</Text>
-          <View style={styles.balanceRow}>
-            <Ionicons name="star" size={28} color={colors.icon.inverse} />
-            <Text style={styles.balanceValue}>{balance}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>store</Text>
-        {rewards.length === 0 ? (
+        {testRewards.length === 0 ? (
           <Text style={styles.emptyText}>no rewards yet. ask your parent to add some!</Text>
-        ) : rewards.map(reward => {
-          const cost = Number(reward.point_cost);
-          const canAfford = balance >= cost;
-          return (
-            <View key={reward.id} style={styles.card}>
-              <View style={{ flex: 1, marginRight: 10 }}>
-                <Text style={styles.cardTitle}>{reward.title.toLowerCase()}</Text>
-                {!!reward.description && <Text style={styles.cardSub}>{reward.description}</Text>}
-                {!canAfford && <Text style={styles.cardSub}>{cost - balance} more pts needed</Text>}
-              </View>
-              <Button
-                title={`${cost} pts`}
-                size="small"
-                onPress={() => handleRedeem(reward)}
-                disabled={!canAfford || redeemingId !== null}
-                loading={redeemingId === reward.id}
-                style={styles.redeemBtn}
-              />
-            </View>
-          );
-        })}
+        ) : (
+          <View style={styles.rewardGrid}>
+            {testRewards.map(reward => {
+              const cost = Number(reward.point_cost);
+              const canAfford = balance >= cost;
+              return (
+                <RewardTile
+                  key={reward.id}
+                  title={reward.title}
+                  cost={cost}
+                  category={reward.category}
+                  canAfford={canAfford}
+                  shortfall={cost - balance}
+                  onPress={() => handleRedeem(reward)}
+                  loading={redeemingId === reward.id}
+                  disabled={redeemingId !== null}
+                  style={styles.rewardTile}
+                />
+              );
+            })}
+          </View>
+        )}
 
-        <Text style={styles.sectionTitle}>history</Text>
+        <Text style={{...typography.h2}}>History</Text>
         {history.length === 0 ? (
-          <Text style={styles.emptyText}>points you earn and spend will show up here</Text>
+          <Text style={{...typography.bodySecondary}}>Points you earn and spend will show up here</Text>
         ) : (
           <View style={styles.historyCard}>
             {history.map((t, i) => {
@@ -200,10 +203,8 @@ const styles = StyleSheet.create({
   balanceValue: { fontSize: 44, fontWeight: '800', color: colors.text.inverse },
   sectionTitle: { ...typography.body, color: colors.text.secondary, textTransform: 'uppercase' },
   emptyText: { color: colors.text.tertiary, fontWeight: '300' },
-  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, flexDirection: 'row', alignItems: 'center' },
-  cardTitle: { ...typography.body, color: colors.text.primary },
-  cardSub: { fontSize: 12, color: colors.text.secondary, marginTop: 3 },
-  redeemBtn: { minWidth: 80 },
+  rewardGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg },
+  rewardTile: { width: '47%' },
   historyCard: { backgroundColor: colors.surface.white, borderRadius: radius.card, paddingHorizontal: 20, paddingVertical: 5 },
   historyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },

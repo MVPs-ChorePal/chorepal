@@ -8,11 +8,19 @@ import { supabase } from '../../../utils/supabase';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import Chore from '../../../components/Chore';
 import Category, { CategoryValue } from '../../../components/Category';
+import StatusTabs, { StatusTab } from '../../../components/StatusTabs';
 import { CATEGORY_AI_TAGS, categoryForTag } from '../../../constants/choreCategories';
 
 // Matches the Figma "Category Filter" component — All plus the 3 filterable
 // buckets (Other has no dedicated filter chip).
 const FILTERS: CategoryValue[] = ['all', 'clean', 'kitchen', 'outdoor'];
+
+type StatusFilter = 'todo' | 'pending' | 'done';
+const STATUS_TABS: StatusTab<StatusFilter>[] = [
+  { value: 'todo', label: 'To do' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'done', label: 'Done' },
+];
 
 export default function ChildChoresList() {
   const router = useRouter();
@@ -20,6 +28,7 @@ export default function ChildChoresList() {
   const [refreshing, setRefreshing] = useState(false);
   const [chores, setChores] = useState([]);
   const [filter, setFilter] = useState<CategoryValue>('all');
+  const [status, setStatus] = useState<StatusFilter>('todo');
 
   //unlike home.tsx (which only shows what's not yet approved), this is the
   //full history, approved chores included, so a kid can see what they've done
@@ -51,9 +60,9 @@ export default function ChildChoresList() {
     fetchData();
   };
 
-  const filteredChores = filter === 'all'
-    ? chores
-    : chores.filter((c) => c.target_label === CATEGORY_AI_TAGS[filter]);
+  const filteredChores = chores
+    .filter((c) => filter === 'all' || c.target_label === CATEGORY_AI_TAGS[filter])
+    .filter((c) => (status === 'done' ? c.status === 'completed' || c.status === 'approved' : c.status === status));
 
   if (loading) return <View style={[styles.root, styles.center]}><ActivityIndicator color={colors.brand.primary} /></View>;
 
@@ -65,6 +74,10 @@ export default function ChildChoresList() {
           <Category key={cat} value={cat} selected={filter === cat} onPress={() => setFilter(cat)} />
         ))}
       </View>
+      <StatusTabs tabs={STATUS_TABS} value={status} onChange={setStatus} />
+      <View>
+        <Text style={{ ...typography.h2 }}>Today</Text>
+      </View>
       <FlatList
         data={filteredChores}
         keyExtractor={(item) => item.id.toString()}
@@ -73,13 +86,13 @@ export default function ChildChoresList() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} onPress={() => router.push(`/chores/${item.id}`)}>
-            <Chore title={item.title} reward_amount={item.reward_amount} status={item.status} category={categoryForTag(item.target_label)} />
+            <Chore title={item.title} coin_cost={item.coin_cost} status={item.status} category={categoryForTag(item.target_label)} />
 
           </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No chores yet</Text>
+            <Text style={{...typography.bodyTertiary}}>No chores yet</Text>
           </View>
         }
       />

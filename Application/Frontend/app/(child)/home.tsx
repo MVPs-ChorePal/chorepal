@@ -129,7 +129,7 @@ export default function Dashboard() {
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptySub}>No chores yet</Text>
+                <Text style={{...typography.bodyTertiary}}>No chores yet</Text>
               </View>
             }
           />
@@ -155,5 +155,4 @@ const styles = StyleSheet.create({
   list: { paddingBottom: spacing.xl, gap: spacing.xl },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   emptyText: { ...typography.body },
-  emptySub: { ...typography.bodyTertiary, marginTop: 5 },
 });
