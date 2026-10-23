@@ -13,21 +13,15 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
+import Category, { CategoryValue } from '../../../components/Category';
+import { CATEGORY_AI_TAGS } from '../../../constants/choreCategories';
 
 //silences error box
 LogBox.ignoreAllLogs();
 
 const { width } = Dimensions.get('window');
 
-//categories for chore selection with corresponding ai tags
-const CATEGORIES = [
-  { id: 1, label: 'CLEAN', icon: 'restaurant-outline', aiTag: 'Dishware' },
-  { id: 2, label: 'YARD', icon: 'leaf-outline', aiTag: 'Plant' },
-  { id: 3, label: 'WASH', icon: 'shirt-outline', aiTag: 'Clothing' },
-  { id: 4, label: 'BED', icon: 'bed-outline', aiTag: 'Bed' },
-  { id: 5, label: 'PETS', icon: 'paw-outline', aiTag: 'Animal' },
-  { id: 6, label: 'TRASH', icon: 'trash-outline', aiTag: 'Waste Container' },
-];
+const CATEGORIES: CategoryValue[] = ['clean', 'kitchen', 'outdoor', 'other'];
 
 export default function CreateChore() {
   const router = useRouter();
@@ -38,8 +32,8 @@ export default function CreateChore() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [reward, setReward] = useState(''); 
-  const [selectedChildId, setSelectedChildId] = useState('all'); 
-  const [selectedAiTag, setSelectedAiTag] = useState('Dishware');
+  const [selectedChildId, setSelectedChildId] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryValue>('clean');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -88,7 +82,7 @@ export default function CreateChore() {
     setDescription('');
     setReward('');
     setSelectedChildId('all');
-    setSelectedAiTag('Dishware');
+    setSelectedCategory('clean');
     setDate(new Date());
   };
 
@@ -120,8 +114,8 @@ export default function CreateChore() {
         reward_amount: parseInt(reward) || 500,
         assigned_to: kid.id, 
         created_by: session.user.id,
-        status: 'todo', 
-        target_label: selectedAiTag, 
+        status: 'todo',
+        target_label: CATEGORY_AI_TAGS[selectedCategory],
         due_date: date.toISOString(),
         created_at: new Date().toISOString()
       }));
@@ -158,18 +152,11 @@ export default function CreateChore() {
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           
           <Text style={styles.sectionTitle}>select category</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
+          <View style={styles.catRow}>
             {CATEGORIES.map(cat => (
-              <TouchableOpacity 
-                key={cat.id} 
-                onPress={() => setSelectedAiTag(cat.aiTag)} 
-                style={[styles.catItem, selectedAiTag === cat.aiTag && styles.activeCat]}
-              >
-                <Ionicons name={cat.icon} size={28} color={selectedAiTag === cat.aiTag ? colors.icon.inverse : colors.brand.primary} />
-                <Text style={[styles.catLabel, selectedAiTag === cat.aiTag && {color: colors.text.inverse}]}>{cat.label}</Text>
-              </TouchableOpacity>
+              <Category key={cat} value={cat} selected={selectedCategory === cat} onPress={() => setSelectedCategory(cat)} />
             ))}
-          </ScrollView>
+          </View>
 
           <View style={styles.formCard}>
             <View style={styles.fieldGroup}>
@@ -263,10 +250,7 @@ const styles = StyleSheet.create({
   backText: { color: colors.brand.primary, fontSize: 18, fontWeight: '600', marginLeft: 5 },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   sectionTitle: { fontSize: 13, color: colors.brand.primary, fontWeight: '800', textTransform: 'uppercase' },
-  catScroll: {},
-  catItem: { width: 85, height: 85, borderRadius: radius.full, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center', marginRight: 15, elevation: 2 },
-  activeCat: { backgroundColor: colors.brand.primary },
-  catLabel: { fontSize: 9, fontWeight: '900', marginTop: 5, color: colors.brand.primary },
+  catRow: { flexDirection: 'row', gap: 10 },
   formCard: { backgroundColor: colors.surface.white, borderRadius: radius.medium, padding: 25, gap: spacing.lg },
   fieldGroup: { gap: spacing.sm },
   label: { fontSize: 11, fontWeight: '800', color: colors.text.primary, textTransform: 'uppercase' },

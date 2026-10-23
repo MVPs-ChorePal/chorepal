@@ -6,12 +6,20 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../../utils/supabase';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
+import Chore from '../../../components/Chore';
+import Category, { CategoryValue } from '../../../components/Category';
+import { CATEGORY_AI_TAGS, categoryForTag } from '../../../constants/choreCategories';
+
+// Matches the Figma "Category Filter" component — All plus the 3 filterable
+// buckets (Other has no dedicated filter chip).
+const FILTERS: CategoryValue[] = ['all', 'clean', 'kitchen', 'outdoor'];
 
 export default function ChildChoresList() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [chores, setChores] = useState([]);
+  const [filter, setFilter] = useState<CategoryValue>('all');
 
   //unlike home.tsx (which only shows what's not yet approved), this is the
   //full history, approved chores included, so a kid can see what they've done
@@ -43,46 +51,35 @@ export default function ChildChoresList() {
     fetchData();
   };
 
+  const filteredChores = filter === 'all'
+    ? chores
+    : chores.filter((c) => c.target_label === CATEGORY_AI_TAGS[filter]);
+
   if (loading) return <View style={[styles.root, styles.center]}><ActivityIndicator color={colors.brand.primary} /></View>;
 
   return (
     <SafeAreaView style={styles.root}>
-      <Text style={styles.title}>chores</Text>
+      <Text style={styles.title}>Chores</Text>
+      <View style={styles.filterRow}>
+        {FILTERS.map((cat) => (
+          <Category key={cat} value={cat} selected={filter === cat} onPress={() => setFilter(cat)} />
+        ))}
+      </View>
       <FlatList
-        data={chores}
+        data={filteredChores}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} onPress={() => router.push(`/chores/${item.id}`)}>
-            <View style={styles.cardLeft}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="flash-outline" size={20} color={colors.brand.primary} />
-              </View>
-              <View>
-                <Text style={styles.choreName}>{item.title.toLowerCase()}</Text>
-                <Text style={styles.choreReward}>{item.reward_amount} pts</Text>
-              </View>
-            </View>
-            <View style={[
-              styles.statusBadge,
-              item.status === 'pending' && { backgroundColor: colors.status.warningSubtle },
-              (item.status === 'approved' || item.status === 'completed') && { backgroundColor: colors.status.successSubtle },
-            ]}>
-              <Text style={[
-                styles.statusText,
-                item.status === 'pending' && { color: colors.status.warningText },
-                (item.status === 'approved' || item.status === 'completed') && { color: colors.status.successText },
-              ]}>
-                {item.status === 'todo' ? 'to-do' : item.status}
-              </Text>
-            </View>
+            <Chore title={item.title} reward_amount={item.reward_amount} status={item.status} category={categoryForTag(item.target_label)} />
+
           </TouchableOpacity>
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>no chores yet</Text>
+            <Text style={styles.emptyText}>No chores yet</Text>
           </View>
         }
       />
@@ -94,23 +91,9 @@ const styles = StyleSheet.create({
   // Background + top/side margins come from the Tabs' sceneStyle (app/(child)/_layout.tsx).
   root: { flex: 1, gap: spacing.xl },
   center: { justifyContent: 'center', alignItems: 'center' },
-  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
+  filterRow: { flexDirection: 'row', gap: 10 },
+  title: { ...typography.display },
   list: { paddingBottom: spacing.xl },
-  card: {
-    backgroundColor: colors.surface.white,
-    borderRadius: radius.card,
-    padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  iconCircle: { width: 45, height: 45, borderRadius: radius.full, backgroundColor: colors.surface.neutral, justifyContent: 'center', alignItems: 'center' },
-  choreName: { ...typography.body, color: colors.text.primary },
-  choreReward: { fontSize: 13, color: colors.brand.primary, fontWeight: '600', marginTop: 2 },
-  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.small, backgroundColor: colors.surface.neutral },
-  statusText: { ...typography.body, color: colors.brand.primary, textTransform: 'uppercase' },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   emptyText: { fontSize: 16, color: colors.text.tertiary, fontWeight: '300' },
 });

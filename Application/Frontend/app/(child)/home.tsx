@@ -129,7 +129,7 @@ export default function Dashboard() {
             )}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptySub}>You're all caught up!</Text>
+                <Text style={styles.emptySub}>No chores yet</Text>
               </View>
             }
           />

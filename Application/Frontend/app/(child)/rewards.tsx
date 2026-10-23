@@ -122,7 +122,7 @@ export default function ChildRewards() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={styles.title}>rewards</Text>
+        <Text style={styles.title}>Rewards</Text>
 
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>your points</Text>
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
-  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
+  title: { ...typography.display},
   balanceCard: { backgroundColor: colors.brand.primary, borderRadius: radius.medium, padding: 25, alignItems: 'center' },
   balanceLabel: { ...typography.body, color: colors.text.inverse, textTransform: 'uppercase' },
   balanceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
