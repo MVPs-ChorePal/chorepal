@@ -11,6 +11,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 
+import BackButton from '../../../components/BackButton';
+
 //ignore log warnings
 LogBox.ignoreAllLogs();
 const { width } = Dimensions.get('window');
@@ -18,6 +20,7 @@ const { width } = Dimensions.get('window');
 export default function ChoreSubmissionMachine() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+
   const cameraRef = useRef<any>(null);
   
   const [chore, setChore] = useState(null);
@@ -209,7 +212,8 @@ export default function ChoreSubmissionMachine() {
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.mainWrapper}>
         <View style={styles.topSection}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}><Text style={styles.backLink}>‹ back</Text></TouchableOpacity>
+          {/* <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}><Text style={styles.backLink}>‹ back</Text></TouchableOpacity> */}
+          <BackButton />
           <Text style={styles.title}>{chore?.title.toLowerCase()}</Text>
           <Text style={styles.instruction}>{aiNote ? aiNote.toLowerCase() : (chore?.status === 'todo' ? 'step 1: capture the mess' : 'step 2: verify your work')}</Text>
         </View>

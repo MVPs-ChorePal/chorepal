@@ -86,7 +86,13 @@ export default function ChildChoresList() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} onPress={() => router.push(`/chores/${item.id}`)}>
-            <Chore title={item.title} coin_cost={item.coin_cost} status={item.status} category={categoryForTag(item.target_label)} />
+              <Chore
+                  title={item.title}
+                  reward_amount={item.reward_amount}
+                  status={item.status}
+                  category={item.category}
+                  onPress={() => router.push(`/chores/${item.id}`)}
+              />
 
           </TouchableOpacity>
         )}

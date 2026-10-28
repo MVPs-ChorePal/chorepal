@@ -6,6 +6,7 @@ import { showAlert } from '@/utils/alert';
 import { colors, typography, spacing } from '@/constants/theme';
 import Button from '@/components/Button';
 import CodeBoxes from '@/components/CodeBoxes';
+import TextBox from '@/components/TextBox';
 
 export default function JoinHousehold() {
   const router = useRouter();
@@ -63,11 +64,9 @@ export default function JoinHousehold() {
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
 
-        <Button
-            title="Hi! Ask your grown-up for the household code."
-            size="small"
-            color="secondary"
-        ></Button>
+        <TextBox>
+            Hi! Ask your grown-up for the household code.
+        </TextBox>
 
         <Text style={styles.label}>Join your household</Text>
 

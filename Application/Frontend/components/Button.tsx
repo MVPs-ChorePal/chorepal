@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
   ActivityIndicator,
   StyleProp,
@@ -60,7 +60,7 @@ const COLOR_SETS: Record<ButtonColor, ColorSet> = {
 };
 
 export interface ButtonProps extends Omit<TouchableOpacityProps, 'style'> {
-  title: string;
+  title: string | ReactNode;
   variant?: ButtonVariant;
   size?: ButtonSize;
   color?: ButtonColor;

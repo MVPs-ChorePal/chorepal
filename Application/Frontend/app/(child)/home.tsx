@@ -127,6 +127,7 @@ export default function Dashboard() {
                   category={item.category}
                   onPress={() => router.push(`/chores/${item.id}`)}
                 />
+
               )}
               ListEmptyComponent={
                 <View style={styles.emptyContainer}>
