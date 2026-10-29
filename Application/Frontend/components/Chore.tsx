@@ -1,22 +1,16 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { Icon, IconChevronRight, IconTree, IconSparkles, IconToolsKitchen2, IconQuestionMark } from '@tabler/icons-react-native';
+import { Icon, IconChevronRight } from '@tabler/icons-react-native';
 import { colors, typography, radius } from '../constants/theme';
+import { CATEGORY_ICONS, CategoryValue } from '../constants/choreCategories';
 import CoinLabel from './CoinLabel';
 
 // Source of truth: Figma "Wireframes" > Child Chores > Quest Card
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=656-40
 
-type ChoreCategory = keyof typeof colors.category;
-type ChoreStatus = 'todo' | 'pending' | 'completed';
 
-// Default icon per category bucket — overridable per-chore via the `icon` prop.
-const CATEGORY_ICONS: Record<ChoreCategory, Icon> = {
-  clean: IconSparkles,
-  kitchen: IconToolsKitchen2,
-  outdoor: IconTree,
-  other: IconQuestionMark,
-};
+type ChoreCategory = Exclude<CategoryValue, 'all'>;
+type ChoreStatus = 'todo' | 'pending' | 'completed';
 
 const STATUS_CHIP: Partial<Record<ChoreStatus, { label: string; bg: string; border: string; text: string }>> = {
   pending: { label: 'Pending…', bg: colors.status.warningSubtle, border: colors.status.warning, text: colors.status.warningText },
@@ -37,6 +31,8 @@ export default function Chore({ title, reward_amount, category = 'other', icon, 
   const categoryColors = colors.category[category];
   const chip = STATUS_CHIP[status];
   const CategoryIcon = icon ?? CATEGORY_ICONS[category];
+
+
 
   return (
     <View style={style}>
@@ -70,6 +66,8 @@ export default function Chore({ title, reward_amount, category = 'other', icon, 
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   // Hard, unblurred offset shadow behind the card — same "ledge" technique as Button/CoinBadge.

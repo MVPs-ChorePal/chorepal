@@ -3,12 +3,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../utils/supabase';
 import { useRouter } from 'expo-router';
 import { colors, typography, spacing } from '../../constants/theme';
+import ChildHeader from '../../components/ChildHeader';
 
 export default function ChildAccount() {
   const router = useRouter();
   return (
     <SafeAreaView style={styles.root}>
-      <Text style={styles.title}>Account</Text>
+      <ChildHeader left={`Account`} />
       <View style={styles.content}>
         <Text style={styles.placeholder}>personal stats</Text>
       </View>

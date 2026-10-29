@@ -1,21 +1,14 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { Icon, IconTree, IconSparkles, IconToolsKitchen2, IconQuestionMark, IconStarFilled } from '@tabler/icons-react-native';
+import { Icon } from '@tabler/icons-react-native';
 import { colors, radius, spacing, typography } from '../constants/theme';
+import { CATEGORY_ICONS, CategoryValue } from '../constants/choreCategories';
+
+export type { CategoryValue };
 
 // Source of truth: Figma "Design System" > Category Filter (also used as the
 // category picker on Parent > New Chore)
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=721-45
-
-export type CategoryValue = 'all' | keyof typeof colors.category;
-
-const CATEGORY_ICONS: Record<CategoryValue, Icon> = {
-  all: IconStarFilled,
-  clean: IconSparkles,
-  kitchen: IconToolsKitchen2,
-  outdoor: IconTree,
-  other: IconQuestionMark,
-};
 
 const CATEGORY_LABELS: Record<CategoryValue, string> = {
   all: 'All',

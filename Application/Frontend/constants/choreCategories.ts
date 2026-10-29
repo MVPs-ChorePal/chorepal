@@ -1,7 +1,22 @@
-import { CategoryValue } from '../components/Category';
+import { Icon, IconQuestionMark, IconSparkles, IconStarFilled, IconToolsKitchen2, IconTree } from '@tabler/icons-react-native';
+import { colors } from './theme';
 
-// Maps each visual chore category (components/Category.tsx) to the AI target
-// label matched by the verify-with-ai edge function's CATEGORY_KEYWORDS
+// Single source of truth for the "chore category" concept — the type, its
+// icon, and the mapping to/from the AI target label. Defined here (not in
+// components/Category.tsx) so components/Category.tsx and components/Chore.tsx
+// can both import from this file without a circular dependency between them.
+export type CategoryValue = 'all' | keyof typeof colors.category;
+
+export const CATEGORY_ICONS: Record<CategoryValue, Icon> = {
+  all: IconStarFilled,
+  clean: IconSparkles,
+  kitchen: IconToolsKitchen2,
+  outdoor: IconTree,
+  other: IconQuestionMark,
+};
+
+// Maps each visual chore category to the AI target label matched by the
+// verify-with-ai edge function's CATEGORY_KEYWORDS
 // (Application/Backend/supabase/functions/verify-with-ai/index.ts). `chores`
 // has no dedicated category column, so this mapping is the single source of
 // truth for going from a picked category to a stored target_label and back.

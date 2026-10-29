@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from 'react';
-import { StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet, Text, TextInput, TextInputInstance, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import { colors, radius, spacing, typography } from '../constants/theme';
 
 // Source of truth: Figma "Design System" > Input
@@ -12,7 +12,7 @@ export interface InputProps extends TextInputProps {
   containerStyle?: StyleProp<ViewStyle>;
 }
 
-const Input = forwardRef<TextInput, InputProps>(
+const Input = forwardRef<TextInputInstance, InputProps>(
   ({ error = false, style, containerStyle, onFocus, onBlur, placeholderTextColor, label, ...rest }, ref) => {
     const [focused, setFocused] = useState(false);
 

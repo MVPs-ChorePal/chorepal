@@ -11,6 +11,7 @@ import { supabase } from '../../utils/supabase';
 import { showAlert } from '../../utils/alert';
 import { colors, typography, radius, spacing } from '../../constants/theme';
 import RewardTile from '../../components/RewardTile';
+import ChildHeader from '../../components/ChildHeader';
 
 //formats an ISO date string into something like "sep 12"
 const formatDate = (isoDate) =>
@@ -133,7 +134,7 @@ export default function ChildRewards() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={styles.title}>Reward Shop</Text>
+        <ChildHeader left={`Reward shop`} /> 
 
         {testRewards.length === 0 ? (
           <Text style={styles.emptyText}>no rewards yet. ask your parent to add some!</Text>

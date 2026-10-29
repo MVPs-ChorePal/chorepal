@@ -10,6 +10,7 @@ import Chore from '../../../components/Chore';
 import Category, { CategoryValue } from '../../../components/Category';
 import StatusTabs, { StatusTab } from '../../../components/StatusTabs';
 import { CATEGORY_AI_TAGS, categoryForTag } from '../../../constants/choreCategories';
+import ChildHeader from '../../../components/ChildHeader';
 
 // Matches the Figma "Category Filter" component — All plus the 3 filterable
 // buckets (Other has no dedicated filter chip).
@@ -68,7 +69,7 @@ export default function ChildChoresList() {
 
   return (
     <SafeAreaView style={styles.root}>
-      <Text style={styles.title}>Chores</Text>
+      <ChildHeader left={`Chores`} style={{...typography.h1}}/>
       <View style={styles.filterRow}>
         {FILTERS.map((cat) => (
           <Category key={cat} value={cat} selected={filter === cat} onPress={() => setFilter(cat)} />

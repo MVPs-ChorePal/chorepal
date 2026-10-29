@@ -8,9 +8,10 @@ import { supabase } from '../../utils/supabase';
 import { Stack, useRouter } from 'expo-router';
 import { colors, typography, spacing } from '../../constants/theme';
 
-import CoinBadge from '../../components/CoinBadge';
+import ChildHeader from '../../components/ChildHeader';
 import ChoreHero from '../../components/ChoreHero';
 import Chore from '../../components/Chore';
+
 
 
 const { width } = Dimensions.get('window');
@@ -22,14 +23,6 @@ export default function Dashboard() {
   const [chores, setChores] = useState([]); //stores chores from database
   const [userName, setUserName] = useState('');
   
-  const testChores = [
-    { id: 1, title: 'Clean your room', reward_amount: 10, status: 'todo', category: 'clean' },
-    { id: 2, title: 'Do the dishes', reward_amount: 15, status: 'pending', category: 'kitchen' },
-    { id: 4, title: 'Mow the lawn', reward_amount: 20, status: 'todo', category: 'outdoor' },
-    { id: 5, title: 'Walk the dog', reward_amount: 8, status: 'todo' },
-    { id: 6, title: 'Feed the cat', reward_amount: 6, status: 'pending', category: 'other' },
-  ]
-
   useEffect(() => {
     fetchInitialData();
 
@@ -92,17 +85,11 @@ export default function Dashboard() {
       
       <View style={styles.mainWrapper}>
         
-        {/* Top, MIGHT CONVERT TO COMPONENT */}
-        <View style={styles.topSection}>
-          {/* NEED PROFILE PIC */}
-          <Text style={styles.greeting}>Hi, {userName}!</Text>
-
-          <CoinBadge amount={0} />
-        </View>
+        <ChildHeader left={`Hi, ${userName}!`} />
 
         <View>
           {/* PLACEHOLDER */}
-          <ChoreHero numOfChores={5} totalChores={10} />
+          <ChoreHero numOfChores={chores.length} totalChores={chores.length} />
         </View>
 
         {/* the chores list */}
@@ -115,7 +102,7 @@ export default function Dashboard() {
           </View>
           <View style={styles.rewardList}>
             <FlatList
-              data={testChores}
+              data={chores}
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.list}
@@ -125,7 +112,7 @@ export default function Dashboard() {
                   reward_amount={item.reward_amount}
                   status={item.status}
                   category={item.category}
-                  onPress={() => router.push(`/chores/${item.id}`)}
+                  onPress={() => { router.push(`/chores/${item.id}`); console.log(item.id); }}
                 />
 
               )}
@@ -148,13 +135,6 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
   mainWrapper: { flex: 1, gap: spacing.xl },
-
-  //top styles
-  topSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  greeting: { ...typography.h2},
-
-  //list styles
-
   middleSection: { flex: 1 },
   list: { paddingBottom: spacing.xl, gap: spacing.xl },
   emptyContainer: { alignItems: 'center', marginTop: 100 },

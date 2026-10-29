@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, TextInputInstance, View } from 'react-native';
 import { colors } from '../constants/theme';
 
 // Source of truth: Figma "Child Join Family (Secret Code)" > Code boxes
@@ -13,7 +13,7 @@ export interface CodeBoxesProps {
 }
 
 export default function CodeBoxes({ value, onChangeText, length, autoFocus }: CodeBoxesProps) {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const [focused, setFocused] = useState(false);
 
   // The next empty box is "active" only while the hidden input is focused.
