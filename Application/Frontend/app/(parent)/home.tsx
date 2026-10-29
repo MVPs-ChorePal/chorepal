@@ -9,6 +9,7 @@ import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, radius, spacing } from '../../constants/theme';
+import Button from '@/components/Button';
 
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
 
@@ -138,13 +139,9 @@ export default function ParentDashboard() {
         }
       </ScrollView>
 
+      <Button title="+ Create Chore" onPress={() => router.push('/chores/create-chore')} />
+
       {/* button to open chore creator */}
-      <TouchableOpacity 
-        style={styles.fab} 
-        onPress={() => router.push('/chores/create-chore')}
-      >
-        <Ionicons name="add" size={32} color={colors.icon.inverse} />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -163,5 +160,4 @@ const styles = StyleSheet.create({
   choreTitle: { ...typography.body, color: colors.text.primary },
   childName: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
   points: { fontSize: 14, fontWeight: '800', color: colors.brand.primary },
-  fab: { position: 'absolute', bottom: spacing.xl, right: 25, width: 64, height: 64, borderRadius: radius.full, backgroundColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', elevation: 5 },
 });

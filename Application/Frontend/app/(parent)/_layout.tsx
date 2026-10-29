@@ -1,105 +1,16 @@
-import { Tabs, useSegments } from 'expo-router';
-import { Text, View, StyleSheet, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius, screen } from '../../constants/theme';
-
-const TabItem = ({ label, icon, isActive }: { label: string, icon: string, isActive: boolean }) => {
-  const activeColor = colors.brand.primary;
-  const activeBg = colors.brand.primarySubtle;
-  const inactiveColor = colors.text.secondary;
-
-  return (
-    <View style={[styles.pill, isActive && { backgroundColor: activeBg }]}>
-      <Ionicons 
-        name={isActive ? icon : (`${icon}-outline` as any)} 
-        size={22} 
-        color={isActive ? activeColor : inactiveColor} 
-      />
-      <Text style={[styles.tabText, { color: isActive ? activeColor : inactiveColor }]}>
-        {label}
-      </Text>
-    </View>
-  );
-};
+import { IconHome, IconListCheck, IconTreasureChest, IconUser } from '@tabler/icons-react-native';
+import AppTabsLayout from '../../components/AppTabsLayout';
 
 export default function ParentLayout() {
-  const segments = useSegments();
-  const isChoresActive = segments[1] === 'chores';
-
   return (
-    <Tabs screenOptions={{
-      headerShown: false,
-      animation: 'none',
-      tabBarShowLabel: false,
-      tabBarStyle: styles.tabBar,
-      sceneStyle: screen,
-      //centers the entire tab slot vertically
-      tabBarItemStyle: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100%',
-      },
-      //removes default margins from the icon container
-      tabBarIconStyle: {
-        width: '100%',
-        height: '100%',
-        marginTop: 0,
-      }
-    }}>
-      <Tabs.Screen name="home" options={{
-        tabBarIcon: ({ focused }) => (
-          <TabItem label="HOME" icon="home" isActive={focused} />
-        )
-      }} />
-      <Tabs.Screen name="chores/index" options={{
-        title: 'chores',
-        tabBarIcon: () => (
-          <TabItem label="CHORES" icon="list" isActive={isChoresActive} />
-        )
-      }} />
-      <Tabs.Screen name="rewards" options={{
-        tabBarIcon: ({ focused }) => (
-          <TabItem label="REWARDS" icon="star" isActive={focused} />
-        )
-      }} />
-      <Tabs.Screen name="account" options={{
-        tabBarIcon: ({ focused }) => (
-          <TabItem label="ACCOUNT" icon="person" isActive={focused} />
-        )
-      }} />
-      <Tabs.Screen name="chores/create-chore" options={{ href: null }} />
-      <Tabs.Screen name="chores/[id]" options={{ href: null }} />
-    </Tabs>
+    <AppTabsLayout
+      tabs={[
+        { name: 'home', label: 'Home', icon: IconHome },
+        { name: 'chores/index', label: 'Chores', icon: IconListCheck },
+        { name: 'rewards', label: 'Rewards', icon: IconTreasureChest },
+        { name: 'account', label: 'Account', icon: IconUser },
+      ]}
+      hiddenRoutes={['chores/create-chore', 'chores/[id]']}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: colors.surface.white,
-    borderTopWidth: 0,
-    height: 100,
-    elevation: 0,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    borderTopLeftRadius: radius.medium,
-    borderTopRightRadius: radius.medium,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingBottom: 20,
-  },
-  pill: {
-    width: 85,
-    height: 65,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: radius.card,
-  },
-  tabText: {
-    ...typography.body,
-    color: colors.icon.secondary,
-    marginTop: 4,
-  }
-});

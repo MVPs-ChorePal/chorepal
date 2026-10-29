@@ -101,7 +101,7 @@ export default function LoginPage() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.title}>Welcome Back!</Text>
 
       <View style={styles.toggleContainer}>
                 <Button

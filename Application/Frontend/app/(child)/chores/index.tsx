@@ -103,17 +103,24 @@ export default function ChildChoresList() {
           </View>
         }
       />
+      { status === 'todo' && (
+        <View>
+          <Text style={{ ...typography.h2 }}>Upcoming</Text>
+        </View>
+      )
+      }
+
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   // Background + top/side margins come from the Tabs' sceneStyle (app/(child)/_layout.tsx).
-  root: { flex: 1, gap: spacing.xl },
+  root: { gap: spacing.xl },
   center: { justifyContent: 'center', alignItems: 'center' },
   filterRow: { flexDirection: 'row', gap: 10 },
   title: { ...typography.display },
-  list: { paddingBottom: spacing.xl },
-  emptyContainer: { alignItems: 'center', marginTop: 100 },
+  list: { paddingBottom: spacing.xl, display: 'flex', gap: spacing.xl},
+  emptyContainer: { alignItems: 'center' },
   emptyText: { fontSize: 16, color: colors.text.tertiary, fontWeight: '300' },
 });
