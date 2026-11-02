@@ -377,8 +377,8 @@ export default function ChoreSubmissionMachine() {
     );
   }
 
-  //FRAME 3: Checking (Pending) — AI-verified, waiting on the parent's approval
-  if (chore?.status === 'pending') {
+  //FRAME 3: Checking (Completed) — AI-verified, waiting on the parent's approval
+  if (chore?.status === 'completed') {
     return (
       <SafeAreaView style={styles.root}>
         <Stack.Screen options={{ headerShown: false }} />
