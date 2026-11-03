@@ -1,29 +1,28 @@
 //@ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-  StyleSheet, Text, View, TextInput, TouchableOpacity,
-  ScrollView, Platform, KeyboardAvoidingView, Modal, Dimensions, LogBox
+  StyleSheet, Text, View,
+  ScrollView, Platform, KeyboardAvoidingView, Modal
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
 import { showAlert } from '../../../utils/alert';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, useFocusEffect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { IconCalendar } from '@tabler/icons-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import Button from '../../../components/Button';
-
+import Input from '../../../components/Input';
+import Pill from '../../../components/Pill';
+import RewardAmountPicker from '../../../components/RewardAmountPicker';
 import Category, { CategoryValue } from '../../../components/Category';
 import { CATEGORY_AI_TAGS } from '../../../constants/choreCategories';
-
 import ParentHeader from '../../../components/parent/ParentHeader';
 import BackButton from '../../../components/BackButton';
-import Input from '../../../components/Input';
 
-//silences error box
-LogBox.ignoreAllLogs();
-
-const { width } = Dimensions.get('window');
+// Source of truth: Figma "Parent New Chore"
+// https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=0-1
 
 const CATEGORIES: CategoryValue[] = ['clean', 'kitchen', 'outdoor', 'other'];
 
@@ -32,18 +31,16 @@ export default function CreateChore() {
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [children, setChildren] = useState([]);
-  
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [reward, setReward] = useState(''); 
+  const [reward, setReward] = useState(500);
   const [selectedChildId, setSelectedChildId] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState<CategoryValue>('clean');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  useEffect(() => { fetchChildren(); }, []);
-
-  async function fetchChildren() {
+  const fetchChildren = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -70,13 +67,15 @@ export default function CreateChore() {
     } catch (e) {
       console.error("FETCH ERROR:", e.message);
     }
-  }
+  }, []);
+
+  useFocusEffect(useCallback(() => { fetchChildren(); }, [fetchChildren]));
 
   //grabs only the first "word" and capitalizes it
   const formatFirstName = (name: string) => {
     if (!name) return 'Child';
     const cleaned = name.trim();
-    const firstName = cleaned.split(' ')[0]; 
+    const firstName = cleaned.split(' ')[0];
     return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
   };
 
@@ -84,7 +83,7 @@ export default function CreateChore() {
   const clearForm = () => {
     setTitle('');
     setDescription('');
-    setReward('');
+    setReward(500);
     setSelectedChildId('all');
     setSelectedCategory('clean');
     setDate(new Date());
@@ -104,7 +103,7 @@ export default function CreateChore() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const targetKids = selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId);
-      
+
       if (targetKids.length === 0) {
         showAlert("no children yet", "add a child to your household before assigning chores.");
         setLoading(false);
@@ -113,10 +112,10 @@ export default function CreateChore() {
 
       //prepare chore rows for each selected child
       const choreRows = targetKids.map(kid => ({
-        title, 
-        description, 
-        reward_amount: parseInt(reward) || 500,
-        assigned_to: kid.id, 
+        title,
+        description,
+        reward_amount: reward,
+        assigned_to: kid.id,
         created_by: session.user.id,
         status: 'todo',
         target_label: CATEGORY_AI_TAGS[selectedCategory],
@@ -145,73 +144,59 @@ export default function CreateChore() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ParentHeader left={<BackButton />} right="New Chore" />
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-          <Input placeholder="e.g. Unload the Dishwasher" value={title} onChangeText={setTitle} label="What's the chore?" />
-
-
-          <View style={styles.catRow}>
-            {CATEGORIES.map(cat => (
-              <Category key={cat} value={cat} selected={selectedCategory === cat} onPress={() => setSelectedCategory(cat)} />
-            ))}
-          </View>
-
-  
+          <ParentHeader left={<BackButton />} right="New Chore" />
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>details</Text>
-            <Input
-              placeholder="Tell them exactly how to complete..."
-              style={styles.textArea}
-              multiline
-              value={description}
-              onChangeText={setDescription}
-            />
+            <Text style={typography.h3}>Create a new chore</Text>
+            <Input placeholder="e.g. Unload the Dishwasher" value={title} onChangeText={setTitle} />
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>assign to:</Text>
-            <View style={styles.childList}>
-              <View style={styles.childItem}>
-                <TouchableOpacity style={[styles.childCircle, selectedChildId === 'all' && styles.activeChild]} onPress={() => setSelectedChildId('all')}>
-                  <Text style={[styles.childInitial, selectedChildId === 'all' && {color: colors.text.inverse}]}>All</Text>
-                </TouchableOpacity>
-              </View>
-
-              {children.map(child => (
-                <View key={child.id} style={styles.childItem}>
-                  <TouchableOpacity
-                    style={[styles.childCircle, selectedChildId === child.id && styles.activeChild]}
-                    onPress={() => setSelectedChildId(child.id)}
-                  >
-                    <Text style={[styles.childInitial, selectedChildId === child.id && {color: colors.text.inverse}]}>
-                      {formatFirstName(child.display_name).charAt(0)}
-                    </Text>
-                  </TouchableOpacity>
-                  <Text style={styles.childName} numberOfLines={1}>{formatFirstName(child.display_name)}</Text>
-                </View>
+            <Text style={typography.h3}>Category</Text>
+            <View style={styles.catRow}>
+              {CATEGORIES.map(cat => (
+                <Category key={cat} value={cat} selected={selectedCategory === cat} onPress={() => setSelectedCategory(cat)} />
               ))}
             </View>
           </View>
 
-          <View style={styles.row}>
-            <View style={styles.dateBox}>
-                <Text style={styles.label}>deadline</Text>
-                <TouchableOpacity style={styles.pillInput} onPress={() => setShowDatePicker(true)}>
-                  <Text style={styles.valueText}>{date.toLocaleDateString()}</Text>
-                </TouchableOpacity>
-            </View>
-            <View style={styles.rewardBox}>
-                <Text style={styles.label}>reward</Text>
-                <View style={styles.pillInput}>
-                  <TextInput keyboardType="numeric" value={reward} onChangeText={setReward} style={styles.valueText} placeholder="500" placeholderTextColor={colors.text.tertiary} />
-                  <Text style={styles.unitText}>pts</Text>
-                </View>
+          <View style={styles.fieldGroup}>
+            <Text style={typography.h3}>Steps</Text>
+            <Text style={typography.bodySecondary}>Your kid sees these as a checklist</Text>
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={typography.h3}>{"Who's doing it?"}</Text>
+            <View style={styles.pillRow}>
+              <Pill selected={selectedChildId === 'all'} onPress={() => setSelectedChildId('all')}>All</Pill>
+              {children.map(child => (
+                <Pill
+                  key={child.id}
+                  selected={selectedChildId === child.id}
+                  onPress={() => setSelectedChildId(child.id)}
+                >
+                  {formatFirstName(child.display_name)}
+                </Pill>
+              ))}
             </View>
           </View>
+
+          <View style={styles.fieldGroup}>
+            <Text style={typography.h3}>When?</Text>
+            <Pill onPress={() => setShowDatePicker(true)} style={styles.dateField}>
+              <IconCalendar size={20} color={colors.text.secondary} />
+              <Text style={styles.dateFieldText}>{date.toLocaleDateString()}</Text>
+            </Pill>
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <RewardAmountPicker value={reward} onChange={setReward} />
+          </View>
+
           <Button
             title="Submit"
             onPress={handleSubmit}
@@ -242,26 +227,12 @@ const styles = StyleSheet.create({
   // (app/(parent)/_layout.tsx) — this screen is pushed on top of the (tabs)
   // navigator, not registered inside it.
   root: { flex: 1 },
-  
-
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
-  sectionTitle: { fontSize: 13, color: colors.brand.primary, fontWeight: '800', textTransform: 'uppercase' },
-  catRow: { flexDirection: 'row', gap: 10 },
-  formCard: { backgroundColor: colors.surface.white, borderRadius: radius.medium, padding: 25, gap: spacing.lg },
   fieldGroup: { gap: spacing.sm },
-  textArea: { height: 100, textAlignVertical: 'top' },
-  childList: { flexDirection: 'row', gap: spacing.xl, flexWrap: 'wrap' },
-  childItem: { alignItems: 'center', width: 60, gap: spacing.sm },
-  childCircle: { width: 55, height: 55, borderRadius: radius.full, borderWidth: 2, borderColor: colors.brand.primary, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.surface.white },
-  activeChild: { backgroundColor: colors.brand.primary },
-  childInitial: { fontWeight: '800', color: colors.brand.primary, fontSize: 14 },
-  childName: { fontSize: 10, color: colors.text.primary, fontWeight: '600', textAlign: 'center' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
-  dateBox: { flex: 1.2, gap: spacing.sm },
-  rewardBox: { flex: 1, gap: spacing.sm },
-  pillInput: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface.neutral, borderRadius: radius.button, paddingHorizontal: 15, height: 55 },
-  valueText: { color: colors.text.primary, fontWeight: '700', fontSize: 15, flex: 1 },
-  unitText: { color: colors.text.primary, fontWeight: '400', fontSize: 13, marginLeft: 5 },
+  catRow: { flexDirection: 'row', gap: 10 },
+  pillRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+  dateField: { width: '100%', justifyContent: 'flex-start', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  dateFieldText: { ...typography.body, fontSize: 16 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(255, 247, 232, 0.95)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
   modalContent: { backgroundColor: colors.surface.white, padding: 30, borderRadius: radius.medium, width: '100%', alignItems: 'center', gap: spacing.md },
   modalHeader: { fontSize: 14, fontWeight: '800', color: colors.brand.primary, textTransform: 'uppercase' },
