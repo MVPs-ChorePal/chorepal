@@ -100,11 +100,11 @@ export default function ParentDashboard() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={styles.title}>Good morning!</Text>
+        <Text style={{...typography.display}}>Good morning!</Text>
 
         {/* chores waiting for manual parent approval */}
-        <Text style={styles.sectionTitle}>waiting for approval</Text>
-        {submissions.length === 0 ? <Text style={styles.emptyText}>nothing to approve right now</Text> : 
+        <Text style={{...typography.h2}}>Needs your OK</Text>
+        {submissions.length === 0 ? <Text style={{...typography.bodyTertiary}}>Nothing to approve right now</Text> : 
           submissions.map(chore => (
             <TouchableOpacity 
               key={chore.id} 
@@ -123,7 +123,7 @@ export default function ParentDashboard() {
         }
 
         {/* chores currently in progress or not started */}
-        <Text style={styles.sectionTitle}>due today</Text>
+        <Text style={{...typography.h2}}>Due today</Text>
         {dueToday.length === 0 ? <Text style={styles.emptyText}>nothing on the schedule</Text> : 
           dueToday.map(chore => (
             <View key={chore.id} style={styles.card}>
@@ -151,9 +151,6 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
-  title: { ...typography.h2, color: colors.text.primary, letterSpacing: -0.5 },
-  sectionTitle: { ...typography.body, color: colors.text.primary, textTransform: 'uppercase' },
-  emptyText: { color: colors.text.tertiary, fontSize: 14, fontWeight: '300' },
   card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   waitingCard: { borderLeftWidth: 7, borderLeftColor: colors.status.success },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flex: 1 },
