@@ -542,7 +542,9 @@ const trackerStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  // Background + top/side margins come from the Tabs' sceneStyle (app/(child)/_layout.tsx).
+  // Background + top/side margins come from the wrapping Stack's contentStyle
+  // (app/(child)/_layout.tsx) — this screen is pushed on top of the (tabs)
+  // navigator, not registered inside it.
   root: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },

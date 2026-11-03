@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../../utils/supabase';
 import { useRouter } from 'expo-router';
-import HouseholdCode from '../../components/household-code';
-import { colors, typography, spacing } from '../../constants/theme';
+import HouseholdCode from '../../../components/household-code';
+import { colors, typography, spacing } from '../../../constants/theme';
 
 export default function ParentAccount() {
   const router = useRouter();

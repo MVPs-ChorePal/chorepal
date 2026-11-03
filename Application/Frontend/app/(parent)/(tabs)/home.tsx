@@ -4,11 +4,11 @@ import {
   StyleSheet, Text, View, TouchableOpacity, ScrollView, 
   ActivityIndicator, RefreshControl 
 } from 'react-native';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../../utils/supabase';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, typography, radius, spacing } from '../../constants/theme';
+import { colors, typography, radius, spacing } from '../../../constants/theme';
 import Button from '@/components/Button';
 
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
@@ -139,7 +139,7 @@ export default function ParentDashboard() {
         }
       </ScrollView>
 
-      <Button title="+ Create Chore" onPress={() => router.push('/chores/create-chore')} />
+      <Button title="+ Create Chore" onPress={() => router.push('/(parent)/chores/create-chore')} />
 
       {/* button to open chore creator */}
     </SafeAreaView>

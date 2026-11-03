@@ -7,9 +7,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../../utils/supabase';
-import { showAlert } from '../../utils/alert';
-import { colors, typography, radius, spacing } from '../../constants/theme';
+import { supabase } from '../../../utils/supabase';
+import { showAlert } from '../../../utils/alert';
+import { colors, typography, radius, spacing } from '../../../constants/theme';
 
 //grabs only the first "word" of a name, lowercased to match the app's style
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();

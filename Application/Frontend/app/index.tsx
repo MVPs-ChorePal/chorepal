@@ -54,10 +54,10 @@ export default function SplashScreen() {
           router.replace('/join-household');
         } else if (profile.role === 'parent') {
           //explicitly send to parent home
-          router.replace('/(parent)/home');
+          router.replace('/(parent)/(tabs)/home');
         } else if (profile.role === 'child') {
           //explicitly send to child home
-          router.replace('/(child)/home');
+          router.replace('/(child)/(tabs)/home');
         } else {
           //safety fallback: if role is unknown, do not guess. force logout.
           console.log("unknown role detected, forcing login");

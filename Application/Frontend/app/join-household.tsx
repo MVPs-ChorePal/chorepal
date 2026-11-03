@@ -55,7 +55,7 @@ export default function JoinHousehold() {
       showAlert("error", "could not join household");
     } else {
       showAlert("success", "welcome to the family!");
-      router.replace(role === 'parent' ? '/(parent)/home' : '/(child)/home');
+      router.replace(role === 'parent' ? '/(parent)/(tabs)/home' : '/(child)/(tabs)/home');
     }
   };
 
@@ -87,7 +87,7 @@ export default function JoinHousehold() {
             title="skip to camera dashboard"
             variant="text"
             size="small"
-            onPress={() => router.push('/(child)/home')}
+            onPress={() => router.push('/(child)/(tabs)/home')}
           />
         )}
 

@@ -89,7 +89,7 @@ export default function SignupPage() {
       } else {
         setTimeout(() => {
           setLoading(false);
-          if (isNewHousehold) router.replace('/(parent)/home');
+          if (isNewHousehold) router.replace('/(parent)/(tabs)/home');
           else router.replace('/join-household');
         }, 1000);
       }

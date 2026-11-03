@@ -4,9 +4,9 @@ import { Icon } from '@tabler/icons-react-native';
 import { colors, typography, radius, spacing, screen } from '../constants/theme';
 
 // Source of truth: Figma "Design System" > Bottom Nav (Child) — shared by both
-// (child)/_layout.tsx and (parent)/_layout.tsx so the two roles stay visually
-// identical; each still needs its own thin _layout.tsx file (Expo Router
-// resolves layouts by file location), they just both render this.
+// (child)/(tabs)/_layout.tsx and (parent)/(tabs)/_layout.tsx so the two roles
+// stay visually identical; each still needs its own thin _layout.tsx file
+// (Expo Router resolves layouts by file location), they just both render this.
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=558-3
 
 const TabItem = ({ label, icon: TabIcon, isActive }: { label: string; icon: Icon; isActive: boolean }) => {
@@ -31,17 +31,16 @@ export interface TabConfig {
 export interface AppTabsLayoutProps {
   // The 4 visible tabs, in display order.
   tabs: TabConfig[];
-  // Additional routes that belong to this Tabs navigator but are hidden from
-  // the bar (href: null) — e.g. "chores/[id]", "chores/create-chore".
-  hiddenRoutes?: string[];
 }
 
-export default function AppTabsLayout({ tabs, hiddenRoutes = [] }: AppTabsLayoutProps) {
+export default function AppTabsLayout({ tabs }: AppTabsLayoutProps) {
   const segments = useSegments();
 
-  //check if the user is in the 'chores' folder — chores/[id] has no tab of
-  //its own, so its tab icon has to stay lit via the parent 'chores' segment
-  const isChoresActive = segments[1] === 'chores';
+  //chores/[id] lives outside this Tabs navigator (a sibling Stack screen,
+  //see (parent|child)/_layout.tsx) and has no tab of its own, so its tab
+  //icon has to stay lit via the 'chores' segment appearing anywhere in the
+  //path, not a fixed index - its depth differs from chores/index's.
+  const isChoresActive = (segments as string[]).includes('chores');
 
   return (
     <Tabs screenOptions={{
@@ -72,10 +71,6 @@ export default function AppTabsLayout({ tabs, hiddenRoutes = [] }: AppTabsLayout
               : ({ focused }) => <TabItem label={tab.label} icon={tab.icon} isActive={focused} />,
           }}
         />
-      ))}
-
-      {hiddenRoutes.map((name) => (
-        <Tabs.Screen key={name} name={name} options={{ href: null }} />
       ))}
     </Tabs>
   );

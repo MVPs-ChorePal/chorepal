@@ -3,8 +3,8 @@ import React, { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { supabase } from '../../../utils/supabase';
-import { colors, typography, radius, spacing } from '../../../constants/theme';
+import { supabase } from '../../../../utils/supabase';
+import { colors, typography, radius, spacing } from '../../../../constants/theme';
 
 const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
 

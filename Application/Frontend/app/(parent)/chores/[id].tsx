@@ -65,7 +65,7 @@ export default function ParentChoreReview() {
     if (error) {
       console.error("approval error:", error.message);
     } else {
-      router.replace('/(parent)/home');
+      router.replace('/(parent)/(tabs)/home');
     }
     setBusy(false);
   };
@@ -77,7 +77,7 @@ export default function ParentChoreReview() {
     if (error) {
       console.error("rejection error:", error.message);
     } else {
-      router.replace('/(parent)/home');
+      router.replace('/(parent)/(tabs)/home');
     }
     setBusy(false);
   };
@@ -178,7 +178,9 @@ export default function ParentChoreReview() {
 }
 
 const styles = StyleSheet.create({
-  // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
+  // Background + top/side margins come from the wrapping Stack's contentStyle
+  // (app/(parent)/_layout.tsx) — this screen is pushed on top of the (tabs)
+  // navigator, not registered inside it.
   root: { flex: 1, gap: spacing.sm },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: 60, alignItems: 'center', gap: spacing.xl },

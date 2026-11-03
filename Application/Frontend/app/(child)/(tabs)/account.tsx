@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../../utils/supabase';
 import { useRouter } from 'expo-router';
-import { colors, typography, spacing } from '../../constants/theme';
-import ChildHeader from '../../components/ChildHeader';
+import { colors, typography, spacing } from '../../../constants/theme';
+import ChildHeader from '../../../components/ChildHeader';
 
 export default function ChildAccount() {
   const router = useRouter();
