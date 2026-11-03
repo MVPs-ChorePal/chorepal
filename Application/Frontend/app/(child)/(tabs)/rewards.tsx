@@ -7,11 +7,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../../utils/supabase';
-import { showAlert } from '../../utils/alert';
-import { colors, typography, radius, spacing } from '../../constants/theme';
-import RewardTile from '../../components/RewardTile';
-import ChildHeader from '../../components/ChildHeader';
+import { supabase } from '../../../utils/supabase';
+import { showAlert } from '../../../utils/alert';
+import { colors, typography, radius, spacing } from '../../../constants/theme';
+import RewardTile from '../../../components/RewardTile';
+import ChildHeader from '../../../components/ChildHeader';
 
 //formats an ISO date string into something like "sep 12"
 const formatDate = (isoDate) =>

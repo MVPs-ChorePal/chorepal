@@ -40,9 +40,9 @@ export default function LoginPage() {
         //no household yet (child, or a parent who chose to join one) - send to join page
         router.replace('/join-household');
       } else if (profile.role === 'parent') {
-        router.replace('/(parent)/home');
+        router.replace('/(parent)/(tabs)/home');
       } else {
-        router.replace('/(child)/home');
+        router.replace('/(child)/(tabs)/home');
       }
     } else {
       router.replace('/signup-page');

@@ -242,8 +242,9 @@ export default function CreateChore() {
 }
 
 const styles = StyleSheet.create({
-  // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx)
-  // — this screen is registered on that Tabs navigator (href: null hides it from the bar).
+  // Background + top/side margins come from the wrapping Stack's contentStyle
+  // (app/(parent)/_layout.tsx) — this screen is pushed on top of the (tabs)
+  // navigator, not registered inside it.
   root: { flex: 1 },
   header: { paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center' },

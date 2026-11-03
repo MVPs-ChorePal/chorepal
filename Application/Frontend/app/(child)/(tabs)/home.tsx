@@ -4,13 +4,13 @@ import {
   StyleSheet, Text, View, FlatList, 
   ActivityIndicator, SafeAreaView, TouchableOpacity, Dimensions 
 } from 'react-native';
-import { supabase } from '../../utils/supabase';
+import { supabase } from '../../../utils/supabase';
 import { Stack, useRouter } from 'expo-router';
-import { colors, typography, spacing } from '../../constants/theme';
+import { colors, typography, spacing } from '../../../constants/theme';
 
-import ChildHeader from '../../components/ChildHeader';
-import ChoreHero from '../../components/ChoreHero';
-import Chore from '../../components/Chore';
+import ChildHeader from '../../../components/ChildHeader';
+import ChoreHero from '../../../components/ChoreHero';
+import Chore from '../../../components/Chore';
 
 
 

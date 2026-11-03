@@ -19,6 +19,9 @@ type ButtonVariant = 'filled' | 'outline' | 'text';
 type ButtonSize = 'large' | 'small';
 type ButtonColor = 'primary' |'secondary' | 'success' | 'error';
 
+// Must match styles.outline.borderWidth below.
+const OUTLINE_BORDER_WIDTH = 2;
+
 type ColorSet = {
   bg: string;
   // null when the design system has no matching shadow/ledge token for this color.
@@ -93,9 +96,22 @@ export default function Button({
   const ledgeColor = variant === 'filled' ? set.shadow : colors.shadow.ledge;
   const isDisabled = disabled || loading;
 
-  const paddingStyle = isLarge
+  const basePadding = isLarge
     ? { paddingHorizontal: spacing.xxxl, paddingVertical: spacing.xxl }
     : { paddingHorizontal: spacing.xxl, paddingVertical: spacing.md };
+
+  // RN adds border width on top of padding (there's no border-box sizing),
+  // so an outline button would otherwise render larger than its filled
+  // counterpart — shrink the padding by the border width to keep both
+  // variants the same overall size. Matters when a filled/outline pair sit
+  // side by side (e.g. a role toggle): row siblings get stretched to match
+  // height, and a size mismatch here leaves the shorter button's hard
+  // "ledge" shadow exposed as a gap underneath it.
+  const borderInset = variant === 'outline' ? OUTLINE_BORDER_WIDTH : 0;
+  const paddingStyle = {
+    paddingHorizontal: basePadding.paddingHorizontal - borderInset,
+    paddingVertical: basePadding.paddingVertical - borderInset,
+  };
 
   const textFont = isLarge ? typography.h2 : typography.h3;
   const textColor =

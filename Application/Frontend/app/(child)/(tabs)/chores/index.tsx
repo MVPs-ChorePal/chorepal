@@ -4,13 +4,13 @@ import { StyleSheet, Text, View, TouchableOpacity, FlatList, ActivityIndicator, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { supabase } from '../../../utils/supabase';
-import { colors, typography, radius, spacing } from '../../../constants/theme';
-import Chore from '../../../components/Chore';
-import Category, { CategoryValue } from '../../../components/Category';
-import StatusTabs, { StatusTab } from '../../../components/StatusTabs';
-import { CATEGORY_AI_TAGS, categoryForTag } from '../../../constants/choreCategories';
-import ChildHeader from '../../../components/ChildHeader';
+import { supabase } from '../../../../utils/supabase';
+import { colors, typography, radius, spacing } from '../../../../constants/theme';
+import Chore from '../../../../components/Chore';
+import Category, { CategoryValue } from '../../../../components/Category';
+import StatusTabs, { StatusTab } from '../../../../components/StatusTabs';
+import { CATEGORY_AI_TAGS, categoryForTag } from '../../../../constants/choreCategories';
+import ChildHeader from '../../../../components/ChildHeader';
 
 // Matches the Figma "Category Filter" component — All plus the 3 filterable
 // buckets (Other has no dedicated filter chip).
