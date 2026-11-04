@@ -1,0 +1,7 @@
+[2026-11-03T23:31:34.459Z] Starting appserver: npm run dev
+[2026-11-03T23:31:34.551Z] [ERROR] npm error Missing script: "dev"
+[2026-11-03T23:31:34.551Z] [ERROR] npm error
+[2026-11-03T23:31:34.551Z] [ERROR] npm error To see a list of scripts, run:
+[2026-11-03T23:31:34.551Z] [ERROR] npm error   npm run
+[2026-11-03T23:31:34.552Z] [ERROR] npm error A complete log of this run can be found in: /Users/mariocortez/.npm/_logs/2026-11-03T23_31_34_518Z-debug-0.log
+[2026-11-03T23:31:34.555Z] Appserver exited with code 1 and signal null

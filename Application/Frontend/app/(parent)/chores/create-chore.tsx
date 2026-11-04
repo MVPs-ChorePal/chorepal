@@ -1,7 +1,7 @@
 //@ts-nocheck
 import React, { useState, useCallback } from 'react';
 import {
-  StyleSheet, Text, View,
+  StyleSheet, Text, View, TouchableOpacity,
   ScrollView, Platform, KeyboardAvoidingView, Modal
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
@@ -9,12 +9,11 @@ import { showAlert } from '../../../utils/alert';
 import { useRouter, useFocusEffect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { IconCalendar } from '@tabler/icons-react-native';
+import { IconMoodSmile } from '@tabler/icons-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import Button from '../../../components/Button';
 import Input from '../../../components/Input';
-import Pill from '../../../components/Pill';
 import RewardAmountPicker from '../../../components/RewardAmountPicker';
 import Category, { CategoryValue } from '../../../components/Category';
 import { CATEGORY_AI_TAGS } from '../../../constants/choreCategories';
@@ -25,6 +24,10 @@ import BackButton from '../../../components/BackButton';
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=0-1
 
 const CATEGORIES: CategoryValue[] = ['clean', 'kitchen', 'outdoor', 'other'];
+
+// Rotating palette so each child's avatar reads as a distinct color, cycling
+// through the same category tones used elsewhere in the design system.
+const CHILD_TONES = [colors.category.kitchen, colors.category.clean, colors.category.outdoor, colors.category.other];
 
 export default function CreateChore() {
   const router = useRouter();
@@ -39,6 +42,11 @@ export default function CreateChore() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryValue>('clean');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Steps are local-only for now — not persisted to Supabase.
+  const [steps, setSteps] = useState<string[]>([]);
+  const [newStep, setNewStep] = useState('');
+  const [addingStep, setAddingStep] = useState(false);
 
   const fetchChildren = useCallback(async () => {
     try {
@@ -87,6 +95,20 @@ export default function CreateChore() {
     setSelectedChildId('all');
     setSelectedCategory('clean');
     setDate(new Date());
+    setSteps([]);
+    setNewStep('');
+    setAddingStep(false);
+  };
+
+  const handleAddStep = () => {
+    const trimmed = newStep.trim();
+    if (trimmed) setSteps(prev => [...prev, trimmed]);
+    setNewStep('');
+    setAddingStep(false);
+  };
+
+  const removeStep = (index: number) => {
+    setSteps(prev => prev.filter((_, i) => i !== index));
   };
 
   //handles date change from the date picker
@@ -95,6 +117,15 @@ export default function CreateChore() {
     if (Platform.OS === 'android') setShowDatePicker(false);
     setDate(currentDate);
   };
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+  const isToday = isSameDay(date, today);
+  const isTomorrow = isSameDay(date, tomorrow);
 
   const handleSubmit = async () => {
     if (!title) return; //silent for now
@@ -165,32 +196,118 @@ export default function CreateChore() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={typography.h3}>Steps</Text>
-            <Text style={typography.bodySecondary}>Your kid sees these as a checklist</Text>
+            <View style={styles.sectionHeading}>
+              <Text style={typography.h3}>Steps</Text>
+              <Text style={typography.bodySecondary}>Your kid sees these as a checklist</Text>
+            </View>
+
+            <View style={styles.stepsCard}>
+              <View pointerEvents="none" style={styles.stepsCardLedge} />
+              <View style={styles.stepsCardFace}>
+                {steps.map((step, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.stepRow}
+                    onPress={() => removeStep(index)}
+                    activeOpacity={0.6}
+                  >
+                    <View style={styles.stepNumber}>
+                      <Text style={styles.stepNumberText}>{index + 1}</Text>
+                    </View>
+                    <Text style={styles.stepText}>{step}</Text>
+                  </TouchableOpacity>
+                ))}
+
+                {addingStep ? (
+                  <Input
+                    autoFocus
+                    placeholder="e.g. Scrub the plates until they sparkle"
+                    value={newStep}
+                    onChangeText={setNewStep}
+                    onSubmitEditing={handleAddStep}
+                    onBlur={handleAddStep}
+                    returnKeyType="done"
+                    containerStyle={styles.stepInput}
+                  />
+                ) : (
+                  <TouchableOpacity style={styles.addStepBtn} onPress={() => setAddingStep(true)} activeOpacity={0.7}>
+                    <Text style={styles.addStepLabel}>+ Add a step</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
           </View>
 
           <View style={styles.fieldGroup}>
             <Text style={typography.h3}>{"Who's doing it?"}</Text>
             <View style={styles.pillRow}>
-              <Pill selected={selectedChildId === 'all'} onPress={() => setSelectedChildId('all')}>All</Pill>
-              {children.map(child => (
-                <Pill
-                  key={child.id}
-                  selected={selectedChildId === child.id}
-                  onPress={() => setSelectedChildId(child.id)}
-                >
-                  {formatFirstName(child.display_name)}
-                </Pill>
-              ))}
+              <TouchableOpacity style={styles.pillChipWrap} onPress={() => setSelectedChildId('all')} activeOpacity={0.85}>
+                {selectedChildId === 'all' && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                <View style={[styles.pillChip, selectedChildId === 'all' ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                  <Text style={[styles.pillChipLabel, { color: selectedChildId === 'all' ? colors.text.inverse : colors.text.primary }]}>
+                    All
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {children.map((child, index) => {
+                const selected = selectedChildId === child.id;
+                const tone = CHILD_TONES[index % CHILD_TONES.length];
+                return (
+                  <TouchableOpacity
+                    key={child.id}
+                    style={styles.pillChipWrap}
+                    onPress={() => setSelectedChildId(child.id)}
+                    activeOpacity={0.85}
+                  >
+                    {selected && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                    <View style={[styles.pillChip, styles.pillChipWithAvatar, selected ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                      <View style={[styles.childAvatar, { backgroundColor: tone.base }]}>
+                        {/* <IconMoodSmile size={16} color={colors.icon.inverse} /> */}
+                      </View>
+                      <Text style={[styles.pillChipLabel, { color: selected ? colors.text.inverse : colors.text.primary }]} numberOfLines={1}>
+                        {formatFirstName(child.display_name)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
           <View style={styles.fieldGroup}>
             <Text style={typography.h3}>When?</Text>
-            <Pill onPress={() => setShowDatePicker(true)} style={styles.dateField}>
-              <IconCalendar size={20} color={colors.text.secondary} />
-              <Text style={styles.dateFieldText}>{date.toLocaleDateString()}</Text>
-            </Pill>
+            <View style={styles.pillRow}>
+              <TouchableOpacity style={styles.pillChipWrap} onPress={() => setDate(new Date())} activeOpacity={0.85}>
+                {isToday && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                <View style={[styles.pillChip, isToday ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                  <Text style={[styles.pillChipLabel, { color: isToday ? colors.text.inverse : colors.text.primary }]}>
+                    Today
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.pillChipWrap} onPress={() => setDate(tomorrow)} activeOpacity={0.85}>
+                {isTomorrow && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                <View style={[styles.pillChip, isTomorrow ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                  <Text style={[styles.pillChipLabel, { color: isTomorrow ? colors.text.inverse : colors.text.primary }]}>
+                    Tomorrow
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.pillChipWrap} onPress={() => setShowDatePicker(true)} activeOpacity={0.85}>
+                {!isToday && !isTomorrow && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                <View style={[styles.pillChip, !isToday && !isTomorrow ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                  <Text
+                    style={[styles.pillChipLabel, { color: !isToday && !isTomorrow ? colors.text.inverse : colors.text.primary }]}
+                    numberOfLines={1}
+                  >
+                    {!isToday && !isTomorrow ? date.toLocaleDateString() : 'Pick a day'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.fieldGroup}>
@@ -229,10 +346,67 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   fieldGroup: { gap: spacing.sm },
+  sectionHeading: { gap: 2 },
   catRow: { flexDirection: 'row', gap: 10 },
   pillRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
-  dateField: { width: '100%', justifyContent: 'flex-start', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  dateFieldText: { ...typography.body, fontSize: 16 },
+
+  // Steps card — same "ledge" offset-shadow technique as RewardAmountPicker.
+  stepsCard: { width: '100%' },
+  stepsCardLedge: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: radius.card,
+    backgroundColor: colors.shadow.ledge,
+    transform: [{ translateY: 5 }],
+  },
+  stepsCardFace: {
+    backgroundColor: colors.surface.white,
+    borderWidth: 2,
+    borderColor: colors.border.default,
+    borderRadius: radius.card,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  stepNumber: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surface.neutral, alignItems: 'center', justifyContent: 'center' },
+  stepNumberText: { ...typography.body, fontSize: 16 },
+  stepText: { ...typography.body, fontSize: 16, flex: 1 },
+  stepInput: { width: '100%' },
+  addStepBtn: {
+    width: '100%',
+    borderWidth: 2,
+    borderColor: colors.brand.primary,
+    borderStyle: 'dashed',
+    borderRadius: 14,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addStepLabel: { ...typography.body, fontSize: 16, color: colors.brand.primaryShadow },
+
+  // Selectable pill chips — ledge shadow on selection, like Category/RewardAmountPicker.
+  // Shared by "Who's doing it?" (child + "All" pills) and "When?".
+  pillChipWrap: {},
+  pillChipLedge: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: radius.full,
+    backgroundColor: colors.brand.primaryShadow,
+    transform: [{ translateY: 3 }],
+  },
+  pillChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: radius.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  pillChipWithAvatar: { paddingLeft: 6 },
+  pillChipSelected: { backgroundColor: colors.brand.primary },
+  pillChipUnselected: { backgroundColor: colors.surface.white, borderWidth: 2, borderColor: colors.border.default },
+  pillChipLabel: { ...typography.body, fontSize: 16 },
+  childAvatar: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(255, 247, 232, 0.95)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 30 },
   modalContent: { backgroundColor: colors.surface.white, padding: 30, borderRadius: radius.medium, width: '100%', alignItems: 'center', gap: spacing.md },
   modalHeader: { fontSize: 14, fontWeight: '800', color: colors.brand.primary, textTransform: 'uppercase' },
