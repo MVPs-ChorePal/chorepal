@@ -53,10 +53,19 @@ export default function JoinHousehold() {
 
     if (linkError) {
       showAlert("error", "could not join household");
-    } else {
-      showAlert("success", "welcome to the family!");
-      router.replace(role === 'parent' ? '/(parent)/(tabs)/home' : '/(child)/(tabs)/home');
+      return;
     }
+
+    //best-effort: swaps the child's undeliverable internal email for one
+    //that actually reaches their parent's inbox (see link-child-email).
+    //non-fatal - the join itself already succeeded either way.
+    if (role === 'child') {
+      const { error: emailLinkError } = await supabase.functions.invoke('link-child-email');
+      if (emailLinkError) console.error('email link error:', emailLinkError.message);
+    }
+
+    showAlert("success", "welcome to the family!");
+    router.replace(role === 'parent' ? '/(parent)/(tabs)/home' : '/(child)/(tabs)/home');
   };
 
   return (
