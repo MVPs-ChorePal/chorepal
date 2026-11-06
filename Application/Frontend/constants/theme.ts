@@ -59,7 +59,7 @@ export const screen = {
   // (parent)/_layout.tsx and (child)/_layout.tsx) - without this, anything
   // near the bottom of a tab screen (e.g. the logout button on account.tsx)
   // renders underneath it and is both hidden and untappable.
-  paddingBottom: 130,
+  paddingBottom: 100,
 };
 
 // fontFamily names match the @expo-google-fonts export names loaded in app/_layout.tsx.

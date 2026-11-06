@@ -1,15 +1,6 @@
-import { IconHome, IconListCheck, IconTreasureChest, IconUser } from '@tabler/icons-react-native';
 import AppTabsLayout from '../../../components/AppTabsLayout';
+import { CHILD_TABS } from '../../../constants/tabs';
 
 export default function ChildTabsLayout() {
-  return (
-    <AppTabsLayout
-      tabs={[
-        { name: 'home', label: 'Home', icon: IconHome },
-        { name: 'chores/index', label: 'Chores', icon: IconListCheck },
-        { name: 'rewards', label: 'Rewards', icon: IconTreasureChest },
-        { name: 'account', label: 'Me', icon: IconUser },
-      ]}
-    />
-  );
+  return <AppTabsLayout tabs={CHILD_TABS} />;
 }
