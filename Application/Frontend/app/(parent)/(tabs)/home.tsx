@@ -1,5 +1,5 @@
 //@ts-nocheck
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useId } from 'react';
 import { 
   StyleSheet, Text, View, TouchableOpacity, ScrollView, 
   ActivityIndicator, RefreshControl 
@@ -18,8 +18,9 @@ export default function ParentDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
-  const [submissions, setSubmissions] = useState([]); 
+  const [submissions, setSubmissions] = useState([]);
   const [dueToday, setDueToday] = useState([]);
+  const instanceId = useId();
 
   const fetchData = useCallback(async () => {
     try {
@@ -70,10 +71,14 @@ export default function ParentDashboard() {
     }
   }, []);
 
-  //realtime listener to keep dashboard updated, instead of polling
+  //realtime listener to keep dashboard updated, instead of polling - a
+  //channel name unique to this mount, so a Fast Refresh re-run during dev
+  //can't try to re-subscribe under the same name as a not-yet-cleaned-up
+  //previous one (Supabase throws if you .on() a channel that's already
+  //subscribed)
   useEffect(() => {
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(`chores-changes-parent-${instanceId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chores' }, () => {
         fetchData();
       })
@@ -126,7 +131,11 @@ export default function ParentDashboard() {
         <Text style={styles.sectionTitle}>due today</Text>
         {dueToday.length === 0 ? <Text style={styles.emptyText}>nothing on the schedule</Text> : 
           dueToday.map(chore => (
-            <View key={chore.id} style={styles.card}>
+            <TouchableOpacity
+              key={chore.id}
+              style={styles.card}
+              onPress={() => router.push(`/(parent)/chores/${chore.id}`)}
+            >
                <View>
                  <Text style={styles.choreTitle}>{chore.title}</Text>
                  <Text style={styles.childName}>
@@ -134,7 +143,7 @@ export default function ParentDashboard() {
                  </Text>
                </View>
                <Text style={styles.points}>{chore.reward_amount} pts</Text>
-            </View>
+            </TouchableOpacity>
           ))
         }
       </ScrollView>

@@ -129,7 +129,9 @@ export default function CreateChore() {
       setTimeout(() => {
         clearForm();
         setIsSuccess(false);
-        router.back();
+        //no history to pop when this screen was reached without a push (e.g.
+        //a page refresh while already on it) - go home instead of a no-op
+        router.canGoBack() ? router.back() : router.replace('/(parent)/(tabs)/home');
       }, 3000);
 
     } catch (error: any) {
@@ -142,7 +144,7 @@ export default function CreateChore() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(parent)/(tabs)/home')} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color={colors.brand.primary} />
           <Text style={styles.backText}>back</Text>
         </TouchableOpacity>

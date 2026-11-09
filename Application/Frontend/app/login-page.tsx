@@ -178,7 +178,11 @@ const styles = StyleSheet.create({
   inner: { flexGrow: 1, justifyContent: 'center', gap: spacing.xl },
   // horizontal/top margins already come from the Stack's contentStyle (app/_layout.tsx)
   title: { ...typography.display, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
-  toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl },
+  // alignItems: 'flex-start' (not the row default 'stretch') so each toggle
+  // button keeps its own natural height instead of being stretched to match
+  // whichever label wraps to more lines - stretching left the shorter
+  // button's face not reaching its own ledge shadow, exposing it as a gap.
+  toggleContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: spacing.xxxl },
   toggleButton: {
     flex: 1,
   },

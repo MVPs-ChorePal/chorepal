@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { 
   StyleSheet, Text, View, FlatList, 
   ActivityIndicator, SafeAreaView, TouchableOpacity, Dimensions 
@@ -22,13 +22,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [chores, setChores] = useState([]); //stores chores from database
   const [userName, setUserName] = useState('');
-  
+  const instanceId = useId();
+
   useEffect(() => {
     fetchInitialData();
 
-    //realtime listener to update cards automatically
+    //realtime listener to update cards automatically - a channel name
+    //unique to this mount, so a Fast Refresh re-run during dev can't try to
+    //re-subscribe under the same name as a not-yet-cleaned-up previous one
+    //(Supabase throws if you .on() a channel that's already subscribed)
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(`chores-changes-child-${instanceId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chores' }, () => {
         fetchInitialData(); //refreshes list when a photo is submitted
       })

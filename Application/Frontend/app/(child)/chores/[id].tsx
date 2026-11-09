@@ -366,7 +366,7 @@ export default function ChoreSubmissionMachine() {
               <Text style={typography.h3} numberOfLines={1}>{chore.title}</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.collectWrap} onPress={() => router.back()} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.collectWrap} onPress={() => router.canGoBack() ? router.back() : router.replace('/(child)/(tabs)/home')} activeOpacity={0.85}>
             <View pointerEvents="none" style={styles.collectLedge} />
             <View style={styles.collectButton}>
               <Text style={styles.collectText}>Collect my coins!</Text>
