@@ -12,10 +12,20 @@ import { showAlert } from '../../../utils/alert';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import RewardTile from '../../../components/RewardTile';
 import ChildHeader from '../../../components/ChildHeader';
+import Pill from '../../../components/Pill';
 
 //formats an ISO date string into something like "sep 12"
 const formatDate = (isoDate) =>
   new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toLowerCase();
+
+// Category filter row above the reward grid — "All" plus the 4 reward categories.
+const CATEGORY_FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'fun', label: 'Fun' },
+  { value: 'treats', label: 'Treats' },
+  { value: 'cash', label: 'Cash' },
+  { value: 'other', label: 'Other' },
+];
 
 export default function ChildRewards() {
   const [loading, setLoading] = useState(true);
@@ -24,17 +34,7 @@ export default function ChildRewards() {
   const [balance, setBalance] = useState(0);
   const [rewards, setRewards] = useState([]);
   const [history, setHistory] = useState([]);
-
-  const testRewards = [
-    { id: 1, title: 'Extra screen time', point_cost: 50, category: 'entertainment' },
-    { id: 2, title: 'Ice cream treat', point_cost: 30, category: 'food' },
-    { id: 3, title: 'Choose dinner', point_cost: 40, category: 'food' },
-    { id: 4, title: 'Movie night', point_cost: 60, category: 'entertainment' },
-    { id: 5, title: 'New toy', point_cost: 100, category: 'toys' },
-    { id: 6, title: 'Playdate with friend', point_cost: 70, category: 'social' },
-    { id: 7, title: 'stay up late', point_cost: 80, category: 'entertainment' },
-    { id: 8, title: 'choose family activity', point_cost: 90, category: 'entertainment' },
-  ];
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   const fetchData = useCallback(async () => {
     try {
@@ -105,6 +105,10 @@ export default function ChildRewards() {
     fetchData();
   };
 
+  const filteredRewards = rewards.filter(
+    (reward) => categoryFilter === 'all' || reward.category === categoryFilter
+  );
+
   const handleRedeem = async (reward) => {
     setRedeemingId(reward.id);
     const { data: newBalance, error } = await supabase.rpc('redeem_reward', { p_reward_id: reward.id });
@@ -134,13 +138,25 @@ export default function ChildRewards() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <ChildHeader left={`Reward shop`} /> 
+        <ChildHeader left={`Reward shop`} />
 
-        {testRewards.length === 0 ? (
-          <Text style={styles.emptyText}>no rewards yet. ask your parent to add some!</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+          {CATEGORY_FILTERS.map(({ value, label }) => (
+            <Pill
+              key={value}
+              selected={categoryFilter === value}
+              onPress={() => setCategoryFilter(value)}
+            >
+              {label}
+            </Pill>
+          ))}
+        </ScrollView>
+
+        {filteredRewards.length === 0 ? (
+          <Text style={{...typography.bodySecondary}}>No rewards yet. Ask your parent to add some!</Text>
         ) : (
           <View style={styles.rewardGrid}>
-            {testRewards.map(reward => {
+            {filteredRewards.map(reward => {
               const cost = Number(reward.point_cost);
               const canAfford = balance >= cost;
               return (
@@ -203,7 +219,7 @@ const styles = StyleSheet.create({
   balanceRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
   balanceValue: { fontSize: 44, fontWeight: '800', color: colors.text.inverse },
   sectionTitle: { ...typography.body, color: colors.text.secondary, textTransform: 'uppercase' },
-  emptyText: { color: colors.text.tertiary, fontWeight: '300' },
+  filterRow: { flexDirection: 'row', gap: spacing.sm },
   rewardGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.lg },
   rewardTile: { width: '48%' },
   historyCard: { backgroundColor: colors.surface.white, borderRadius: radius.card, paddingHorizontal: 20, paddingVertical: 5 },

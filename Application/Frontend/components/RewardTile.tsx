@@ -1,18 +1,26 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { IconStarFilled, IconCash, IconBuildingCarousel, IconCandy } from '@tabler/icons-react-native';
+import { Icon, IconStarFilled, IconCash, IconBuildingCarousel, IconCandy } from '@tabler/icons-react-native';
 import { colors, radius, spacing, typography } from '../constants/theme';
 import Button from './Button';
 import CoinLabel from './CoinLabel';
-import { CategoryValue } from './Category';
 
 // Source of truth: Figma "Design System" > Reward Tile (State=Can Buy / Locked)
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=724-402
 
+export type RewardCategoryValue = 'cash' | 'fun' | 'treats' | 'other';
+
+const REWARD_CATEGORY_ICONS: Record<RewardCategoryValue, Icon> = {
+  cash: IconCash,
+  fun: IconBuildingCarousel,
+  treats: IconCandy,
+  other: IconStarFilled,
+};
+
 export interface RewardTileProps {
   title: string;
   cost: number;
-  category?: Exclude<CategoryValue, 'all'>;
+  category?: RewardCategoryValue;
   // Swaps the CTA between the "Get it!" buy button and a disabled "Need N more" pill.
   canAfford: boolean;
   shortfall?: number;
@@ -33,14 +41,15 @@ export default function RewardTile({
   disabled = false,
   style,
 }: RewardTileProps) {
-  const tone = colors.category[category] ?? colors.category.other;
+  const tone = colors.rewardCategory[category] ?? colors.rewardCategory.other;
+  const CategoryIcon = REWARD_CATEGORY_ICONS[category] ?? IconStarFilled;
 
   return (
     <View style={style}>
       <View pointerEvents="none" style={styles.ledge} />
       <View style={styles.card}>
         <View style={[styles.art, { backgroundColor: tone.base }]}>
-          <IconStarFilled size={32} color={colors.icon.inverse} />
+          <CategoryIcon size={32} color={colors.icon.inverse} />
         </View>
         <Text style={styles.title} numberOfLines={2}>{title}</Text>
         <CoinLabel amount={cost} size={16} />

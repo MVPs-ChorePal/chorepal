@@ -37,6 +37,12 @@ export const colors = {
     outdoor: { base: '#4DA8F0', shadow: '#2F86CC', subtle: '#E6F1FB' },
     other: { base: '#9B7BF0', shadow: '#7457CF', subtle: '#EFEAFD' },
   },
+  rewardCategory: {
+    cash: { base: '#3CC38A', shadow: '#279A69', subtle: '#E1F5EE' },
+    fun: { base: '#4DA8F0', shadow: '#2F86CC', subtle: '#E6F1FB' },
+    treats: { base: '#FF6FA3', shadow: '#D94C80', subtle: '#FBEAF0' },
+    other: { base: '#9B7BF0', shadow: '#7457CF', subtle: '#EFEAFD' },
+  },
 };
 
 export const spacing = {

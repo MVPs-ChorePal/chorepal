@@ -164,6 +164,7 @@ export default function ParentDashboard() {
                 doneCount={kid.doneCount}
                 totalCount={kid.totalCount}
                 balance={kid.balance}
+                style={styles.kidCardItem}
               />
             ))}
           </View>
@@ -222,5 +223,9 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   emptyText: { ...typography.bodyTertiary },
-  kidsRow: { flexDirection: 'row', gap: spacing.md },
+  // flexWrap + a fixed per-card width (instead of KidCard's default flex:1)
+  // caps each row at 3 cards; beyond that they wrap to additional rows,
+  // which the screen's existing vertical ScrollView already scrolls to.
+  kidsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  kidCardItem: { width: '31%' },
 });

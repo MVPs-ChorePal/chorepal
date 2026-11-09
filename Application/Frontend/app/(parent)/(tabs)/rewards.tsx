@@ -122,10 +122,11 @@ export default function ParentRewards() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={styles.title}>rewards</Text>
+        <Text style={{...typography.display}}>Rewards</Text>
+        
 
         {/* each child's spendable points */}
-        <Text style={styles.sectionTitle}>balances</Text>
+        <Text style={{...typography.h2}}>Requests</Text>
         {children.length === 0 ? (
           <Text style={styles.emptyText}>no children in your household yet</Text>
         ) : (
@@ -140,7 +141,12 @@ export default function ParentRewards() {
         )}
 
         {/* what the kids can spend points on */}
-        <Text style={styles.sectionTitle}>reward store</Text>
+        <View>
+          <Text style={{...typography.h2}}>Your reward shop</Text>
+          <Text style={{...typography.bodySecondary}}>What your kids can spend coins on</Text>
+        </View>
+
+
         <View style={styles.card}>
           {rewards.length === 0 && <Text style={styles.emptyText}>add a reward your kids can earn</Text>}
           {rewards.map((reward, i) => (
@@ -186,8 +192,6 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
-  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
-  sectionTitle: { ...typography.body, color: colors.text.primary, textTransform: 'uppercase' },
   emptyText: { color: colors.text.tertiary, fontWeight: '300' },
   card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20 },
   cardSub: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
