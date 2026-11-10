@@ -31,7 +31,8 @@ CREATE TABLE public.chores (
   assigned_to UUID REFERENCES public.users(id),
   approved_by UUID REFERENCES public.users(id),
   title TEXT NOT NULL,
-  description TEXT,
+  description TEXT, -- added 2026-11-10; missing from the live table until then despite this file claiming otherwise
+  steps TEXT, -- not currently read/written by the app (create-chore.tsx's "steps" field is still local-only)
   status TEXT DEFAULT 'todo',
   target_label TEXT, -- What the AI is looking for
   ai_verified BOOLEAN DEFAULT false,
