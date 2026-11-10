@@ -1,10 +1,18 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../utils/supabase';
 import { showShare } from '../utils/share';
-import { colors, typography, radius } from '../constants/theme';
+import { colors, radius, spacing, typography } from '../constants/theme';
+
+// Source of truth: Figma "Parent Account" > Family code
+// https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=710-74
+
+// Card uses the warning/pending tokens (not brand) - matches the yellow
+// treatment Figma gives this card specifically, distinct from every other
+// bordered-white card on this screen.
+const CARD_RADIUS = 28;
+const LETTER_RADIUS = 12;
 
 //shows the household's join code so the parent can give it to their kids
 export default function HouseholdCode() {
@@ -31,37 +39,76 @@ export default function HouseholdCode() {
 
   useFocusEffect(useCallback(() => { fetchCode(); }, [fetchCode]));
 
-  const handleShare = () => {
-    if (!code) return;
-    showShare(`join our household on chorepal with this code: ${code}`);
-  };
-
   return (
     <View style={styles.card}>
-      <Text style={styles.label}>household code</Text>
+      <Text style={styles.label}>FAMILY CODE</Text>
       {loading ? (
-        <ActivityIndicator color={colors.brand.primary} style={{ marginVertical: 10 }} />
+        <ActivityIndicator color={colors.status.warningText} style={{ marginVertical: 10 }} />
       ) : code ? (
         <>
-          <Text style={styles.code} selectable>{code}</Text>
-          <Text style={styles.hint}>kids enter this after signing up to join your household</Text>
-          <TouchableOpacity style={styles.shareBtn} onPress={handleShare}>
-            <Ionicons name="share-outline" size={16} color={colors.text.inverse} />
-            <Text style={styles.shareText}>share code</Text>
-          </TouchableOpacity>
+          <View style={styles.lettersRow}>
+            {code.split('').map((letter, i) => (
+              <View key={i} style={styles.letterBox}>
+                <Text style={styles.letter}>{letter}</Text>
+              </View>
+            ))}
+          </View>
+          <Text style={styles.label}>Kids type this code to join your family.</Text>
+          <View style={styles.shareWrap}>
+            <View pointerEvents="none" style={styles.shareLedge} />
+            <TouchableOpacity style={styles.shareButton} activeOpacity={0.85} onPress={() => showShare(code)}>
+              <Text style={styles.shareText}>Share code</Text>
+            </TouchableOpacity>
+          </View>
         </>
       ) : (
-        <Text style={styles.hint}>no household code found</Text>
+        <Text style={styles.label}>no household code found</Text>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 25, alignItems: 'center', width: '100%' },
-  label: { ...typography.body, color: colors.brand.primary, textTransform: 'uppercase' },
-  code: { fontSize: 34, fontWeight: '200', color: colors.text.primary, letterSpacing: 6, marginTop: 10 },
-  hint: { fontSize: 12, color: colors.text.secondary, textAlign: 'center', marginTop: 8 },
-  shareBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.brand.primary, borderRadius: radius.button, paddingHorizontal: 18, paddingVertical: 10, marginTop: 15 },
-  shareText: { color: colors.text.inverse, fontWeight: '700', fontSize: 13 },
+  card: {
+    backgroundColor: colors.status.warning,
+    borderRadius: CARD_RADIUS,
+    padding: spacing.xl,
+    gap: spacing.md,
+    width: '100%',
+  },
+  label: { ...typography.body, color: colors.status.warningText },
+  lettersRow: { flexDirection: 'row', gap: spacing.sm, width: '100%' },
+  letterBox: {
+    flex: 1,
+    height: 54,
+    borderRadius: LETTER_RADIUS,
+    backgroundColor: colors.surface.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  letter: { ...typography.display, fontSize: 32 },
+  shareWrap: { width: '100%' },
+  // Hard, unblurred offset shadow - same "ledge" technique as Button, but
+  // tinted to the card's own pending/warning shadow instead of the generic
+  // border shadow, so it reads as part of this card rather than a stray
+  // Button instance.
+  shareLedge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: radius.small,
+    backgroundColor: colors.status.pending,
+    transform: [{ translateY: 4 }],
+  },
+  shareButton: {
+    backgroundColor: colors.surface.white,
+    borderRadius: radius.small,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareText: { ...typography.h3 },
 });

@@ -1,34 +1,163 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+//@ts-nocheck
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { IconChevronRight, IconLock, IconLogout2, IconStar } from '@tabler/icons-react-native';
 import { supabase } from '../../../utils/supabase';
-import { useRouter } from 'expo-router';
+import { colors, radius, spacing, typography } from '../../../constants/theme';
 import HouseholdCode from '../../../components/household-code';
-import { colors, typography, spacing } from '../../../constants/theme';
+import KidRow from '../../../components/parent/KidRow';
+
+
+// Rotating palette so each kid's avatar reads as a distinct color - same
+// convention as Parent Home's KidCard and New Chore's child picker.
+const KID_TONES = [colors.category.kitchen, colors.category.clean, colors.category.outdoor, colors.category.other];
+
+const capitalizedFirstName = (name) => {
+  const first = (name || 'Child').trim().split(' ')[0];
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+};
+
+function SettingsRow({ icon, iconBg, label, onPress }) {
+  return (
+    <TouchableOpacity style={styles.settingsRow} activeOpacity={0.7} onPress={onPress}>
+      <View style={[styles.settingsIcon, { backgroundColor: iconBg }]}>{icon}</View>
+      <Text style={[typography.body, styles.settingsLabel]}>{label}</Text>
+      <IconChevronRight size={14} color={colors.text.tertiary} />
+    </TouchableOpacity>
+  );
+}
 
 export default function ParentAccount() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [kids, setKids] = useState([]);
+
+  const fetchKids = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile } = await supabase.from('users').select('family_id').eq('id', session.user.id).single();
+      if (!profile?.family_id) return;
+
+      const { data: familyMembers, error } = await supabase
+        .from('users')
+        .select('id, display_name, current_balance')
+        .eq('family_id', profile.family_id)
+        .eq('role', 'child');
+      if (error) throw error;
+
+      setKids((familyMembers || []).map((member, index) => ({
+        id: member.id,
+        name: capitalizedFirstName(member.display_name),
+        avatarColor: KID_TONES[index % KID_TONES.length].base,
+        balance: Number(member.current_balance) || 0,
+      })));
+    } catch (e) {
+      console.error('FETCH KIDS ERROR:', e.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { fetchKids(); }, [fetchKids]));
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchKids();
+  };
+
+  const handleLogout = () => supabase.auth.signOut().then(() => router.replace('/login-page'));
+
   return (
     <SafeAreaView style={styles.root}>
-      <Text style={styles.title}>account</Text>
-      <View style={styles.content}>
-        <HouseholdCode />
-      </View>
-      <TouchableOpacity 
-        onPress={() => supabase.auth.signOut().then(() => router.replace('/login-page'))}
-        style={styles.logoutButton}
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={styles.logoutText}>logout</Text>
-      </TouchableOpacity>
+        <Text style={typography.display}>Account</Text>
+
+        <HouseholdCode />
+
+        <Text style={typography.h2}>My kids</Text>
+
+        {loading ? (
+          <ActivityIndicator color={colors.brand.primary} />
+        ) : kids.length === 0 ? (
+          <Text style={typography.bodyTertiary}>No kids have joined your family yet</Text>
+        ) : (
+          <View>
+            <View pointerEvents="none" style={styles.cardLedge} />
+            <View style={styles.card}>
+              {kids.map((kid, i) => (
+                <React.Fragment key={kid.id}>
+                  {i > 0 && <View style={styles.rowDivider} />}
+                  <KidRow name={kid.name} avatarColor={kid.avatarColor} balance={kid.balance} />
+                </React.Fragment>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <View>
+          <View pointerEvents="none" style={styles.cardLedge} />
+          <View style={styles.card}>
+            <SettingsRow
+              icon={<IconStar size={20} color={colors.brand.primary} />}
+              iconBg={colors.brand.primarySubtle}
+              label="Edit profile"
+              onPress={() => router.push('/(parent)/account/edit-profile')}
+            />
+            <View style={styles.rowDivider} />
+            <SettingsRow
+              icon={<IconLock size={20} color={colors.category.other.base} />}
+              iconBg={colors.category.other.subtle}
+              label="Change password"
+              onPress={() => {}}
+            />
+            <View style={styles.rowDivider} />
+            <SettingsRow
+              icon={<IconLogout2 size={20} color={colors.text.secondary} />}
+              iconBg="rgba(122,111,143,0.15)"
+              label="Log out"
+              onPress={handleLogout}
+            />
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   // Background + top/side margins come from the Tabs' sceneStyle (app/(parent)/_layout.tsx).
-  root: { flex: 1, gap: spacing.xl },
-  title: { ...typography.h2, color: colors.brand.primary, letterSpacing: -1 },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  placeholder: { color: colors.text.tertiary, fontWeight: '300' },
-  logoutButton: { alignItems: 'center', marginBottom: 70 },
-  logoutText: { color: colors.brand.primary, textDecorationLine: 'underline', fontWeight: '300' }
+  root: { flex: 1 },
+  scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
+  // Hard, unblurred offset shadow - same "ledge" technique as Button/KidCard/RewardShopItem.
+  cardLedge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: radius.card,
+    backgroundColor: colors.shadow.ledge,
+    transform: [{ translateY: 5 }],
+  },
+  card: {
+    backgroundColor: colors.surface.white,
+    borderWidth: 2,
+    borderColor: colors.border.default,
+    borderRadius: radius.card,
+    padding: spacing.sm,
+  },
+  rowDivider: { height: 2, backgroundColor: colors.border.default },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: spacing.md },
+  settingsIcon: { width: 40, height: 40, borderRadius: radius.small, alignItems: 'center', justifyContent: 'center' },
+  settingsLabel: { flex: 1 },
 });
