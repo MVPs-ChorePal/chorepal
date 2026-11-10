@@ -423,6 +423,8 @@ export default function ChoreSubmissionMachine() {
   }
 
   //FRAMES 1 & 2: To Do / Photo Taken (also reused for the 'pending' after-photo step)
+  //todo -> taking the before photo; pending -> already submitted before, now taking after
+  const isBeforePhase = chore?.status === 'todo';
   const bubbleText = aiNote
     ? aiNote
     : (STEP_COPY[chore?.status]?.[capturedPhoto ? 'captured' : 'empty'] ?? '');
@@ -493,7 +495,9 @@ export default function ChoreSubmissionMachine() {
             ) : buttonState === 'checkmark' || buttonState === 'verified' ? (
               <IconCheck size={28} color={colors.icon.inverse} />
             ) : (
-              <Text style={[styles.ctaText, !capturedPhoto && styles.ctaTextDisabled]}>I did it!</Text>
+              <Text style={[styles.ctaText, !capturedPhoto && styles.ctaTextDisabled]}>
+                {isBeforePhase ? 'Before!' : 'After!'}
+              </Text>
             )}
           </View>
         </TouchableOpacity>
