@@ -316,7 +316,8 @@ export default function ChoreSubmissionMachine() {
           setButtonState('verified');
           setTimeout(() => fetchChoreDetails(), 1500);
         } else {
-          setAiNote(aiResponse.data?.feedback || "ai check failed");
+          // CHECK WHAT ERROR IS RETURNED FROM THE AI FUNCTION AND DISPLAY IT IN TERMINAL
+          setAiNote(aiResponse.data?.feedback || "Ai check failed");
           setCapturedPhoto(null);
           fetchChoreDetails();
         }
