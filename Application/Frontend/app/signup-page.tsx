@@ -27,17 +27,18 @@ export default function SignupPage() {
   const [role, setRole] = useState<'parent' | 'child'>('parent');
   const [parentMode, setParentMode] = useState<'create' | 'join'>('create');
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const isChild = role === 'child';
-  const isFormValid = !!fullName && (isChild || isValidEmail(email)) && password.length >= 6;
+  const isFormValid = !!fullName && !!username && (isChild || isValidEmail(email)) && password.length >= 6;
 
   //handles sign up logic
   const handleSignUp = async () => {
     setError('');
-    if (!fullName || (!isChild && !email) || !password) {
+    if (!fullName || !username || (!isChild && !email) || !password) {
       setError('Please fill all fields');
       return;
     }
@@ -46,12 +47,29 @@ export default function SignupPage() {
       return;
     }
     setLoading(true);
-    //converts full name to username by removing spaces and lowercasing
-    const username = fullName.toLowerCase().replace(/\s/g, "");
+
+    //normalized the same way a generated username used to be (lowercase, no
+    //spaces) - find_email_by_username matches it exactly, so this has to
+    //stay consistent with whatever the user types at login
+    const normalizedUsername = username.trim().toLowerCase().replace(/\s/g, '');
+
+    const { data: isTaken, error: usernameCheckError } = await supabase.rpc('is_username_taken', {
+      p_username: normalizedUsername,
+    });
+    if (usernameCheckError) {
+      setError(usernameCheckError.message.toLowerCase());
+      setLoading(false);
+      return;
+    }
+    if (isTaken) {
+      setError('that username is already taken');
+      setLoading(false);
+      return;
+    }
 
     //children log in by username, not email - they get an internal address
     //they never see, which only exists to satisfy supabase auth's requirement for one
-    const authEmail = isChild ? `${username}@chorepal.internal` : email;
+    const authEmail = isChild ? `${normalizedUsername}@chorepal.internal` : email;
 
     //sign up with supabase auth and insert into users table
     const { data: authData, error: authError } = await supabase.auth.signUp({ email: authEmail, password });
@@ -79,12 +97,15 @@ export default function SignupPage() {
       }
 
       const { error: dbError } = await supabase.from('users').insert([
-        { id: authData.user.id, family_id: familyId, secret_code: secretCode, username: username, email: authEmail, display_name: fullName, role: role, current_balance: 0 }
+        { id: authData.user.id, family_id: familyId, secret_code: secretCode, username: normalizedUsername, email: authEmail, display_name: fullName, role: role, current_balance: 0 }
       ]);
 
       //if error, show alert or else navigate to dashboard
       if (dbError) {
-        setError(dbError.message.toLowerCase());
+        //23505 = unique_violation - the availability check above already
+        //covers the common case, this only fires on a rare race between two
+        //simultaneous signups for the same username
+        setError(dbError.code === '23505' ? 'that username is already taken' : dbError.message.toLowerCase());
         setLoading(false);
       } else {
         setTimeout(() => {
@@ -157,7 +178,19 @@ export default function SignupPage() {
               autoCapitalize="none"
               label="Your name"
             />
-            {/* <Text style={styles.hint}>your username is generated from this (lowercase, no spaces) and must be unique</Text> */}
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <Input
+              placeholder="e.g. johndoe"
+              onChangeText={setUsername}
+              value={username}
+              autoCapitalize="none"
+              label="Username"
+            />
+            <Text style={styles.hint}>
+              {isChild ? "must be unique - this is what you'll log in with" : 'must be unique'}
+            </Text>
           </View>
 
           {!isChild && (
