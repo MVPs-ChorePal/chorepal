@@ -26,8 +26,9 @@ import Star from '../../../components/Star';
 // LogBox.ignoreAllLogs(); 
 
 const STEP_COPY = {
-  todo: { empty: 'Do the steps, then snap a photo!', captured: 'Nice work! Send it to your grown-up.' },
-  pending: { empty: 'Do the steps, then snap a photo to prove it!', captured: 'Nice work! Send it to your grown-up.' },
+  //'todo' = no before photo yet, 'pending' = before photo submitted, waiting on the after photo
+  todo: { empty: 'Snap a before photo to get started!', captured: 'Looks good! Tap the button to start your chore.' },
+  pending: { empty: 'Do the steps, then snap a photo!', captured: 'Nice work! Send it to your grown-up.' },
 };
 
 
@@ -442,8 +443,10 @@ export default function ChoreSubmissionMachine() {
         </ChoreHeroCard>
 
         <MascotBubble text={bubbleText} />
+        {
+          !isBeforePhase ? <ChecklistCard steps={choreSteps} /> : null
+        }
 
-        {choreSteps.length > 0 && <ChecklistCard steps={choreSteps} />}
 
         <Text style={typography.h2}>Show your grown-up</Text>
 
@@ -496,7 +499,7 @@ export default function ChoreSubmissionMachine() {
               <IconCheck size={28} color={colors.icon.inverse} />
             ) : (
               <Text style={[styles.ctaText, !capturedPhoto && styles.ctaTextDisabled]}>
-                {isBeforePhase ? 'Before!' : 'After!'}
+                {isBeforePhase ? 'Get started!' : 'I finished!'}
               </Text>
             )}
           </View>
