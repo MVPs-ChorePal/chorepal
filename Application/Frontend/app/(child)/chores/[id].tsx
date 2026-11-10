@@ -35,8 +35,9 @@ const PLACEHOLDER_STEPS = [
 ];
 
 const STEP_COPY = {
-  todo: { empty: 'Do the steps, then snap a photo!', captured: 'Nice work! Send it to your grown-up.' },
-  pending: { empty: 'Do the steps, then snap a photo to prove it!', captured: 'Nice work! Send it to your grown-up.' },
+  //'todo' = no before photo yet, 'pending' = before photo submitted, waiting on the after photo
+  todo: { empty: 'Snap a before photo to get started!', captured: 'Looks good! Tap the button to start your chore.' },
+  pending: { empty: 'Do the steps, then snap a photo!', captured: 'Nice work! Send it to your grown-up.' },
 };
 
 
@@ -100,6 +101,7 @@ function ChecklistCard() {
 
   return (
     <View>
+      {}
       <View pointerEvents="none" style={checklistStyles.ledge} />
       <View style={checklistStyles.card}>
         <View style={checklistStyles.header}>
@@ -411,6 +413,8 @@ export default function ChoreSubmissionMachine() {
   }
 
   //FRAMES 1 & 2: To Do / Photo Taken (also reused for the 'pending' after-photo step)
+  //'todo' = taking the before photo, 'pending' = taking the after photo
+  const isBefore = chore?.status === 'todo';
   const bubbleText = aiNote
     ? aiNote
     : (STEP_COPY[chore?.status]?.[capturedPhoto ? 'captured' : 'empty'] ?? '');
@@ -429,7 +433,7 @@ export default function ChoreSubmissionMachine() {
 
         <MascotBubble text={bubbleText} />
 
-        <ChecklistCard />
+        { !isBefore && <ChecklistCard /> }
 
         <Text style={typography.h2}>Show your grown-up</Text>
 
@@ -467,7 +471,6 @@ export default function ChoreSubmissionMachine() {
             </View>
           )}
         </View>
-
         <TouchableOpacity
           style={styles.ctaWrap}
           onPress={handleSubmit}
@@ -481,7 +484,9 @@ export default function ChoreSubmissionMachine() {
             ) : buttonState === 'checkmark' || buttonState === 'verified' ? (
               <IconCheck size={28} color={colors.icon.inverse} />
             ) : (
-              <Text style={[styles.ctaText, !capturedPhoto && styles.ctaTextDisabled]}>I did it!</Text>
+              <Text style={[styles.ctaText, !capturedPhoto && styles.ctaTextDisabled]}>
+                {isBefore ? "Start my chore!" : "I finished!"}
+              </Text>
             )}
           </View>
         </TouchableOpacity>
