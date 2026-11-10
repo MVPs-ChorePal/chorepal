@@ -242,7 +242,11 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: spacing.xs },
   hint: { fontSize: 12, color: colors.text.tertiary },
   errorText: { color: colors.status.error, fontSize: 13},
-  toggleContainer: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xxxl},
+  // alignItems: 'flex-start' (not the row default 'stretch') so each toggle
+  // button keeps its own natural height instead of being stretched to match
+  // whichever label wraps to more lines - stretching left the shorter
+  // button's face not reaching its own ledge shadow, exposing it as a gap.
+  toggleContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', gap: spacing.xxxl},
   roleLabel: { paddingBottom: 5, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   roleText: { ...typography.body, color: colors.text.tertiary },
   linkContainer: { alignItems: 'center' },

@@ -90,7 +90,7 @@ export default function ParentChoreReview() {
       
       {/* header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(parent)/(tabs)/home')} style={styles.backBtn}>
           <Text style={styles.backText}>‹ back</Text>
         </TouchableOpacity>
         <View style={[styles.statusBadge, (chore?.status === 'approved' || chore?.status === 'completed') && { backgroundColor: colors.status.success }]}>
