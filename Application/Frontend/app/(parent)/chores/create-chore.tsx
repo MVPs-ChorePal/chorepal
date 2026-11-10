@@ -36,7 +36,6 @@ export default function CreateChore() {
   const [children, setChildren] = useState([]);
 
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [reward, setReward] = useState(500);
   const [selectedChildId, setSelectedChildId] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState<CategoryValue>('clean');
@@ -90,7 +89,6 @@ export default function CreateChore() {
   //clears the form after submission
   const clearForm = () => {
     setTitle('');
-    setDescription('');
     setReward(500);
     setSelectedChildId('all');
     setSelectedCategory('clean');
@@ -144,7 +142,6 @@ export default function CreateChore() {
       //prepare chore rows for each selected child
       const choreRows = targetKids.map(kid => ({
         title,
-        description,
         reward_amount: reward,
         assigned_to: kid.id,
         created_by: session.user.id,
