@@ -312,11 +312,23 @@ export default function ChoreSubmissionMachine() {
           body: { fileName, choreId: id, logId: logIdToUse }
         });
 
-        if (aiResponse.data?.isMatch) {
+        if (aiResponse.error) {
+          // invoke() doesn't throw on a non-2xx response - the real reason
+          // (e.g. a Claude API error) is in the response body, not
+          // aiResponse.error.message, which is just a generic HTTP message
+          let reason = aiResponse.error.message;
+          try {
+            const body = await aiResponse.error.context?.json();
+            if (body?.error) reason = body.error;
+          } catch {}
+          console.error("AI FUNCTION ERROR:", reason);
+          setAiNote("Something went wrong checking your photo. Try again, or ask a grown-up for help.");
+          setCapturedPhoto(null);
+          fetchChoreDetails();
+        } else if (aiResponse.data?.isMatch) {
           setButtonState('verified');
           setTimeout(() => fetchChoreDetails(), 1500);
         } else {
-          // CHECK WHAT ERROR IS RETURNED FROM THE AI FUNCTION AND DISPLAY IT IN TERMINAL
           setAiNote(aiResponse.data?.feedback || "Ai check failed");
           setCapturedPhoto(null);
           fetchChoreDetails();

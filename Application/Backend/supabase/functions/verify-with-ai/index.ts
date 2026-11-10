@@ -8,6 +8,19 @@ const corsHeaders = {
 
 const CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
 
+//the frontend always names uploads *.jpg and claims Content-Type: image/jpeg
+//regardless of what was actually captured - true on native (the camera
+//really does produce JPEG), but expo-camera's web fallback captures via
+//canvas and returns PNG, so the bytes don't match the label. Claude's API
+//rejects a mismatched media_type outright, so detect it from the real
+//magic bytes instead of trusting the filename/header.
+function detectMediaType(bytes: Uint8Array): string {
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'image/png'
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return 'image/gif'
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) return 'image/webp'
+  return 'image/jpeg'
+}
+
 //strips a ```json ... ``` fence if Claude wraps its answer in one despite
 //being told not to - cheap insurance, not load-bearing for the happy path
 function parseClaudeJson(rawText: string) {
@@ -48,28 +61,29 @@ Deno.serve(async (req) => {
     //the bucket serves uploaded photos over plain public HTTPS (same URLs
     //the app itself displays photos from), so no AWS credentials are
     //needed here - just fetch the bytes and base64-encode them for Claude
-    const fetchImageBase64 = async (key: string) => {
+    const fetchImage = async (key: string) => {
       const res = await fetch(s3Url(key))
       if (!res.ok) throw new Error(`could not fetch ${key} from S3 (status ${res.status})`)
-      return encodeBase64(new Uint8Array(await res.arrayBuffer()))
+      const bytes = new Uint8Array(await res.arrayBuffer())
+      return { base64: encodeBase64(bytes), mediaType: detectMediaType(bytes) }
     }
 
-    const afterBase64 = await fetchImageBase64(fileName)
-    const beforeBase64 = analysisRow?.before_image_key ? await fetchImageBase64(analysisRow.before_image_key) : null
+    const after = await fetchImage(fileName)
+    const before = analysisRow?.before_image_key ? await fetchImage(analysisRow.before_image_key) : null
 
     const choreLabel = chore?.title || chore?.target_label || 'this chore'
 
     const content: Record<string, unknown>[] = []
-    if (beforeBase64) {
+    if (before) {
       content.push({ type: 'text', text: 'BEFORE photo:' })
-      content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: beforeBase64 } })
+      content.push({ type: 'image', source: { type: 'base64', media_type: before.mediaType, data: before.base64 } })
     }
     content.push({ type: 'text', text: 'AFTER photo:' })
-    content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: afterBase64 } })
+    content.push({ type: 'image', source: { type: 'base64', media_type: after.mediaType, data: after.base64 } })
     content.push({
       type: 'text',
       text: `A kid is doing this chore: "${choreLabel}"${chore?.description ? ` (${chore.description})` : ''}.\n` +
-        (beforeBase64
+        (before
           ? 'Compare the BEFORE and AFTER photos above and judge whether the chore was actually completed - the AFTER photo should show a real, visible improvement over the BEFORE photo (mess cleared, item put away, area tidied, etc.), not just the same scene, an unrelated photo, or a reused/duplicate image.'
           : 'Judge whether the AFTER photo above shows the chore has been completed.') +
         '\nRespond with ONLY a JSON object and nothing else, no code fence: ' +
