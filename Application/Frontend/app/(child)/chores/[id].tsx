@@ -25,15 +25,6 @@ import Star from '../../../components/Star';
 //ignore log warnings
 // LogBox.ignoreAllLogs(); 
 
-// Placeholder-only checklist content — chores has no steps column yet, so
-// this is purely decorative/local state (not persisted, resets on reload).
-const PLACEHOLDER_STEPS = [
-  'Make your bed nice and neat',
-  'Put your toys in their bins',
-  'Pick up clothes off the floor',
-  'Line up your books on the shelf',
-];
-
 const STEP_COPY = {
   todo: { empty: 'Do the steps, then snap a photo!', captured: 'Nice work! Send it to your grown-up.' },
   pending: { empty: 'Do the steps, then snap a photo to prove it!', captured: 'Nice work! Send it to your grown-up.' },
@@ -93,8 +84,8 @@ function MascotBubble({ text, starSize = 45 }) {
   );
 }
 
-function ChecklistCard() {
-  const [checked, setChecked] = useState(() => PLACEHOLDER_STEPS.map(() => false));
+function ChecklistCard({ steps }) {
+  const [checked, setChecked] = useState(() => steps.map(() => false));
   const doneCount = checked.filter(Boolean).length;
   const toggle = (i) => setChecked((prev) => prev.map((v, idx) => (idx === i ? !v : v)));
 
@@ -105,10 +96,10 @@ function ChecklistCard() {
         <View style={checklistStyles.header}>
           <Text style={typography.h2}>How to do it</Text>
           <Pill bg={colors.status.successSubtle} textColor={colors.status.successText}>
-            {`${doneCount} of ${PLACEHOLDER_STEPS.length}`}
+            {`${doneCount} of ${steps.length}`}
           </Pill>
         </View>
-        {PLACEHOLDER_STEPS.map((step, i) => (
+        {steps.map((step, i) => (
           <TouchableOpacity key={i} style={checklistStyles.row} onPress={() => toggle(i)} activeOpacity={0.7}>
             <View style={[checklistStyles.checkbox, checked[i] && checklistStyles.checkboxChecked]}>
               {checked[i] && <IconCheck size={18} color={colors.icon.inverse} />}
@@ -349,6 +340,15 @@ export default function ChoreSubmissionMachine() {
   const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
   const s3Path = `https://${process.env.EXPO_PUBLIC_AWS_S3_BUCKET_NAME}.s3.${process.env.EXPO_PUBLIC_AWS_REGION}.amazonaws.com/`;
 
+  //steps is a JSON array string (see create-chore.tsx) - null/empty for
+  //chores created before this existed, or where the parent skipped it
+  let choreSteps = [];
+  try {
+    choreSteps = chore?.steps ? JSON.parse(chore.steps) : [];
+  } catch (e) {
+    choreSteps = [];
+  }
+
   console.log(chore?.status)
 
   //FRAME 4: Complete (Approved) — no new backend call, "collect" just dismisses
@@ -441,7 +441,7 @@ export default function ChoreSubmissionMachine() {
 
         <MascotBubble text={bubbleText} />
 
-        <ChecklistCard />
+        {choreSteps.length > 0 && <ChecklistCard steps={choreSteps} />}
 
         <Text style={typography.h2}>Show your grown-up</Text>
 

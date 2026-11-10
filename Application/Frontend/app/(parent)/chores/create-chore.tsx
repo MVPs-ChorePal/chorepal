@@ -42,7 +42,6 @@ export default function CreateChore() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Steps are local-only for now — not persisted to Supabase.
   const [steps, setSteps] = useState<string[]>([]);
   const [newStep, setNewStep] = useState('');
   const [addingStep, setAddingStep] = useState(false);
@@ -140,6 +139,8 @@ export default function CreateChore() {
       }
 
       //prepare chore rows for each selected child
+      //steps has no dedicated column type - stored as a JSON array string in
+      //the TEXT steps column, null when the parent didn't add any
       const choreRows = targetKids.map(kid => ({
         title,
         reward_amount: reward,
@@ -148,7 +149,8 @@ export default function CreateChore() {
         status: 'todo',
         target_label: CATEGORY_AI_TAGS[selectedCategory],
         due_date: date.toISOString(),
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        steps: steps.length > 0 ? JSON.stringify(steps) : null,
       }));
 
       const { error } = await supabase.from('chores').insert(choreRows);
