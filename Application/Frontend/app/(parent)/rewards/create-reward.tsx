@@ -124,7 +124,7 @@ export default function CreateReward() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-          <ParentHeader left={<BackButton />} right={isEditing ? 'Edit Reward' : 'New Reward'} />
+          <ParentHeader left={<BackButton fallbackHref="/(parent)/(tabs)/rewards" />} right={isEditing ? 'Edit Reward' : 'New Reward'} />
 
           <View style={styles.fieldGroup}>
             <Text style={typography.h3}>{isEditing ? 'Edit this reward' : 'Create a new reward'}</Text>

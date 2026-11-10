@@ -384,7 +384,7 @@ export default function ChoreSubmissionMachine() {
       <SafeAreaView style={styles.root}>
         <Stack.Screen options={{ headerShown: false }} />
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <ChildHeader left={<BackButton />} />
+          <ChildHeader left={<BackButton fallbackHref="/(child)/(tabs)/home" />} />
 
           <ChoreHeroCard title={chore.title} icon={CategoryIcon} tone={tone} iconSize={56}>
             <Pill><Coin size={16} /><Text style={pillStyles.text}>{chore.reward_amount}</Text></Pill>
@@ -419,7 +419,7 @@ export default function ChoreSubmissionMachine() {
     <SafeAreaView style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <ChildHeader left={<BackButton />} />
+        <ChildHeader left={<BackButton fallbackHref="/(child)/(tabs)/home" />} />
 
         <ChoreHeroCard title={chore?.title} icon={CategoryIcon} tone={tone}>
           <Pill><Coin size={16} /><Text style={pillStyles.text}>{chore?.reward_amount}</Text></Pill>

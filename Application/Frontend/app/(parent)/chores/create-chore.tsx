@@ -181,7 +181,7 @@ export default function CreateChore() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-          <ParentHeader left={<BackButton />} right="New Chore" />
+          <ParentHeader left={<BackButton fallbackHref="/(parent)/(tabs)/home" />} right="New Chore" />
 
           <View style={styles.fieldGroup}>
             <Text style={typography.h3}>Create a new chore</Text>

@@ -92,7 +92,7 @@ export default function EditProfile() {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <ParentHeader left={<BackButton />} right="Edit profile" />
+          <ParentHeader left={<BackButton fallbackHref="/(parent)/(tabs)/account" />} right="Edit profile" />
 
           <View style={styles.fieldGroup}>
             <Input label="Name" value={name} onChangeText={setName} placeholder="Your name" />
