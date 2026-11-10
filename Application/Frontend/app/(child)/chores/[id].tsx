@@ -411,7 +411,7 @@ export default function ChoreSubmissionMachine() {
 
   //FRAMES 1 & 2: To Do / Photo Taken (also reused for the 'pending' after-photo step)
   const bubbleText = aiNote
-    ? aiNote.toLowerCase()
+    ? aiNote
     : (STEP_COPY[chore?.status]?.[capturedPhoto ? 'captured' : 'empty'] ?? '');
 
   return (
@@ -550,8 +550,8 @@ const styles = StyleSheet.create({
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
 
   // Dropzone / camera / captured-photo area
-  photoArea: { height: 320, borderRadius: radius.card, overflow: 'hidden', backgroundColor: '#000' },
-  dropzone: { flex: 1, backgroundColor: 'rgba(255,255,255,0.6)', borderWidth: 3, borderColor: colors.brand.primary, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', gap: spacing.md },
+  photoArea: { height: 320, borderRadius: radius.card},
+  dropzone: { flex: 1, backgroundColor: colors.surface.white, borderWidth: 3, borderColor: colors.brand.primary, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', gap: spacing.md, borderRadius: radius.card },
   dropzoneText: { ...typography.body, fontSize: 16 },
   cameraCtaWrap: { width: 76, height: 76 },
   cameraCtaLedge: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 38, backgroundColor: colors.brand.primaryShadow, transform: [{ translateY: 5 }] },
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
   ctaButtonDisabled: { backgroundColor: colors.surface.neutral, opacity: 0.6 },
   ctaText: { ...typography.h3, fontSize: 24, color: colors.text.inverse },
   ctaTextDisabled: { color: colors.text.tertiary },
-  helperText: { ...typography.body, fontSize: 14, color: colors.text.secondary, textAlign: 'center' },
+  helperText: { ...typography.bodySecondary, textAlign: 'center' },
 
   // Frame 3 "Checking" status card
   statusWrap: {},
