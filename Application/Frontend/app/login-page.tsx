@@ -156,6 +156,10 @@ export default function LoginPage() {
                 loading={loading}
                 fullWidth
               />
+
+              <TouchableOpacity onPress={() => router.push({ pathname: '/forgot-password', params: { role } })} style={styles.linkContainer}>
+                <Text style={{ ...typography.bodySecondary }}>Forgot password?</Text>
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity onPress={() => router.push('/signup-page')} style={styles.linkContainer}>
