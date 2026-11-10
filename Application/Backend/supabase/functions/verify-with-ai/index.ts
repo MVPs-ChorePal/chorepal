@@ -84,11 +84,14 @@ Deno.serve(async (req) => {
       type: 'text',
       text: `A kid is doing this chore: "${choreLabel}"${chore?.description ? ` (${chore.description})` : ''}.\n` +
         (before
-          ? 'Compare the BEFORE and AFTER photos above and judge whether the chore was actually completed - the AFTER photo should show a real, visible improvement over the BEFORE photo (mess cleared, item put away, area tidied, etc.), not just the same scene, an unrelated photo, or a reused/duplicate image.'
+          ? 'Compare the BEFORE and AFTER photos above very carefully, looking specifically for the exact change this chore requires (an item removed, a mess cleared, an area tidied, etc.) - not just "does the after photo look fine in general".'
           : 'Judge whether the AFTER photo above shows the chore has been completed.') +
         '\nRespond with ONLY a JSON object and nothing else, no code fence: ' +
-        '{"isMatch": true or false, "confidence": a number 0-100 for how sure you are, ' +
-        '"feedback": "one short, encouraging, kid-friendly sentence - if isMatch is false, briefly say what still needs doing; if true, a short congratulations"}',
+        '{"reasoning": "one sentence: what specifically, if anything, is different between the two photos relevant to this chore", ' +
+        '"isMatch": true or false, "confidence": a number 0-100 for how sure you are, ' +
+        '"feedback": "one short, encouraging, kid-friendly sentence - if isMatch is false, briefly say what still needs doing; if true, a short congratulations"}\n' +
+        'Rules: if the BEFORE and AFTER photos look the same or nearly the same, or show an unrelated/reused photo, you MUST set isMatch to false. ' +
+        'If you are not confident a real, relevant change happened, default to isMatch: false - it is better to ask the kid to retake the photo than to approve a chore that was not actually done.',
     })
 
     const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -113,16 +116,20 @@ Deno.serve(async (req) => {
     let isMatch = false
     let confidence = 0
     let feedback = "hmm, something went wrong checking this photo. try again!"
+    let reasoning = ''
     try {
       const parsed = parseClaudeJson(rawText)
       isMatch = !!parsed.isMatch
       confidence = typeof parsed.confidence === 'number' ? parsed.confidence : (isMatch ? 100 : 0)
       feedback = typeof parsed.feedback === 'string' ? parsed.feedback : feedback
+      reasoning = typeof parsed.reasoning === 'string' ? parsed.reasoning : ''
     } catch (e) {
       console.error('could not parse claude response:', rawText)
     }
 
-    console.log(`chore: ${choreLabel} | isMatch: ${isMatch} | confidence: ${confidence}`)
+    //reasoning isn't persisted anywhere - logged only, for debugging false
+    //positives/negatives against the edge function's own logs
+    console.log(`chore: ${choreLabel} | isMatch: ${isMatch} | confidence: ${confidence} | reasoning: ${reasoning}`)
 
     //update the history log (pinpoint accuracy with logId)
     const { error: analysisError } = await supabase
