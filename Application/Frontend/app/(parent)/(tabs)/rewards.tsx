@@ -1,27 +1,37 @@
 //@ts-nocheck
 import React, { useCallback, useState } from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput,
-  ActivityIndicator, RefreshControl, Image
+  StyleSheet, Text, View, ScrollView,
+  ActivityIndicator, RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { supabase } from '../../../utils/supabase';
-import { showAlert } from '../../../utils/alert';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
+import RewardRequestCard from '../../../components/parent/RewardRequestCard';
+import RewardShopItem from '../../../components/parent/RewardShopItem';
+import Button from '../../../components/Button';
 
-//grabs only the first "word" of a name, lowercased to match the app's style
-const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
+// Source of truth: Figma "Parent Rewards"
+// https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=709-145
+
+// Rotating palette so each child's avatar reads as a distinct color, same
+// cycling tones used for Parent Home's KidCard and New Chore's child picker.
+const KID_TONES = [colors.category.kitchen, colors.category.clean, colors.category.outdoor, colors.category.other];
 
 export default function ParentRewards() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [busyId, setBusyId] = useState(null); //chore or reward currently being saved
-  const [children, setChildren] = useState([]);
   const [rewards, setRewards] = useState([]);
-  const [newTitle, setNewTitle] = useState('');
-  const [newCost, setNewCost] = useState('');
+
+  // There's no "reward request" table yet (schema.sql's redeem_reward flow
+  // debits points immediately, no parent approval step) — these requests are
+  // local-only for now, same as create-chore's "steps" field.
+  const [requests, setRequests] = useState([
+    { id: 1, childName: 'Mia', avatarColor: KID_TONES[0].base, rewardTitle: 'Extra screen time', cost: 3000 },
+  ]);
+  const [respondingId, setRespondingId] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -36,21 +46,18 @@ export default function ParentRewards() {
       if (profileError) throw profileError;
       if (!profile.family_id) return;
 
-      //everyone in the household: kids for balances/chores, parents for the shared store
-      const { data: members, error: membersError } = await supabase
+      //the shop is every reward made by a parent in this household
+      const { data: parents, error: parentsError } = await supabase
         .from('users')
-        .select('id, display_name, role, current_balance')
-        .eq('family_id', profile.family_id);
-      if (membersError) throw membersError;
-
-      const kids = members.filter(m => m.role === 'child');
-      const parentIds = members.filter(m => m.role === 'parent').map(m => m.id);
-      setChildren(kids);
+        .select('id')
+        .eq('family_id', profile.family_id)
+        .eq('role', 'parent');
+      if (parentsError) throw parentsError;
 
       const { data: rewardsData, error: rewardsError } = await supabase
         .from('rewards')
-        .select('id, title, point_cost')
-        .in('created_by', parentIds)
+        .select('id, title, point_cost, category')
+        .in('created_by', parents.map(p => p.id))
         .eq('archived', false)
         .order('point_cost', { ascending: true });
       if (rewardsError) throw rewardsError;
@@ -71,39 +78,20 @@ export default function ParentRewards() {
     fetchData();
   };
 
-  const handleAddReward = async () => {
-    const cost = parseInt(newCost);
-    if (!newTitle.trim() || !cost || cost <= 0) {
-      showAlert('error', 'enter a reward name and a point cost');
-      return;
-    }
-
-    setBusyId('new');
-    const { data: { session } } = await supabase.auth.getSession();
-    const { error } = await supabase
-      .from('rewards')
-      .insert({ title: newTitle.trim(), point_cost: cost, created_by: session.user.id });
-    setBusyId(null);
-
-    if (error) {
-      showAlert('error', error.message.toLowerCase());
-      return;
-    }
-    setNewTitle('');
-    setNewCost('');
-    fetchData();
+  //UI-only until a real approval flow exists — just drops the request locally
+  const respondToRequest = (id) => {
+    setRespondingId(id);
+    setTimeout(() => {
+      setRequests(prev => prev.filter(r => r.id !== id));
+      setRespondingId(null);
+    }, 300);
   };
 
-  //archived instead of deleted so redemption history keeps its reward name
-  const handleRemoveReward = async (reward) => {
-    setBusyId(reward.id);
-    const { error } = await supabase.from('rewards').update({ archived: true }).eq('id', reward.id);
-    setBusyId(null);
-    if (error) {
-      showAlert('error', error.message.toLowerCase());
-      return;
-    }
-    fetchData();
+  const goToEditReward = (reward) => {
+    router.push({
+      pathname: '/(parent)/rewards/create-reward',
+      params: { id: reward.id, title: reward.title, cost: String(reward.point_cost), category: reward.category || 'other' },
+    });
   };
 
   if (loading) {
@@ -119,69 +107,63 @@ export default function ParentRewards() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
       >
-        <Text style={{...typography.display}}>Rewards</Text>
-        
+        <Text style={{ ...typography.display }}>Rewards</Text>
 
-        {/* each child's spendable points */}
-        <Text style={{...typography.h2}}>Requests</Text>
-        {children.length === 0 ? (
-          <Text style={styles.emptyText}>no children in your household yet</Text>
+        <View style={styles.fieldGroup}>
+          <View style={styles.requestsHeaderRow}>
+            <Text style={{ ...typography.h2 }}>Requests</Text>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{requests.length}</Text>
+            </View>
+          </View>
+
+          {requests.length === 0 ? (
+            <Text style={{...typography.bodyTertiary}}>No requests right now</Text>
+          ) : (
+            requests.map(request => (
+              <RewardRequestCard
+                key={request.id}
+                childName={request.childName}
+                avatarColor={request.avatarColor}
+                rewardTitle={request.rewardTitle}
+                cost={request.cost}
+                loading={respondingId === request.id}
+                onAccept={() => respondToRequest(request.id)}
+                onDecline={() => respondToRequest(request.id)}
+              />
+            ))
+          )}
+        </View>
+
+        <View style={{ gap: spacing.xs }}>
+          <Text style={{ ...typography.h2 }}>Your reward shop</Text>
+          <Text style={{ ...typography.bodySecondary }}>What your kids can spend coins on</Text>
+        </View>
+        
+        {rewards.length === 0 ? (
+          <Text style={{ ...typography.bodyTertiary }}>No rewards yet. Add one below!</Text>
         ) : (
-          <View style={styles.card}>
-            {children.map((kid, i) => (
-              <View key={kid.id} style={[styles.balanceRow, i > 0 && styles.rowDivider]}>
-                <Text style={styles.balanceName}>{firstName(kid.display_name)}</Text>
-                <Text style={styles.balanceValue}>{Number(kid.current_balance || 0)} pts</Text>
-              </View>
-            ))}
+          <View>
+            <View pointerEvents="none" style={styles.shopCardLedge} />
+            <View style={styles.shopCard}>
+              {rewards.map((reward, i) => (
+                <React.Fragment key={reward.id}>
+                  {i > 0 && <View style={styles.rowDivider} />}
+                  <RewardShopItem
+                    title={reward.title}
+                    cost={Number(reward.point_cost)}
+                    category={reward.category}
+                    onEdit={() => goToEditReward(reward)}
+                  />
+                </React.Fragment>
+              ))}
+            </View>
           </View>
         )}
 
-        {/* what the kids can spend points on */}
-        <View>
-          <Text style={{...typography.h2}}>Your reward shop</Text>
-          <Text style={{...typography.bodySecondary}}>What your kids can spend coins on</Text>
-        </View>
-
-
-        <View style={styles.card}>
-          {rewards.length === 0 && <Text style={styles.emptyText}>add a reward your kids can earn</Text>}
-          {rewards.map((reward, i) => (
-            <View key={reward.id} style={[styles.balanceRow, i > 0 && styles.rowDivider]}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.balanceName}>{reward.title.toLowerCase()}</Text>
-                <Text style={styles.cardSub}>{Number(reward.point_cost)} pts</Text>
-              </View>
-              <TouchableOpacity onPress={() => handleRemoveReward(reward)} disabled={busyId !== null}>
-                <Ionicons name="trash-outline" size={20} color={colors.icon.secondary} />
-              </TouchableOpacity>
-            </View>
-          ))}
-
-          <View style={[styles.addRow, rewards.length > 0 && styles.rowDivider]}>
-            <TextInput
-              placeholder="e.g. 30 min screen time"
-              placeholderTextColor={colors.text.tertiary}
-              style={[styles.input, { flex: 1 }]}
-              value={newTitle}
-              onChangeText={setNewTitle}
-            />
-            <TextInput
-              placeholder="pts"
-              placeholderTextColor={colors.text.tertiary}
-              keyboardType="numeric"
-              style={[styles.input, styles.costInput]}
-              value={newCost}
-              onChangeText={setNewCost}
-            />
-            <TouchableOpacity style={styles.addBtn} onPress={handleAddReward} disabled={busyId !== null}>
-              {busyId === 'new' ? <ActivityIndicator color={colors.text.inverse} /> : <Ionicons name="add" size={24} color={colors.icon.inverse} />}
-            </TouchableOpacity>
-          </View>
-        </View>
+        <Button title="+ Add a reward" onPress={() => router.push('/(parent)/rewards/create-reward')} fullWidth />
       </ScrollView>
     </SafeAreaView>
   );
@@ -192,15 +174,27 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
-  emptyText: { color: colors.text.tertiary, fontWeight: '300' },
-  card: { backgroundColor: colors.surface.white, borderRadius: radius.card, padding: 20 },
-  cardSub: { fontSize: 13, color: colors.text.secondary, marginTop: 2 },
-  balanceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12 },
-  rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },
-  balanceName: { fontSize: 15, fontWeight: '600', color: colors.text.primary },
-  balanceValue: { fontSize: 15, fontWeight: '800', color: colors.brand.primary },
-  addRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 12 },
-  input: { backgroundColor: colors.surface.neutral, borderRadius: radius.small, paddingHorizontal: 14, paddingVertical: 12, color: colors.text.primary, fontSize: 14 },
-  costInput: { width: 70, textAlign: 'center' },
-  addBtn: { backgroundColor: colors.brand.primary, width: 46, height: 46, borderRadius: radius.full, justifyContent: 'center', alignItems: 'center' },
+  fieldGroup: { gap: spacing.lg },
+  requestsHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  countBadge: { backgroundColor: colors.brand.primary, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  countBadgeText: { ...typography.body, fontSize: 16, color: colors.text.inverse },
+  // Hard, unblurred offset shadow — same "ledge" technique as Button/KidCard.
+  shopCardLedge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: radius.card,
+    backgroundColor: colors.shadow.ledge,
+    transform: [{ translateY: 5 }],
+  },
+  shopCard: {
+    backgroundColor: colors.surface.white,
+    borderWidth: 2,
+    borderColor: colors.border.default,
+    borderRadius: radius.card,
+    padding: spacing.sm,
+  },
+  rowDivider: { height: 2, backgroundColor: colors.border.default },
 });

@@ -1,21 +1,15 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { Icon, IconStarFilled, IconCash, IconBuildingCarousel, IconCandy } from '@tabler/icons-react-native';
+import { IconStarFilled } from '@tabler/icons-react-native';
 import { colors, radius, spacing, typography } from '../constants/theme';
+import { REWARD_CATEGORY_ICONS, RewardCategoryValue } from '../constants/rewardCategories';
 import Button from './Button';
 import CoinLabel from './CoinLabel';
 
 // Source of truth: Figma "Design System" > Reward Tile (State=Can Buy / Locked)
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=724-402
 
-export type RewardCategoryValue = 'cash' | 'fun' | 'treats' | 'other';
-
-const REWARD_CATEGORY_ICONS: Record<RewardCategoryValue, Icon> = {
-  cash: IconCash,
-  fun: IconBuildingCarousel,
-  treats: IconCandy,
-  other: IconStarFilled,
-};
+export type { RewardCategoryValue };
 
 export interface RewardTileProps {
   title: string;

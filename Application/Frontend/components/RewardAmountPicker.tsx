@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { colors, radius, spacing } from '../constants/theme';
+import { colors, radius, spacing, typography } from '../constants/theme';
 import Coin from './Coin';
 
 // Source of truth: Figma "Parent Create Chore" > Reward
@@ -81,7 +81,7 @@ export default function RewardAmountPicker({
 }
 
 const styles = StyleSheet.create({
-  label: { fontFamily: 'Fredoka_600SemiBold', fontWeight: '600', fontSize: 20, color: colors.text.primary, marginBottom: spacing.md },
+  label: { marginBottom: spacing.md, ...typography.h3 },
   card: { width: '100%' },
   // Hard, unblurred offset shadow — same "ledge" technique as Button.
   cardLedge: {
