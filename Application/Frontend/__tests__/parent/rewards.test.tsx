@@ -54,7 +54,7 @@ describe('ParentRewards (parent rewards tab)', () => {
     setUpHousehold();
     const { findByText } = await render(<ParentRewards />);
 
-    expect(await findByText("Nothing yet - chore payouts and reward redemptions show up here")).toBeTruthy();
+    expect(await findByText("Nothing yet - reward redemptions show up here")).toBeTruthy();
   });
 
   it('lists rewards fetched from the household reward shop', async () => {
