@@ -1,6 +1,7 @@
 import { router, Href } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import Button from './Button';
-import { IconChevronLeft } from '@tabler/icons-react-native';
+import { colors } from '../constants/theme';
 
 export interface BackButtonProps {
   // Where to go when there's no navigation history to pop (e.g. the screen
@@ -16,6 +17,17 @@ export default function BackButton({ fallbackHref = '/' }: BackButtonProps) {
   };
 
   return (
-    <Button testID="back-button" onPress={handlePress} title="" icon={<IconChevronLeft />} color='secondary' size="small" style={{ width: 50 }} />
+    <Button
+      testID="back-button"
+      onPress={handlePress}
+      title=""
+      // Ionicons renders as a font glyph, not an SVG (unlike @tabler/icons-
+      // react-native) - avoids a reported class of icon-disappearing-on-
+      // remount issue tied to SVG-based icons.
+      icon={<Ionicons name="chevron-back" size={22} color={colors.text.primary} />}
+      color='secondary'
+      size="small"
+      style={{ width: 50 }}
+    />
   );
 }
