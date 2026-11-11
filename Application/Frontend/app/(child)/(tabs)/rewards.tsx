@@ -6,17 +6,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../../utils/supabase';
 import { showAlert } from '../../../utils/alert';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import RewardTile from '../../../components/RewardTile';
 import ChildHeader from '../../../components/ChildHeader';
 import Pill from '../../../components/Pill';
+import RewardActivityList from '../../../components/RewardActivityList';
 
-//formats an ISO date string into something like "sep 12"
+//formats an ISO date string into something like "Sep 12"
 const formatDate = (isoDate) =>
-  new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toLowerCase();
+  new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
 // Category filter row above the reward grid — "All" plus the 4 reward categories.
 const CATEGORY_FILTERS = [
@@ -70,7 +70,7 @@ export default function ChildRewards() {
 
       const { data: txData, error: txError } = await supabase
         .from('transactions')
-        .select('id, amount, type, chore_id, reward_id, created_at')
+        .select('id, amount, type, chore_id, reward_id, given_at, created_at')
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
       if (txError) throw txError;
@@ -80,15 +80,19 @@ export default function ChildRewards() {
       const rewardIds = [...new Set(txData.filter(t => t.reward_id).map(t => t.reward_id))];
       const [{ data: choreNames }, { data: rewardNames }] = await Promise.all([
         choreIds.length ? supabase.from('chores').select('id, title').in('id', choreIds) : { data: [] },
-        rewardIds.length ? supabase.from('rewards').select('id, title').in('id', rewardIds) : { data: [] },
+        rewardIds.length ? supabase.from('rewards').select('id, title, category').in('id', rewardIds) : { data: [] },
       ]);
 
-      setHistory(txData.map(t => ({
-        ...t,
-        label: t.type === 'credit'
-          ? choreNames?.find(c => c.id === t.chore_id)?.title || 'chore'
-          : rewardNames?.find(r => r.id === t.reward_id)?.title || 'reward',
-      })));
+      setHistory(txData.map(t => {
+        const reward = rewardNames?.find(r => r.id === t.reward_id);
+        return {
+          ...t,
+          label: t.type === 'credit'
+            ? choreNames?.find(c => c.id === t.chore_id)?.title || 'Chore'
+            : reward?.title || 'Reward',
+          category: reward?.category || 'other', //sets the row's tile color/icon
+        };
+      }));
     } catch (e) {
       console.error('FETCH REWARDS ERROR:', e.message);
     } finally {
@@ -181,27 +185,21 @@ export default function ChildRewards() {
         {history.length === 0 ? (
           <Text style={{...typography.bodySecondary}}>Points you earn and spend will show up here</Text>
         ) : (
-          <View style={styles.historyCard}>
-            {history.map((t, i) => {
-              const isCredit = t.type === 'credit';
-              return (
-                <View key={t.id} style={[styles.historyRow, i > 0 && styles.rowDivider]}>
-                  <Ionicons
-                    name={isCredit ? 'checkmark-circle' : 'gift'}
-                    size={20}
-                    color={isCredit ? colors.status.success : colors.status.pending}
-                  />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.historyLabel}>{t.label.toLowerCase()}</Text>
-                    <Text style={styles.historyDate}>{formatDate(t.created_at)}</Text>
-                  </View>
-                  <Text style={[styles.historyAmount, { color: isCredit ? colors.status.success : colors.text.primary }]}>
-                    {isCredit ? '+' : '-'}{Number(t.amount)}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
+          <RewardActivityList
+            items={history.map((t) => ({
+              id: t.id,
+              title: t.label,
+              subtitle: formatDate(t.created_at),
+              amount: Number(t.amount),
+              type: t.type === 'credit' ? 'credit' : 'debit',
+              category: t.category,
+              //redeemed rewards: has the parent handed it over yet?
+              //(given_at is set by the parent's "Mark given")
+              status: t.type === 'debit'
+                ? (t.given_at ? { label: 'Given', done: true } : { label: 'On its way', done: false })
+                : undefined,
+            }))}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -222,10 +220,4 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', gap: spacing.sm },
   rewardGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.lg },
   rewardTile: { width: '48%' },
-  historyCard: { backgroundColor: colors.surface.white, borderRadius: radius.card, paddingHorizontal: 20, paddingVertical: 5 },
-  historyRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
-  rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },
-  historyLabel: { ...typography.body, color: colors.text.primary },
-  historyDate: { fontSize: 12, color: colors.text.secondary, marginTop: 2 },
-  historyAmount: { fontSize: 15, fontWeight: '800' },
 });

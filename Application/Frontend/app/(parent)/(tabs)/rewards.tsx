@@ -9,7 +9,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { supabase } from '../../../utils/supabase';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import RewardShopItem from '../../../components/parent/RewardShopItem';
-import RewardActivityItem from '../../../components/RewardActivityItem';
+import RewardActivityList from '../../../components/RewardActivityList';
 import CountBadge from '../../../components/CountBadge';
 import Button from '../../../components/Button';
 
@@ -164,24 +164,17 @@ export default function ParentRewards() {
           {toHandOut.length === 0 ? (
             <Text style={{...typography.bodyTertiary}}>{"All caught up - rewards your kids redeem show up here"}</Text>
           ) : (
-            <View>
-              <View pointerEvents="none" style={styles.shopCardLedge} />
-              <View style={styles.shopCard}>
-                {toHandOut.map((t, i) => (
-                  <React.Fragment key={t.id}>
-                    {i > 0 && <View style={styles.rowDivider} />}
-                    <RewardActivityItem
-                      title={t.title}
-                      subtitle={`${t.childName} · ${formatDate(t.created_at)}`}
-                      amount={Number(t.amount)}
-                      type="debit"
-                      category={t.category}
-                      onMarkGiven={() => handleMarkGiven(t)}
-                    />
-                  </React.Fragment>
-                ))}
-              </View>
-            </View>
+            <RewardActivityList
+              items={toHandOut.map((t) => ({
+                id: t.id,
+                title: t.title,
+                subtitle: `${t.childName} · ${formatDate(t.created_at)}`,
+                amount: Number(t.amount),
+                type: 'debit',
+                category: t.category,
+                onMarkGiven: () => handleMarkGiven(t),
+              }))}
+            />
           )}
         </View>
 
@@ -225,7 +218,6 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: spacing.lg },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   // Hard, unblurred offset shadow — same "ledge" technique as Button/KidCard.
-  // Shared by the "To hand out" and "Your reward shop" cards.
   shopCardLedge: {
     position: 'absolute',
     top: 0,
