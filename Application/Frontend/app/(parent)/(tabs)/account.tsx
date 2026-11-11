@@ -1,13 +1,14 @@
 //@ts-nocheck
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { IconChevronRight, IconLock, IconLogout2, IconStar } from '@tabler/icons-react-native';
+import { IconLock, IconLogout2, IconStar } from '@tabler/icons-react-native';
 import { supabase } from '../../../utils/supabase';
 import { colors, radius, spacing, typography } from '../../../constants/theme';
 import HouseholdCode from '../../../components/household-code';
 import KidRow from '../../../components/parent/KidRow';
+import SettingsCard from '../../../components/SettingsCard';
 
 
 // Rotating palette so each kid's avatar reads as a distinct color - same
@@ -18,16 +19,6 @@ const capitalizedFirstName = (name) => {
   const first = (name || 'Child').trim().split(' ')[0];
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
 };
-
-function SettingsRow({ icon, iconBg, label, onPress }) {
-  return (
-    <TouchableOpacity style={styles.settingsRow} activeOpacity={0.7} onPress={onPress}>
-      <View style={[styles.settingsIcon, { backgroundColor: iconBg }]}>{icon}</View>
-      <Text style={[typography.body, styles.settingsLabel]}>{label}</Text>
-      <IconChevronRight size={14} color={colors.text.tertiary} />
-    </TouchableOpacity>
-  );
-}
 
 export default function ParentAccount() {
   const router = useRouter();
@@ -104,31 +95,28 @@ export default function ParentAccount() {
           </View>
         )}
 
-        <View>
-          <View pointerEvents="none" style={styles.cardLedge} />
-          <View style={styles.card}>
-            <SettingsRow
-              icon={<IconStar size={20} color={colors.brand.primary} />}
-              iconBg={colors.brand.primarySubtle}
-              label="Edit profile"
-              onPress={() => router.push('/(parent)/account/edit-profile')}
-            />
-            <View style={styles.rowDivider} />
-            <SettingsRow
-              icon={<IconLock size={20} color={colors.category.other.base} />}
-              iconBg={colors.category.other.subtle}
-              label="Change password"
-              onPress={() => {}}
-            />
-            <View style={styles.rowDivider} />
-            <SettingsRow
-              icon={<IconLogout2 size={20} color={colors.text.secondary} />}
-              iconBg="rgba(122,111,143,0.15)"
-              label="Log out"
-              onPress={handleLogout}
-            />
-          </View>
-        </View>
+        <SettingsCard
+          items={[
+            {
+              icon: <IconStar size={20} color={colors.brand.primary} />,
+              iconBg: colors.brand.primarySubtle,
+              label: 'Edit profile',
+              onPress: () => router.push('/(parent)/account/edit-profile'),
+            },
+            {
+              icon: <IconLock size={20} color={colors.category.other.base} />,
+              iconBg: colors.category.other.subtle,
+              label: 'Change password',
+              onPress: () => {},
+            },
+            {
+              icon: <IconLogout2 size={20} color={colors.text.secondary} />,
+              iconBg: 'rgba(122,111,143,0.15)',
+              label: 'Log out',
+              onPress: handleLogout,
+            },
+          ]}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -157,7 +145,4 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   rowDivider: { height: 2, backgroundColor: colors.border.default },
-  settingsRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: spacing.md },
-  settingsIcon: { width: 40, height: 40, borderRadius: radius.small, alignItems: 'center', justifyContent: 'center' },
-  settingsLabel: { flex: 1 },
 });
