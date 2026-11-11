@@ -444,7 +444,7 @@ export default function ChoreSubmissionMachine() {
 
         <MascotBubble text={bubbleText} />
         {
-          !isBeforePhase ? <ChecklistCard steps={choreSteps} /> : null
+          !isBeforePhase && choreSteps.length > 0 ? <ChecklistCard steps={choreSteps} /> : null
         }
 
 
