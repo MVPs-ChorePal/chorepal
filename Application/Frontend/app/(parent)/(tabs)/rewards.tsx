@@ -145,20 +145,23 @@ export default function ParentRewards() {
               {activity.map((t, i) => {
                 const isCredit = t.type === 'credit';
                 return (
-                  <View key={t.id} style={[styles.activityRow, i > 0 && styles.rowDivider]}>
-                    <Ionicons
-                      name={isCredit ? 'checkmark-circle' : 'gift'}
-                      size={20}
-                      color={isCredit ? colors.status.success : colors.status.pending}
-                    />
-                    <View style={{ flex: 1, marginLeft: 12 }}>
-                      <Text style={typography.body} numberOfLines={1}>{t.childName} · {t.label.toLowerCase()}</Text>
-                      <Text style={styles.activityDate}>{formatDate(t.created_at)}</Text>
+                  <React.Fragment key={t.id}>
+                    {i > 0 && <View style={styles.rowDivider} />}
+                    <View style={styles.activityRow}>
+                      <Ionicons
+                        name={isCredit ? 'checkmark-circle' : 'gift'}
+                        size={20}
+                        color={isCredit ? colors.status.success : colors.status.pending}
+                      />
+                      <View style={{ flex: 1, marginLeft: 12 }}>
+                        <Text style={typography.body} numberOfLines={1}>{t.childName} · {t.label.toLowerCase()}</Text>
+                        <Text style={styles.activityDate}>{formatDate(t.created_at)}</Text>
+                      </View>
+                      <Text style={[styles.activityAmount, { color: isCredit ? colors.status.success : colors.text.primary }]}>
+                        {isCredit ? '+' : '-'}{Number(t.amount)}
+                      </Text>
                     </View>
-                    <Text style={[styles.activityAmount, { color: isCredit ? colors.status.success : colors.text.primary }]}>
-                      {isCredit ? '+' : '-'}{Number(t.amount)}
-                    </Text>
-                  </View>
+                  </React.Fragment>
                 );
               })}
             </View>
