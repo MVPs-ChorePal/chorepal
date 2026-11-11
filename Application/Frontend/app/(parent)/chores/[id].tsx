@@ -1,10 +1,11 @@
 //@ts-nocheck
 import React, { useState, useEffect } from 'react';
-import { 
-  StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, 
-  Dimensions, Image, ScrollView, Alert 
+import {
+  StyleSheet, Text, View, TouchableOpacity, ActivityIndicator,
+  Dimensions, Image, ScrollView
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
+import { showConfirm } from '../../../utils/alert';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -101,24 +102,18 @@ export default function ParentChoreReview() {
   //todo/pending/completed chores (see the status check below), never
   //approved ones, since transactions.chore_id has no cascade and would
   //just reject the delete anyway once a chore's been paid out
-  const handleDelete = () => {
-    Alert.alert('Delete this chore?', 'This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          setBusy(true);
-          const { error } = await supabase.from('chores').delete().eq('id', id);
-          setBusy(false);
-          if (error) {
-            console.error('delete error:', error.message);
-          } else {
-            router.replace('/(parent)/(tabs)/home');
-          }
-        },
-      },
-    ]);
+  const handleDelete = async () => {
+    const confirmed = await showConfirm('Delete this chore?', 'This cannot be undone.', 'Delete');
+    if (!confirmed) return;
+
+    setBusy(true);
+    const { error } = await supabase.from('chores').delete().eq('id', id);
+    setBusy(false);
+    if (error) {
+      console.error('delete error:', error.message);
+    } else {
+      router.replace('/(parent)/(tabs)/home');
+    }
   };
 
   if (loading) return <View style={styles.center}><ActivityIndicator color={colors.brand.primary} /></View>;
