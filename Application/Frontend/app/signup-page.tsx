@@ -141,8 +141,8 @@ export default function SignupPage() {
         >
         <View style={styles.headerArea}>
           <Sweepy size={120} />
-          <Text style={styles.title}>Welcome to ChorePal!</Text>
-          <Text style={styles.subtitle}>Who is setting up this account?</Text>
+          <Text style={{...typography.display}}>Welcome to ChorePal!</Text>
+          <Text style={{...typography.bodySecondary}}>Who is setting up this account?</Text>
         </View>
 
         <View style={styles.toggleContainer}>

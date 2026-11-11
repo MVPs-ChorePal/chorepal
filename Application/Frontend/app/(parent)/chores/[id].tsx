@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     transform: [{ translateY: 5 }],
   },
   photo: {
-    height: 260,
+    height: 500,
     borderRadius: 24,
     borderWidth: 4,
     borderColor: colors.surface.white,

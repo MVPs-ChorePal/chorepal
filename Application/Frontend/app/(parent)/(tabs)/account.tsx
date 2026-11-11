@@ -74,6 +74,17 @@ export default function ParentAccount() {
     router.replace('/login-page');
   });
 
+  // Reuses the forgot-password flow (emailed code -> new password), with the
+  // parent's email pre-filled. getSession() is async, so the email has to be
+  // awaited before navigating. push (not replace) so back returns here.
+  const handleChangePassword = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    router.push({
+      pathname: '/forgot-password',
+      params: { role: 'parent', email: session?.user?.email ?? '' },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <ScrollView
@@ -117,7 +128,7 @@ export default function ParentAccount() {
               icon: <IconLock size={20} color={colors.category.other.base} />,
               iconBg: colors.category.other.subtle,
               label: 'Change password',
-              onPress: () => {},
+              onPress: handleChangePassword,
             },
             {
               icon: <IconLogout2 size={20} color={colors.text.secondary} />,

@@ -8,6 +8,8 @@ import Button from '@/components/Button';
 import CodeBoxes from '@/components/CodeBoxes';
 import TextBox from '@/components/TextBox';
 
+import Sweepy from '../components/Sweepy'
+
 export default function JoinHousehold() {
   const router = useRouter();
   const [secretCode, setSecretCode] = useState('');
@@ -73,6 +75,7 @@ export default function JoinHousehold() {
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.inner}>
 
+        <Sweepy size={120} />
         <TextBox>
             Hi! Ask your grown-up for the household code.
         </TextBox>
@@ -88,18 +91,6 @@ export default function JoinHousehold() {
         <Text style={styles.hint}>Your grown-up can find it in their ChorePal app under Account.</Text>
         
         <Button title="Join my household" onPress={handleJoin} fullWidth />
-
-
-
-        {role === 'child' && (
-          <Button
-            title="skip to camera dashboard"
-            variant="text"
-            size="small"
-            // replace, not push - see login-page.tsx's "Forgot password?" link
-            onPress={() => router.replace('/(child)/(tabs)/home')}
-          />
-        )}
 
       </KeyboardAvoidingView>
     </SafeAreaView>

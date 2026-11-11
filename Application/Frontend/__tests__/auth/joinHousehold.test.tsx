@@ -81,26 +81,4 @@ describe('JoinHousehold', () => {
       expect(__mockReplace).toHaveBeenCalledWith('/(child)/(tabs)/home');
     });
   });
-
-  it('shows the "skip to camera dashboard" button only for a child', async () => {
-    setUpRole('child');
-    const { findByText } = await render(<JoinHousehold />);
-    expect(await findByText('skip to camera dashboard')).toBeTruthy();
-  });
-
-  it('hides the skip button for a parent', async () => {
-    setUpRole('parent');
-    const { findByText, queryByText } = await render(<JoinHousehold />);
-    await findByText('Join your household');
-    expect(queryByText('skip to camera dashboard')).toBeNull();
-  });
-
-  it('tapping "skip to camera dashboard" replaces straight to the child home', async () => {
-    setUpRole('child');
-    const { findByText } = await render(<JoinHousehold />);
-
-    await fireEvent.press(await findByText('skip to camera dashboard'));
-
-    expect(__mockReplace).toHaveBeenCalledWith('/(child)/(tabs)/home');
-  });
 });

@@ -4,6 +4,7 @@ import { supabase } from '../utils/supabase';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../constants/theme';
+import Star from '../components/Star';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -78,15 +79,14 @@ export default function SplashScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <Animated.Image
-        source={require('../assets/images/favicon.png')}
-        style={[styles.logo, { transform: [{ rotate: spin }] }]}
-      />
+      {/* Star is an SVG component, not an image, so the spin goes on a wrapping Animated.View */}
+      <Animated.View style={{ transform: [{ rotate: spin }] }}>
+        <Star size={80} />
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.white, justifyContent: 'center', alignItems: 'center' },
-  logo: { width: 50, height: 50, resizeMode: 'contain' }
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });

@@ -22,6 +22,24 @@ describe('ChildRewards (child rewards tab)', () => {
     __resetMockSupabase();
   });
 
+  it('history shows whether each redeemed reward has been handed over', async () => {
+    setUpChild({
+      balance: 0,
+      rewards: [
+        { id: 'r1', title: 'Movie night', point_cost: 50, category: 'fun' },
+        { id: 'r2', title: 'Ice cream', point_cost: 20, category: 'treats' },
+      ],
+      transactions: [
+        { id: 't1', amount: 50, type: 'debit', reward_id: 'r1', given_at: '2026-01-02T00:00:00Z', created_at: '2026-01-01T00:00:00Z' },
+        { id: 't2', amount: 20, type: 'debit', reward_id: 'r2', given_at: null, created_at: '2026-01-03T00:00:00Z' },
+      ],
+    });
+    const { findByText } = await render(<ChildRewards />);
+
+    expect(await findByText('Given')).toBeTruthy();
+    expect(await findByText('On its way')).toBeTruthy();
+  });
+
   it('renders rewards fetched from the household reward shop', async () => {
     setUpChild({ balance: 0, rewards: [{ id: 'r1', title: 'Extra screen time', point_cost: 50, category: 'fun' }] });
     const { findByText } = await render(<ChildRewards />);

@@ -8,6 +8,8 @@ import { colors, typography, spacing } from '../constants/theme';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
+import Sweepy from '../components/Sweepy'
+
 // TouchableWithoutFeedback's tap-outside-to-dismiss steals pointer focus from
 // TextInput on react-native-web, so only wrap with it on native.
 const DismissKeyboardWrapper = Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
@@ -101,7 +103,10 @@ export default function LoginPage() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.title}>Welcome Back!</Text>
+            <View style={styles.headerArea}>
+              <Sweepy size={120}/>
+              <Text style={{...typography.display}}>Welcome Back!</Text>
+            </View>
 
       <View style={styles.toggleContainer}>
                 <Button
@@ -180,13 +185,13 @@ export default function LoginPage() {
 const styles = StyleSheet.create({
   // Background + top/side margins come from the Stack's contentStyle (app/_layout.tsx).
   root: { flex: 1 },
+  headerArea: { alignItems: 'center'},
   // flexGrow (not flex) because this is a ScrollView's contentContainerStyle -
   // centers short content, but scrolls instead of overflowing/clipping when
   // the content (role-dependent: parent vs child fields) is taller than the
   // viewport, rather than bleeding past its own box into whatever's above it.
   inner: { flexGrow: 1, justifyContent: 'center', gap: spacing.xl },
   // horizontal/top margins already come from the Stack's contentStyle (app/_layout.tsx)
-  title: { ...typography.display, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
   // alignItems: 'flex-start' (not the row default 'stretch') so each toggle
   // button keeps its own natural height instead of being stretched to match
   // whichever label wraps to more lines - stretching left the shorter
