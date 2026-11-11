@@ -280,7 +280,9 @@ export default function ParentChoreReview() {
                     source={{ uri: S3_PATH + photoKey }}
                     style={styles.photoImage}
                     contentFit="cover"
-                    onError={(e) => console.error('chore photo failed to load:', S3_PATH + photoKey, e.error)}
+                    onError={(e) => console.error('[chore-photo] error for', S3_PATH + photoKey, '-', e.error)}
+                    onLoadEnd={() => console.log('[chore-photo] load ended for', S3_PATH + photoKey)}
+                    onDisplay={() => console.log('[chore-photo] displayed successfully:', S3_PATH + photoKey)}
                   />
                 ) : (
                   <IconPhoto size={40} color={colors.icon.secondary} />
