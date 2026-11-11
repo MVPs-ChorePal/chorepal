@@ -12,6 +12,7 @@ const mockReplace = jest.fn();
 const mockBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockDismissAll = jest.fn();
+const mockCanDismiss = jest.fn(() => true);
 
 const useRouter = jest.fn(() => ({
   push: mockPush,
@@ -19,6 +20,7 @@ const useRouter = jest.fn(() => ({
   back: mockBack,
   canGoBack: mockCanGoBack,
   dismissAll: mockDismissAll,
+  canDismiss: mockCanDismiss,
 }));
 
 const useLocalSearchParams = jest.fn(() => ({}));
@@ -56,6 +58,7 @@ const router = {
   back: mockBack,
   canGoBack: mockCanGoBack,
   dismissAll: mockDismissAll,
+  canDismiss: mockCanDismiss,
 };
 
 module.exports = {
@@ -73,12 +76,14 @@ module.exports = {
   __mockBack: mockBack,
   __mockCanGoBack: mockCanGoBack,
   __mockDismissAll: mockDismissAll,
+  __mockCanDismiss: mockCanDismiss,
   __resetMockRouter: () => {
     mockPush.mockClear();
     mockReplace.mockClear();
     mockBack.mockClear();
     mockCanGoBack.mockClear().mockReturnValue(true);
     mockDismissAll.mockClear();
+    mockCanDismiss.mockClear().mockReturnValue(true);
     useLocalSearchParams.mockReset().mockReturnValue({});
     useSegments.mockReset().mockReturnValue([]);
   },

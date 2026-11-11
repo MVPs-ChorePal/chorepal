@@ -62,13 +62,15 @@ export default function ParentAccount() {
     fetchKids();
   };
 
-  // dismissAll first - replace only swaps the current top screen, leaving
-  // anything pushed underneath (e.g. a chore review reached from the chores
-  // list) frozen in this group's own nested stack. Logging back in and
-  // navigating to a chore could then resurrect that stale frozen instance
-  // instead of a fresh one, rather than a clean login.
+  // dismissAll first (only when there's actually something to dismiss -
+  // calling it with nothing pushed logs a dev-only "POP_TO_TOP not handled"
+  // warning) - replace only swaps the current top screen, leaving anything
+  // pushed underneath (e.g. a chore review reached from the chores list)
+  // frozen in this group's own nested stack. Logging back in and navigating
+  // to a chore could then resurrect that stale frozen instance instead of a
+  // fresh one, rather than a clean login.
   const handleLogout = () => supabase.auth.signOut().then(() => {
-    router.dismissAll();
+    if (router.canDismiss()) router.dismissAll();
     router.replace('/login-page');
   });
 
