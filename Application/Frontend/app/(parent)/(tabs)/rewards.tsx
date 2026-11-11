@@ -28,9 +28,7 @@ export default function ParentRewards() {
   // There's no "reward request" table yet (schema.sql's redeem_reward flow
   // debits points immediately, no parent approval step) — these requests are
   // local-only for now, same as create-chore's "steps" field.
-  const [requests, setRequests] = useState([
-    { id: 1, childName: 'Mia', avatarColor: KID_TONES[0].base, rewardTitle: 'Extra screen time', cost: 3000 },
-  ]);
+  const [requests, setRequests] = useState([]);
   const [respondingId, setRespondingId] = useState(null);
 
   const fetchData = useCallback(async () => {

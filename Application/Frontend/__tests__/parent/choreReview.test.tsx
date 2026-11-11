@@ -35,15 +35,32 @@ describe('ParentChoreReview (parent chore detail)', () => {
     const { findByText, getByText } = await render(<ParentChoreReview />);
 
     expect(await findByText('Clean the kitchen')).toBeTruthy();
-    expect(getByText('Assigned to: Testy Kid')).toBeTruthy();
+    expect(getByText('Testy says they finished')).toBeTruthy();
   });
 
-  it('shows approve/reject buttons only while awaiting review (status completed)', async () => {
+  it('shows approve/redo buttons only while awaiting review (status completed)', async () => {
     setUpChore({ status: 'completed' });
     const { findByText } = await render(<ParentChoreReview />);
 
-    expect(await findByText('approve')).toBeTruthy();
-    expect(await findByText('reject')).toBeTruthy();
+    expect(await findByText('Approve')).toBeTruthy();
+    expect(await findByText('Ask to redo')).toBeTruthy();
+  });
+
+  it('shows the AI verdict on a submitted chore', async () => {
+    setUpChore({ status: 'completed' });
+    const { findByText } = await render(<ParentChoreReview />);
+
+    expect(await findByText('AI check')).toBeTruthy();
+    expect(await findByText('looks clean!')).toBeTruthy();
+  });
+
+  it('offers edit/delete instead of review before anything is submitted', async () => {
+    setUpChore({ status: 'todo' });
+    const { findByText, queryByText } = await render(<ParentChoreReview />);
+
+    expect(await findByText('Edit chore')).toBeTruthy();
+    expect(await findByText('Delete chore')).toBeTruthy();
+    expect(queryByText('Approve')).toBeNull();
   });
 
   it('hides approve/reject buttons once already approved', async () => {
@@ -51,8 +68,8 @@ describe('ParentChoreReview (parent chore detail)', () => {
     const { findByText, queryByText } = await render(<ParentChoreReview />);
 
     await findByText('Clean the kitchen');
-    expect(queryByText('approve')).toBeNull();
-    expect(queryByText('reject')).toBeNull();
+    expect(queryByText('Approve')).toBeNull();
+    expect(queryByText('Ask to redo')).toBeNull();
   });
 
   it('approving calls approve_chore with the chore id and navigates home', async () => {
@@ -64,7 +81,7 @@ describe('ParentChoreReview (parent chore detail)', () => {
     });
     const { findByText } = await render(<ParentChoreReview />);
 
-    await fireEvent.press(await findByText('approve'));
+    await fireEvent.press(await findByText('Approve'));
 
     await waitFor(() => {
       expect(rpcCalls).toContainEqual({ p_chore_id: 'chore-1' });
@@ -81,9 +98,10 @@ describe('ParentChoreReview (parent chore detail)', () => {
     });
     const { findByText, findByPlaceholderText } = await render(<ParentChoreReview />);
 
+    await fireEvent.press(await findByText('Ask to redo'));
     const noteInput = await findByPlaceholderText('e.g. the dishes are still in the sink');
     await fireEvent.changeText(noteInput, 'still messy, try again');
-    await fireEvent.press(await findByText('reject'));
+    await fireEvent.press(await findByText('Send back'));
 
     await waitFor(() => {
       expect(rpcCalls).toContainEqual({ p_chore_id: 'chore-1', p_note: 'still messy, try again' });
@@ -97,9 +115,9 @@ describe('ParentChoreReview (parent chore detail)', () => {
   it('back button pops history when available', async () => {
     setUpChore();
     __mockCanGoBack.mockReturnValue(true);
-    const { findByText } = await render(<ParentChoreReview />);
+    const { findByTestId } = await render(<ParentChoreReview />);
 
-    await fireEvent.press(await findByText('‹ back'));
+    await fireEvent.press(await findByTestId('back-button'));
 
     expect(__mockBack).toHaveBeenCalled();
     expect(__mockReplace).not.toHaveBeenCalled();
@@ -108,9 +126,9 @@ describe('ParentChoreReview (parent chore detail)', () => {
   it('back button falls back to Home when there is no history to pop', async () => {
     setUpChore();
     __mockCanGoBack.mockReturnValue(false);
-    const { findByText } = await render(<ParentChoreReview />);
+    const { findByTestId } = await render(<ParentChoreReview />);
 
-    await fireEvent.press(await findByText('‹ back'));
+    await fireEvent.press(await findByTestId('back-button'));
 
     expect(__mockReplace).toHaveBeenCalledWith('/(parent)/(tabs)/home');
     expect(__mockBack).not.toHaveBeenCalled();
