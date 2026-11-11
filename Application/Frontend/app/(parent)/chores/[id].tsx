@@ -113,16 +113,15 @@ export default function ParentChoreReview() {
   const [redoOpen, setRedoOpen] = useState(false); //"Ask to redo" expands into a note field
   const [rejectNote, setRejectNote] = useState(''); //optional feedback shown to the child on retry
 
-  // DIAGNOSTIC: useFocusEffect can refire fast enough (e.g. right after a
-  // logout/login round-trip) to start overlapping fetches - this detects an
-  // older call resolving after a newer one and logs/ignores it instead of
-  // letting it clobber fresher state with stale data.
+  // useFocusEffect can refire fast enough (e.g. right after a logout/login
+  // round-trip) to start overlapping fetches - this ignores an older call
+  // resolving after a newer one instead of letting it clobber fresher state
+  // with stale data.
   const fetchSeq = useRef(0);
 
   //fetches chore details, child name, and ai evidence logs
   async function fetchReviewDetails() {
     const callId = ++fetchSeq.current;
-    console.log(`[chore-review] fetch #${callId} starting for chore ${id}`);
     try {
       //fetch the main chore record
       const { data: choreData, error: choreError } = await supabase
