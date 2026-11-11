@@ -87,7 +87,11 @@ export default function ParentChoreReview() {
     router.push({
       pathname: '/(parent)/chores/create-chore',
       params: {
-        id: chore.id,
+        // chore.id is NOT the chore's id here - chore is {...choreData,
+        // ...analysisData}, and chore_analysis has its own (UUID) id column
+        // that silently overwrites the real (bigint) chores.id in that
+        // spread. The route param is the actual chore id.
+        id,
         title: chore.title,
         reward: String(chore.reward_amount),
         targetLabel: chore.target_label || '',
