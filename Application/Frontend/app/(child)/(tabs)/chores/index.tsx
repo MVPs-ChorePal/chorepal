@@ -83,6 +83,7 @@ export default function ChildChoresList() {
         data={filteredChores}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
+        style={styles.listView}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand.primary} />}
         renderItem={({ item }) => (
@@ -116,7 +117,10 @@ export default function ChildChoresList() {
 
 const styles = StyleSheet.create({
   // Background + top/side margins come from the Tabs' sceneStyle (app/(child)/_layout.tsx).
-  root: { gap: spacing.xl },
+  // flex: 1 (here and on the FlatList) bounds the list to the space left on
+  // screen, so it scrolls instead of growing past the bottom and clipping.
+  root: { flex: 1, gap: spacing.xl },
+  listView: { flex: 1 },
   center: { justifyContent: 'center', alignItems: 'center' },
   filterRow: { flexDirection: 'row', gap: 10 },
   title: { ...typography.display },

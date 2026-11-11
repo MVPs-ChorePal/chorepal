@@ -104,7 +104,7 @@ export default function Dashboard() {
               <Text style={{ ...typography.body, color: colors.brand.primary }}>See all</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.rewardList}>
+          <View style={styles.listWrap}>
             <FlatList
               data={chores}
               keyExtractor={(item) => item.id.toString()}
@@ -140,6 +140,10 @@ const styles = StyleSheet.create({
   center: { justifyContent: 'center', alignItems: 'center' },
   mainWrapper: { flex: 1, gap: spacing.xl },
   middleSection: { flex: 1 },
+  // flex: 1 bounds the FlatList to the space left on screen - without it the
+  // wrapper grows to fit every chore, so the list has nothing to scroll and
+  // the bottom chores get clipped off-screen.
+  listWrap: { flex: 1 },
   list: { paddingBottom: spacing.xl, gap: spacing.xl },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   emptyText: { ...typography.body },

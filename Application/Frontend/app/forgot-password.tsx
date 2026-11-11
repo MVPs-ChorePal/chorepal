@@ -15,11 +15,12 @@ const dismissKeyboardProps = Platform.OS === 'web' ? {} : { onPress: Keyboard.di
 
 export default function ForgotPassword() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ role?: string }>();
+  // email: optional pre-fill, e.g. from Parent Account's "Change password"
+  const params = useLocalSearchParams<{ role?: string; email?: string }>();
 
   const [role, setRole] = useState<'parent' | 'child'>(params.role === 'child' ? 'child' : 'parent');
   const [step, setStep] = useState<'request' | 'confirm'>('request');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(typeof params.email === 'string' ? params.email : '');
   const [username, setUsername] = useState('');
   const [resolvedEmail, setResolvedEmail] = useState('');
   const [code, setCode] = useState('');
