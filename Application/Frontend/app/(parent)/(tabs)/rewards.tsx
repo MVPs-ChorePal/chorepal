@@ -27,8 +27,8 @@ export default function ParentRewards() {
 
   // redeem_reward debits points immediately (no parent approval step), so
   // this is a read-only log of what already happened, not pending requests -
-  // both chore payouts and reward redemptions, most recent first, same as
-  // the child's own rewards.tsx history.
+  // reward redemptions only, most recent first (chore payouts show up on
+  // the chores tabs instead).
   const [activity, setActivity] = useState([]);
 
   const fetchData = useCallback(async () => {
@@ -71,27 +71,24 @@ export default function ParentRewards() {
       if (kids.length > 0) {
         const { data: txData, error: txError } = await supabase
           .from('transactions')
-          .select('id, user_id, amount, type, chore_id, reward_id, created_at')
+          .select('id, user_id, amount, reward_id, created_at')
           .in('user_id', kids.map(k => k.id))
+          .eq('type', 'debit')
           .order('created_at', { ascending: false })
           .limit(20);
         if (txError) throw txError;
 
-        //look up the chore/reward names for the activity labels, same
-        //pattern as the child's own rewards.tsx history
-        const choreIds = [...new Set(txData.filter(t => t.chore_id).map(t => t.chore_id))];
+        //look up the reward names for the activity labels, same pattern as
+        //the child's own rewards.tsx history
         const rewardIds = [...new Set(txData.filter(t => t.reward_id).map(t => t.reward_id))];
-        const [{ data: choreNames }, { data: rewardNames }] = await Promise.all([
-          choreIds.length ? supabase.from('chores').select('id, title').in('id', choreIds) : { data: [] },
-          rewardIds.length ? supabase.from('rewards').select('id, title').in('id', rewardIds) : { data: [] },
-        ]);
+        const { data: rewardNames } = rewardIds.length
+          ? await supabase.from('rewards').select('id, title').in('id', rewardIds)
+          : { data: [] };
 
         setActivity(txData.map(t => ({
           ...t,
           childName: (kids.find(k => k.id === t.user_id)?.display_name || 'Child').trim().split(' ')[0],
-          label: t.type === 'credit'
-            ? choreNames?.find(c => c.id === t.chore_id)?.title || 'chore'
-            : rewardNames?.find(r => r.id === t.reward_id)?.title || 'reward',
+          label: rewardNames?.find(r => r.id === t.reward_id)?.title || 'reward',
         })));
       } else {
         setActivity([]);
@@ -140,31 +137,22 @@ export default function ParentRewards() {
           <Text style={{ ...typography.h2 }}>Recent activity</Text>
 
           {activity.length === 0 ? (
-            <Text style={{...typography.bodyTertiary}}>Nothing yet - completed chores and reward redemptions show up here</Text>
+            <Text style={{...typography.bodyTertiary}}>Nothing yet - reward redemptions show up here</Text>
           ) : (
             <View style={styles.activityCard}>
-              {activity.map((t, i) => {
-                const isCredit = t.type === 'credit';
-                return (
-                  <React.Fragment key={t.id}>
-                    {i > 0 && <View style={styles.rowDivider} />}
-                    <View style={styles.activityRow}>
-                      <Ionicons
-                        name={isCredit ? 'checkmark-circle' : 'gift'}
-                        size={20}
-                        color={isCredit ? colors.status.success : colors.status.pending}
-                      />
-                      <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={typography.body} numberOfLines={1}>{t.childName} · {t.label.toLowerCase()}</Text>
-                        <Text style={styles.activityDate}>{formatDate(t.created_at)}</Text>
-                      </View>
-                      <Text style={[styles.activityAmount, { color: isCredit ? colors.status.success : colors.text.primary }]}>
-                        {isCredit ? '+' : '-'}{Number(t.amount)}
-                      </Text>
+              {activity.map((t, i) => (
+                <React.Fragment key={t.id}>
+                  {i > 0 && <View style={styles.rowDivider} />}
+                  <View style={styles.activityRow}>
+                    <Ionicons name="gift" size={20} color={colors.status.pending} />
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text style={typography.body} numberOfLines={1}>{t.childName} · {t.label.toLowerCase()}</Text>
+                      <Text style={styles.activityDate}>{formatDate(t.created_at)}</Text>
                     </View>
-                  </React.Fragment>
-                );
-              })}
+                    <Text style={styles.activityAmount}>-{Number(t.amount)}</Text>
+                  </View>
+                </React.Fragment>
+              ))}
             </View>
           )}
         </View>

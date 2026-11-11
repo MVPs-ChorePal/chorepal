@@ -70,24 +70,21 @@ export default function ChildRewards() {
 
       const { data: txData, error: txError } = await supabase
         .from('transactions')
-        .select('id, amount, type, chore_id, reward_id, created_at')
+        .select('id, amount, reward_id, created_at')
         .eq('user_id', session.user.id)
+        .eq('type', 'debit')
         .order('created_at', { ascending: false });
       if (txError) throw txError;
 
-      //look up the chore/reward names for the history list
-      const choreIds = [...new Set(txData.filter(t => t.chore_id).map(t => t.chore_id))];
+      //look up the reward names for the history list
       const rewardIds = [...new Set(txData.filter(t => t.reward_id).map(t => t.reward_id))];
-      const [{ data: choreNames }, { data: rewardNames }] = await Promise.all([
-        choreIds.length ? supabase.from('chores').select('id, title').in('id', choreIds) : { data: [] },
-        rewardIds.length ? supabase.from('rewards').select('id, title').in('id', rewardIds) : { data: [] },
-      ]);
+      const { data: rewardNames } = rewardIds.length
+        ? await supabase.from('rewards').select('id, title').in('id', rewardIds)
+        : { data: [] };
 
       setHistory(txData.map(t => ({
         ...t,
-        label: t.type === 'credit'
-          ? choreNames?.find(c => c.id === t.chore_id)?.title || 'chore'
-          : rewardNames?.find(r => r.id === t.reward_id)?.title || 'reward',
+        label: rewardNames?.find(r => r.id === t.reward_id)?.title || 'reward',
       })));
     } catch (e) {
       console.error('FETCH REWARDS ERROR:', e.message);
@@ -179,28 +176,19 @@ export default function ChildRewards() {
 
         <Text style={{...typography.h2}}>History</Text>
         {history.length === 0 ? (
-          <Text style={{...typography.bodySecondary}}>Points you earn and spend will show up here</Text>
+          <Text style={{...typography.bodySecondary}}>Reward redemptions will show up here</Text>
         ) : (
           <View style={styles.historyCard}>
-            {history.map((t, i) => {
-              const isCredit = t.type === 'credit';
-              return (
-                <View key={t.id} style={[styles.historyRow, i > 0 && styles.rowDivider]}>
-                  <Ionicons
-                    name={isCredit ? 'checkmark-circle' : 'gift'}
-                    size={20}
-                    color={isCredit ? colors.status.success : colors.status.pending}
-                  />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.historyLabel}>{t.label.toLowerCase()}</Text>
-                    <Text style={styles.historyDate}>{formatDate(t.created_at)}</Text>
-                  </View>
-                  <Text style={[styles.historyAmount, { color: isCredit ? colors.status.success : colors.text.primary }]}>
-                    {isCredit ? '+' : '-'}{Number(t.amount)}
-                  </Text>
+            {history.map((t, i) => (
+              <View key={t.id} style={[styles.historyRow, i > 0 && styles.rowDivider]}>
+                <Ionicons name="gift" size={20} color={colors.status.pending} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.historyLabel}>{t.label.toLowerCase()}</Text>
+                  <Text style={styles.historyDate}>{formatDate(t.created_at)}</Text>
                 </View>
-              );
-            })}
+                <Text style={styles.historyAmount}>-{Number(t.amount)}</Text>
+              </View>
+            ))}
           </View>
         )}
       </ScrollView>
@@ -227,5 +215,5 @@ const styles = StyleSheet.create({
   rowDivider: { borderTopWidth: 1, borderTopColor: colors.border.default },
   historyLabel: { ...typography.body, color: colors.text.primary },
   historyDate: { fontSize: 12, color: colors.text.secondary, marginTop: 2 },
-  historyAmount: { fontSize: 15, fontWeight: '800' },
+  historyAmount: { fontSize: 15, fontWeight: '800', color: colors.text.primary },
 });

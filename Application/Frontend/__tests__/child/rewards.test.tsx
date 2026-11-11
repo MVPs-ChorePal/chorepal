@@ -33,7 +33,7 @@ describe('ChildRewards (child rewards tab)', () => {
     setUpChild({ balance: 0 });
     const { findByText } = await render(<ChildRewards />);
 
-    expect(await findByText('Points you earn and spend will show up here')).toBeTruthy();
+    expect(await findByText('Reward redemptions will show up here')).toBeTruthy();
   });
 
   it('an affordable reward shows a "Get it!" button that redeems it', async () => {
