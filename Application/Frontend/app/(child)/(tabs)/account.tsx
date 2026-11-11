@@ -9,7 +9,11 @@ import SettingsCard from '../../../components/SettingsCard';
 
 export default function ChildAccount() {
   const router = useRouter();
-  const handleLogout = () => supabase.auth.signOut().then(() => router.replace('/login-page'));
+  // dismissAll first - see (parent)/(tabs)/account.tsx's handleLogout for why
+  const handleLogout = () => supabase.auth.signOut().then(() => {
+    router.dismissAll();
+    router.replace('/login-page');
+  });
 
   return (
     <SafeAreaView style={styles.root}>

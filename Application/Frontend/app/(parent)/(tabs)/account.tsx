@@ -62,7 +62,15 @@ export default function ParentAccount() {
     fetchKids();
   };
 
-  const handleLogout = () => supabase.auth.signOut().then(() => router.replace('/login-page'));
+  // dismissAll first - replace only swaps the current top screen, leaving
+  // anything pushed underneath (e.g. a chore review reached from the chores
+  // list) frozen in this group's own nested stack. Logging back in and
+  // navigating to a chore could then resurrect that stale frozen instance
+  // instead of a fresh one, rather than a clean login.
+  const handleLogout = () => supabase.auth.signOut().then(() => {
+    router.dismissAll();
+    router.replace('/login-page');
+  });
 
   return (
     <SafeAreaView style={styles.root}>
