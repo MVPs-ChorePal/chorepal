@@ -1,5 +1,5 @@
 import { router, Href } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { IconChevronLeft } from '@tabler/icons-react-native';
 import Button from './Button';
 import { colors } from '../constants/theme';
 
@@ -27,7 +27,9 @@ export default function BackButton({ fallbackHref = '/' }: BackButtonProps) {
       testID="back-button"
       onPress={handlePress}
       title=""
-      icon={<Ionicons name="chevron-back" size={22} color={colors.text.primary} />}
+      // color must be explicit: Tabler's default is "currentColor", which only
+      // resolves on web - on iOS/Android it leaves the arrow invisible.
+      icon={<IconChevronLeft size={24} color={colors.text.primary} />}
       color='secondary'
       size="small"
       style={{ width: 50 }}
