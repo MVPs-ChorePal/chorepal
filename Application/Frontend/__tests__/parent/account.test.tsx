@@ -3,7 +3,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ParentAccount from '../../app/(parent)/(tabs)/account';
 import { __setTableResponse, __setRpcResponse, __resetMockSupabase } from '../../utils/supabase';
-import { __mockReplace } from '../../__mocks__/expo-router';
+import { __mockReplace, __mockDismissAll } from '../../__mocks__/expo-router';
 
 jest.mock('../../utils/supabase');
 
@@ -41,7 +41,7 @@ describe('ParentAccount (parent account tab)', () => {
     expect(await findByText('250')).toBeTruthy();
   });
 
-  it('tapping logout signs out and returns to the login page', async () => {
+  it('tapping logout dismisses any stacked screens and returns to the login page', async () => {
     setUpAccount();
     __setRpcResponse('get_household_code', { data: 'ABC1234', error: null });
     const { findByText } = await render(<ParentAccount />);
@@ -49,6 +49,11 @@ describe('ParentAccount (parent account tab)', () => {
     await fireEvent.press(await findByText('Log out'));
 
     await waitFor(() => {
+      // dismissAll first - otherwise anything pushed underneath this tab
+      // (e.g. a chore review reached from the chores list) stays frozen in
+      // this group's own nested stack and can resurface stale after a
+      // fresh login, instead of a clean one.
+      expect(__mockDismissAll).toHaveBeenCalled();
       expect(__mockReplace).toHaveBeenCalledWith('/login-page');
     });
   });
