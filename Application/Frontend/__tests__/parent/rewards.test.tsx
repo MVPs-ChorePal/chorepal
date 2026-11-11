@@ -50,11 +50,24 @@ describe('ParentRewards (parent rewards tab)', () => {
     expect(await findByText('-50')).toBeTruthy();
   });
 
+  it('shows completed chores in the activity feed alongside reward redemptions', async () => {
+    setUpHousehold({
+      transactions: [
+        { id: 't1', user_id: KID_ID, amount: 20, type: 'credit', chore_id: 'c1', created_at: '2026-01-01T00:00:00Z' },
+      ],
+    });
+    __setTableResponse('chores', { data: [{ id: 'c1', title: 'Clean room' }], error: null });
+    const { findByText } = await render(<ParentRewards />);
+
+    expect(await findByText('Testy · clean room')).toBeTruthy();
+    expect(await findByText('+20')).toBeTruthy();
+  });
+
   it('shows the empty-activity message when there are no transactions', async () => {
     setUpHousehold();
     const { findByText } = await render(<ParentRewards />);
 
-    expect(await findByText("Nothing yet - reward redemptions show up here")).toBeTruthy();
+    expect(await findByText("Nothing yet - completed chores and reward redemptions show up here")).toBeTruthy();
   });
 
   it('lists rewards fetched from the household reward shop', async () => {
