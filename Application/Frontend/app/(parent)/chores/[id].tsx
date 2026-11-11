@@ -141,17 +141,13 @@ export default function ParentChoreReview() {
         .limit(1)
         .maybeSingle();
 
-      if (callId !== fetchSeq.current) {
-        console.log(`[chore-review] fetch #${callId} resolved after a newer call (#${fetchSeq.current}) - ignoring stale result`);
-        return;
-      }
+      if (callId !== fetchSeq.current) return;
 
       //analysis' own id/created_at would otherwise overwrite the chore's
       const { id: _analysisId, created_at: _analysisCreatedAt, ...analysis } = analysisData || {};
-      console.log(`[chore-review] fetch #${callId} resolved - before_image_key=${analysis.before_image_key} after_image_key=${analysis.after_image_key} status=${choreData?.status}`);
       setChore({ ...choreData, ...analysis });
     } catch (e) {
-      console.error(`[chore-review] fetch #${callId} error:`, e.message);
+      console.error('fetch review error:', e.message);
     } finally {
       if (callId === fetchSeq.current) setLoading(false);
     }
@@ -279,11 +275,8 @@ export default function ParentChoreReview() {
                     source={{ uri: S3_PATH + photoKey }}
                     style={styles.photoImage}
                     contentFit="cover"
-                    onError={(e) => console.error('[chore-photo] error for', S3_PATH + photoKey, '-', e.error)}
-                    onLoadEnd={() => console.log('[chore-photo] load ended for', S3_PATH + photoKey)}
-                    onDisplay={() => console.log('[chore-photo] displayed successfully:', S3_PATH + photoKey)}
+                    onError={(e) => console.error('chore photo failed to load:', S3_PATH + photoKey, e.error)}
                   />
-                  
                 ) : (
                   <IconPhoto size={40} color={colors.icon.secondary} />
                 )}

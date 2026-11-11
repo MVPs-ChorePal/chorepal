@@ -191,7 +191,6 @@ export default function ChoreSubmissionMachine() {
 
   //fetch chore details from supabase
   async function fetchChoreDetails() {
-    console.log(`[debug] loading chore: ${id}`);
     const { data: choreData } = await supabase.from('chores').select('*').eq('id', id).single();
 
     if (choreData) {
@@ -349,8 +348,6 @@ export default function ChoreSubmissionMachine() {
   } catch (e) {
     choreSteps = [];
   }
-
-  console.log(chore?.status)
 
   //FRAME 4: Complete (Approved) — no new backend call, "collect" just dismisses
   if (chore?.status === 'approved') {

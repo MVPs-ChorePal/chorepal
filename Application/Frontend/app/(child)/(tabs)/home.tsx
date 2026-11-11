@@ -116,7 +116,7 @@ export default function Dashboard() {
                   reward_amount={item.reward_amount}
                   status={item.status}
                   category={categoryForTag(item.target_label)}
-                  onPress={() => { router.push(`/chores/${item.id}`); console.log(item.id); }}
+                  onPress={() => router.push(`/chores/${item.id}`)}
                 />
 
               )}
