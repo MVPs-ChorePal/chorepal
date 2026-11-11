@@ -146,17 +146,12 @@ export default function CreateChore() {
 
     setLoading(true);
     try {
-      //editing targets the one chore being reviewed, not a bulk assignment -
-      //the "All" picker option is hidden in edit mode, so this is always a
-      //real single child by the time editing gets here
+      //editing only allows changing the due date and reward - everything
+      //else (title, category, assigned child, steps) is fixed once created
       if (isEditing) {
         const { error } = await supabase.from('chores').update({
-          title,
           reward_amount: reward,
-          assigned_to: selectedChildId,
-          target_label: CATEGORY_AI_TAGS[selectedCategory],
           due_date: date.toISOString(),
-          steps: steps.length > 0 ? JSON.stringify(steps) : null,
         }).eq('id', params.id);
         if (error) throw error;
 
@@ -223,102 +218,113 @@ export default function CreateChore() {
           <ParentHeader left={<BackButton fallbackHref="/(parent)/(tabs)/home" />} right={isEditing ? 'Edit Chore' : 'New Chore'} />
 
           <View style={styles.fieldGroup}>
-            <Text style={typography.h3}>{isEditing ? 'Edit this chore' : 'Create a new chore'}</Text>
-            <Input placeholder="e.g. Unload the Dishwasher" value={title} onChangeText={setTitle} />
+            {isEditing ? (
+              <>
+                <Text style={typography.bodySecondary}>Editing</Text>
+                <Text style={typography.h3}>{title}</Text>
+              </>
+            ) : (
+              <>
+                <Text style={typography.h3}>Create a new chore</Text>
+                <Input placeholder="e.g. Unload the Dishwasher" value={title} onChangeText={setTitle} />
+              </>
+            )}
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={typography.h3}>Category</Text>
-            <View style={styles.catRow}>
-              {CATEGORIES.map(cat => (
-                <Category key={cat} value={cat} selected={selectedCategory === cat} onPress={() => setSelectedCategory(cat)} />
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.fieldGroup}>
-            <View style={styles.sectionHeading}>
-              <Text style={typography.h3}>Steps</Text>
-              <Text style={typography.bodySecondary}>Your kid sees these as a checklist</Text>
-            </View>
-
-            <View style={styles.stepsCard}>
-              <View pointerEvents="none" style={styles.stepsCardLedge} />
-              <View style={styles.stepsCardFace}>
-                {steps.map((step, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.stepRow}
-                    onPress={() => removeStep(index)}
-                    activeOpacity={0.6}
-                  >
-                    <View style={styles.stepNumber}>
-                      <Text style={styles.stepNumberText}>{index + 1}</Text>
-                    </View>
-                    <Text style={styles.stepText}>{step}</Text>
-                  </TouchableOpacity>
-                ))}
-
-                {addingStep ? (
-                  <Input
-                    autoFocus
-                    placeholder="e.g. Scrub the plates until they sparkle"
-                    value={newStep}
-                    onChangeText={setNewStep}
-                    onSubmitEditing={handleAddStep}
-                    onBlur={handleAddStep}
-                    returnKeyType="done"
-                    containerStyle={styles.stepInput}
-                  />
-                ) : (
-                  <TouchableOpacity style={styles.addStepBtn} onPress={() => setAddingStep(true)} activeOpacity={0.7}>
-                    <Text style={styles.addStepLabel}>+ Add a step</Text>
-                  </TouchableOpacity>
-                )}
+          {/* Only the due date and reward can be changed once a chore exists -
+              title, category, assigned child, and steps are fixed at creation. */}
+          {!isEditing && (
+            <>
+              <View style={styles.fieldGroup}>
+                <Text style={typography.h3}>Category</Text>
+                <View style={styles.catRow}>
+                  {CATEGORIES.map(cat => (
+                    <Category key={cat} value={cat} selected={selectedCategory === cat} onPress={() => setSelectedCategory(cat)} />
+                  ))}
+                </View>
               </View>
-            </View>
-          </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={typography.h3}>{"Who's doing it?"}</Text>
-            <View style={styles.pillRow}>
-              {/* Editing targets one specific chore - assigning it to "everyone"
-                  doesn't make sense, so that option is only offered when creating. */}
-              {!isEditing && (
-                <TouchableOpacity style={styles.pillChipWrap} onPress={() => setSelectedChildId('all')} activeOpacity={0.85}>
-                  {selectedChildId === 'all' && <View pointerEvents="none" style={styles.pillChipLedge} />}
-                  <View style={[styles.pillChip, selectedChildId === 'all' ? styles.pillChipSelected : styles.pillChipUnselected]}>
-                    <Text style={[styles.pillChipLabel, { color: selectedChildId === 'all' ? colors.text.inverse : colors.text.primary }]}>
-                      All
-                    </Text>
+              <View style={styles.fieldGroup}>
+                <View style={styles.sectionHeading}>
+                  <Text style={typography.h3}>Steps</Text>
+                  <Text style={typography.bodySecondary}>Your kid sees these as a checklist</Text>
+                </View>
+
+                <View style={styles.stepsCard}>
+                  <View pointerEvents="none" style={styles.stepsCardLedge} />
+                  <View style={styles.stepsCardFace}>
+                    {steps.map((step, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={styles.stepRow}
+                        onPress={() => removeStep(index)}
+                        activeOpacity={0.6}
+                      >
+                        <View style={styles.stepNumber}>
+                          <Text style={styles.stepNumberText}>{index + 1}</Text>
+                        </View>
+                        <Text style={styles.stepText}>{step}</Text>
+                      </TouchableOpacity>
+                    ))}
+
+                    {addingStep ? (
+                      <Input
+                        autoFocus
+                        placeholder="e.g. Scrub the plates until they sparkle"
+                        value={newStep}
+                        onChangeText={setNewStep}
+                        onSubmitEditing={handleAddStep}
+                        onBlur={handleAddStep}
+                        returnKeyType="done"
+                        containerStyle={styles.stepInput}
+                      />
+                    ) : (
+                      <TouchableOpacity style={styles.addStepBtn} onPress={() => setAddingStep(true)} activeOpacity={0.7}>
+                        <Text style={styles.addStepLabel}>+ Add a step</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
-                </TouchableOpacity>
-              )}
+                </View>
+              </View>
 
-              {children.map((child, index) => {
-                const selected = selectedChildId === child.id;
-                const tone = CHILD_TONES[index % CHILD_TONES.length];
-                return (
-                  <TouchableOpacity
-                    key={child.id}
-                    style={styles.pillChipWrap}
-                    onPress={() => setSelectedChildId(child.id)}
-                    activeOpacity={0.85}
-                  >
-                    {selected && <View pointerEvents="none" style={styles.pillChipLedge} />}
-                    <View style={[styles.pillChip, styles.pillChipWithAvatar, selected ? styles.pillChipSelected : styles.pillChipUnselected]}>
-                      <View style={[styles.childAvatar, { backgroundColor: tone.base }]}>
-                        {/* <IconMoodSmile size={16} color={colors.icon.inverse} /> */}
-                      </View>
-                      <Text style={[styles.pillChipLabel, { color: selected ? colors.text.inverse : colors.text.primary }]} numberOfLines={1}>
-                        {formatFirstName(child.display_name)}
+              <View style={styles.fieldGroup}>
+                <Text style={typography.h3}>{"Who's doing it?"}</Text>
+                <View style={styles.pillRow}>
+                  <TouchableOpacity style={styles.pillChipWrap} onPress={() => setSelectedChildId('all')} activeOpacity={0.85}>
+                    {selectedChildId === 'all' && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                    <View style={[styles.pillChip, selectedChildId === 'all' ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                      <Text style={[styles.pillChipLabel, { color: selectedChildId === 'all' ? colors.text.inverse : colors.text.primary }]}>
+                        All
                       </Text>
                     </View>
                   </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
+
+                  {children.map((child, index) => {
+                    const selected = selectedChildId === child.id;
+                    const tone = CHILD_TONES[index % CHILD_TONES.length];
+                    return (
+                      <TouchableOpacity
+                        key={child.id}
+                        style={styles.pillChipWrap}
+                        onPress={() => setSelectedChildId(child.id)}
+                        activeOpacity={0.85}
+                      >
+                        {selected && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                        <View style={[styles.pillChip, styles.pillChipWithAvatar, selected ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                          <View style={[styles.childAvatar, { backgroundColor: tone.base }]}>
+                            {/* <IconMoodSmile size={16} color={colors.icon.inverse} /> */}
+                          </View>
+                          <Text style={[styles.pillChipLabel, { color: selected ? colors.text.inverse : colors.text.primary }]} numberOfLines={1}>
+                            {formatFirstName(child.display_name)}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </>
+          )}
 
           <View style={styles.fieldGroup}>
             <Text style={typography.h3}>When?</Text>

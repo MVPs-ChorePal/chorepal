@@ -3,7 +3,7 @@ import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import CreateChore from '../../app/(parent)/chores/create-chore';
 import { __setTableResponse, __resetMockSupabase } from '../../utils/supabase';
-import { __mockBack, __mockReplace, __mockCanGoBack } from '../../__mocks__/expo-router';
+import { __mockBack, __mockReplace, __mockCanGoBack, useLocalSearchParams } from '../../__mocks__/expo-router';
 
 jest.mock('../../utils/supabase');
 
@@ -125,5 +125,62 @@ describe('CreateChore (parent create-chore screen)', () => {
 
     expect(__mockReplace).toHaveBeenCalledWith('/(parent)/(tabs)/home');
     expect(__mockBack).not.toHaveBeenCalled();
+  });
+
+  describe('editing an existing chore', () => {
+    function setUpEditing() {
+      setUpWithChild();
+      useLocalSearchParams.mockReturnValue({
+        id: 'chore-1',
+        title: 'Unload the dishwasher',
+        reward: '500',
+        targetLabel: 'Dishware',
+        assignedTo: 'child-1',
+        dueDate: '2026-01-01T00:00:00.000Z',
+        steps: JSON.stringify(['Scrub the plates']),
+      });
+    }
+
+    // Only the due date and reward can change once a chore exists - title,
+    // category, assigned child, and steps are fixed at creation.
+    it('shows the title read-only and hides category/steps/who\'s-doing-it', async () => {
+      setUpEditing();
+      const { findByText, queryByText, queryByPlaceholderText } = await render(<CreateChore />);
+
+      expect(await findByText('Unload the dishwasher')).toBeTruthy();
+      expect(queryByPlaceholderText('e.g. Unload the Dishwasher')).toBeNull();
+      expect(queryByText('Category')).toBeNull();
+      expect(queryByText('Steps')).toBeNull();
+      expect(queryByText("Who's doing it?")).toBeNull();
+    });
+
+    it('still shows the due date and reward fields', async () => {
+      setUpEditing();
+      const { findByText } = await render(<CreateChore />);
+
+      expect(await findByText('When?')).toBeTruthy();
+      expect(await findByText('Reward')).toBeTruthy();
+    });
+
+    it('submitting only updates reward_amount and due_date, not title/category/steps/assignee', async () => {
+      setUpEditing();
+      const updateCalls = [];
+      __setTableResponse('chores', (calls) => {
+        const updateCall = calls.find((c) => c.method === 'update');
+        const eqCall = calls.find((c) => c.method === 'eq');
+        if (updateCall) updateCalls.push({ update: updateCall.args[0], eqArgs: eqCall?.args });
+        return { data: null, error: null };
+      });
+
+      const { findByText } = await render(<CreateChore />);
+      await fireEvent.press(await findByText('Submit'));
+
+      await waitFor(() => {
+        expect(updateCalls).toHaveLength(1);
+        expect(updateCalls[0].eqArgs).toEqual(['id', 'chore-1']);
+        expect(Object.keys(updateCalls[0].update).sort()).toEqual(['due_date', 'reward_amount']);
+        expect(updateCalls[0].update.reward_amount).toBe(500);
+      });
+    });
   });
 });
