@@ -11,6 +11,7 @@ import { colors, typography, spacing } from '../../../constants/theme';
 import ChildHeader from '../../../components/ChildHeader';
 import ChoreHero from '../../../components/ChoreHero';
 import Chore from '../../../components/Chore';
+import { categoryForTag } from '../../../constants/choreCategories';
 
 
 
@@ -73,7 +74,6 @@ export default function Dashboard() {
     } else {
       setChores(choresData || []);
     }
-    
     setLoading(false);
   }
 
@@ -115,7 +115,7 @@ export default function Dashboard() {
                   title={item.title}
                   reward_amount={item.reward_amount}
                   status={item.status}
-                  category={item.category}
+                  category={categoryForTag(item.target_label)}
                   onPress={() => { router.push(`/chores/${item.id}`); console.log(item.id); }}
                 />
 

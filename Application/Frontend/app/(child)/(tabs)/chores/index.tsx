@@ -91,7 +91,7 @@ export default function ChildChoresList() {
                   title={item.title}
                   reward_amount={item.reward_amount}
                   status={item.status}
-                  category={item.category}
+                  category={categoryForTag(item.target_label)}
                   onPress={() => router.push(`/chores/${item.id}`)}
               />
 
