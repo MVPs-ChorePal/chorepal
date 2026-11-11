@@ -182,6 +182,9 @@ export default function SignupPage() {
               autoCapitalize="none"
               label="Username"
             />
+            <Text style={styles.hint}>
+              {isChild ? "must be unique - this is what you'll log in with" : 'must be unique'}
+            </Text>
           </View>
 
           {!isChild && (
