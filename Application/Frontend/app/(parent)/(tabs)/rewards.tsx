@@ -6,18 +6,18 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../../utils/supabase';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
-import RewardRequestCard from '../../../components/parent/RewardRequestCard';
 import RewardShopItem from '../../../components/parent/RewardShopItem';
 import Button from '../../../components/Button';
 
 // Source of truth: Figma "Parent Rewards"
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=709-145
 
-// Rotating palette so each child's avatar reads as a distinct color, same
-// cycling tones used for Parent Home's KidCard and New Chore's child picker.
-const KID_TONES = [colors.category.kitchen, colors.category.clean, colors.category.outdoor, colors.category.other];
+//formats an ISO date string into something like "sep 12"
+const formatDate = (isoDate) =>
+  new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toLowerCase();
 
 export default function ParentRewards() {
   const router = useRouter();
@@ -25,11 +25,11 @@ export default function ParentRewards() {
   const [refreshing, setRefreshing] = useState(false);
   const [rewards, setRewards] = useState([]);
 
-  // There's no "reward request" table yet (schema.sql's redeem_reward flow
-  // debits points immediately, no parent approval step) — these requests are
-  // local-only for now, same as create-chore's "steps" field.
-  const [requests, setRequests] = useState([]);
-  const [respondingId, setRespondingId] = useState(null);
+  // redeem_reward debits points immediately (no parent approval step), so
+  // this is a read-only log of what already happened, not pending requests -
+  // reward redemptions only, most recent first (chore payouts show up on
+  // the chores tabs instead).
+  const [activity, setActivity] = useState([]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -60,6 +60,39 @@ export default function ParentRewards() {
         .order('point_cost', { ascending: true });
       if (rewardsError) throw rewardsError;
       setRewards(rewardsData || []);
+
+      const { data: kids, error: kidsError } = await supabase
+        .from('users')
+        .select('id, display_name')
+        .eq('family_id', profile.family_id)
+        .eq('role', 'child');
+      if (kidsError) throw kidsError;
+
+      if (kids.length > 0) {
+        const { data: txData, error: txError } = await supabase
+          .from('transactions')
+          .select('id, user_id, amount, reward_id, created_at')
+          .in('user_id', kids.map(k => k.id))
+          .eq('type', 'debit')
+          .order('created_at', { ascending: false })
+          .limit(20);
+        if (txError) throw txError;
+
+        //look up the reward names for the activity labels, same pattern as
+        //the child's own rewards.tsx history
+        const rewardIds = [...new Set(txData.filter(t => t.reward_id).map(t => t.reward_id))];
+        const { data: rewardNames } = rewardIds.length
+          ? await supabase.from('rewards').select('id, title').in('id', rewardIds)
+          : { data: [] };
+
+        setActivity(txData.map(t => ({
+          ...t,
+          childName: (kids.find(k => k.id === t.user_id)?.display_name || 'Child').trim().split(' ')[0],
+          label: rewardNames?.find(r => r.id === t.reward_id)?.title || 'reward',
+        })));
+      } else {
+        setActivity([]);
+      }
     } catch (e) {
       console.error('FETCH REWARDS ERROR:', e.message);
     } finally {
@@ -68,21 +101,12 @@ export default function ParentRewards() {
     }
   }, []);
 
-  //refetch every time the tab comes into focus, so new submissions show up
+  //refetch every time the tab comes into focus, so new activity shows up
   useFocusEffect(useCallback(() => { fetchData(); }, [fetchData]));
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchData();
-  };
-
-  //UI-only until a real approval flow exists — just drops the request locally
-  const respondToRequest = (id) => {
-    setRespondingId(id);
-    setTimeout(() => {
-      setRequests(prev => prev.filter(r => r.id !== id));
-      setRespondingId(null);
-    }, 300);
   };
 
   const goToEditReward = (reward) => {
@@ -110,28 +134,26 @@ export default function ParentRewards() {
         <Text style={{ ...typography.display }}>Rewards</Text>
 
         <View style={styles.fieldGroup}>
-          <View style={styles.requestsHeaderRow}>
-            <Text style={{ ...typography.h2 }}>Requests</Text>
-            <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{requests.length}</Text>
-            </View>
-          </View>
+          <Text style={{ ...typography.h2 }}>Recent activity</Text>
 
-          {requests.length === 0 ? (
-            <Text style={{...typography.bodyTertiary}}>No requests right now</Text>
+          {activity.length === 0 ? (
+            <Text style={{...typography.bodyTertiary}}>Nothing yet - reward redemptions show up here</Text>
           ) : (
-            requests.map(request => (
-              <RewardRequestCard
-                key={request.id}
-                childName={request.childName}
-                avatarColor={request.avatarColor}
-                rewardTitle={request.rewardTitle}
-                cost={request.cost}
-                loading={respondingId === request.id}
-                onAccept={() => respondToRequest(request.id)}
-                onDecline={() => respondToRequest(request.id)}
-              />
-            ))
+            <View style={styles.activityCard}>
+              {activity.map((t, i) => (
+                <React.Fragment key={t.id}>
+                  {i > 0 && <View style={styles.rowDivider} />}
+                  <View style={styles.activityRow}>
+                    <Ionicons name="gift" size={20} color={colors.status.pending} />
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      <Text style={typography.body} numberOfLines={1}>{t.childName} · {t.label.toLowerCase()}</Text>
+                      <Text style={styles.activityDate}>{formatDate(t.created_at)}</Text>
+                    </View>
+                    <Text style={styles.activityAmount}>-{Number(t.amount)}</Text>
+                  </View>
+                </React.Fragment>
+              ))}
+            </View>
           )}
         </View>
 
@@ -173,9 +195,10 @@ const styles = StyleSheet.create({
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   fieldGroup: { gap: spacing.lg },
-  requestsHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  countBadge: { backgroundColor: colors.brand.primary, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  countBadgeText: { ...typography.body, fontSize: 16, color: colors.text.inverse },
+  activityCard: { backgroundColor: colors.surface.white, borderRadius: radius.card, paddingHorizontal: 20, paddingVertical: 5 },
+  activityRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
+  activityDate: { fontSize: 12, color: colors.text.secondary, marginTop: 2 },
+  activityAmount: { fontSize: 15, fontWeight: '800' },
   // Hard, unblurred offset shadow — same "ledge" technique as Button/KidCard.
   shopCardLedge: {
     position: 'absolute',

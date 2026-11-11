@@ -1,19 +1,25 @@
 // @ts-nocheck
 import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ParentRewards from '../../app/(parent)/(tabs)/rewards';
 import { __setTableResponse, __resetMockSupabase } from '../../utils/supabase';
 import { __mockPush } from '../../__mocks__/expo-router';
 
 jest.mock('../../utils/supabase');
 
-function setUpHousehold({ members = [{ id: 'parent-1' }], rewards = [] } = {}) {
+const KID_ID = 'child-1';
+
+function setUpHousehold({ kids = [{ id: KID_ID, display_name: 'Testy Kid' }], rewards = [], transactions = [] } = {}) {
   __setTableResponse('users', (calls) => {
     const isProfileLookup = calls.some((c) => c.method === 'eq' && c.args[0] === 'id');
     if (isProfileLookup) return { data: { family_id: 'family-1' }, error: null };
-    return { data: members, error: null };
+    const isKidsLookup = calls.some((c) => c.method === 'eq' && c.args[0] === 'role' && c.args[1] === 'child');
+    if (isKidsLookup) return { data: kids, error: null };
+    return { data: [{ id: 'parent-1' }], error: null }; // parents in household
   });
   __setTableResponse('rewards', { data: rewards, error: null });
+  __setTableResponse('transactions', { data: transactions, error: null });
+  __setTableResponse('chores', { data: [], error: null });
 }
 
 describe('ParentRewards (parent rewards tab)', () => {
@@ -21,27 +27,34 @@ describe('ParentRewards (parent rewards tab)', () => {
     __resetMockSupabase();
   });
 
-  // There's no "reward request" table yet - the component seeds this list
-  // locally (see rewards.tsx) rather than fetching it, so it's always
-  // present on first render regardless of what Supabase returns.
-  it('shows the seeded reward request', async () => {
+  // redeem_reward debits points immediately (no parent approval step), so
+  // this is a real read-only log of what already happened, not a request
+  // a parent needs to act on.
+  it('shows recent activity fetched from the household', async () => {
+    setUpHousehold({
+      transactions: [
+        { id: 't1', user_id: KID_ID, amount: 50, type: 'debit', reward_id: 'r1', created_at: '2026-01-01T00:00:00Z' },
+      ],
+    });
+    __setTableResponse('rewards', (calls) => {
+      // fetchData queries rewards twice for different reasons: the reward
+      // shop (filtered by created_by) and this activity row's reward name
+      // lookup (filtered by id) - distinguish by which filter was used.
+      const isNameLookup = calls.some((c) => c.method === 'in' && c.args[0] === 'id');
+      if (isNameLookup) return { data: [{ id: 'r1', title: 'Extra screen time' }], error: null };
+      return { data: [{ id: 'r1', title: 'Extra screen time', point_cost: 50, category: 'fun' }], error: null };
+    });
+    const { findByText } = await render(<ParentRewards />);
+
+    expect(await findByText('Testy · extra screen time')).toBeTruthy();
+    expect(await findByText('-50')).toBeTruthy();
+  });
+
+  it('shows the empty-activity message when there are no transactions', async () => {
     setUpHousehold();
     const { findByText } = await render(<ParentRewards />);
 
-    expect(await findByText('Mia wants')).toBeTruthy();
-    expect(await findByText('Extra screen time')).toBeTruthy();
-  });
-
-  it('accepting a request removes it from the list', async () => {
-    jest.useFakeTimers();
-    setUpHousehold();
-    const { findByText, queryByText } = await render(<ParentRewards />);
-
-    await fireEvent.press(await findByText('Say yes'));
-    await act(async () => { jest.runAllTimers(); });
-
-    expect(queryByText('Mia wants')).toBeNull();
-    jest.useRealTimers();
+    expect(await findByText("Nothing yet - reward redemptions show up here")).toBeTruthy();
   });
 
   it('lists rewards fetched from the household reward shop', async () => {
