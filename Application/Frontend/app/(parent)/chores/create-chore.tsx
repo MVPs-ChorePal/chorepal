@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
 import { showAlert } from '../../../utils/alert';
-import { useRouter, useFocusEffect, Stack } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { IconMoodSmile } from '@tabler/icons-react-native';
@@ -16,7 +16,7 @@ import Button from '../../../components/Button';
 import Input from '../../../components/Input';
 import RewardAmountPicker from '../../../components/RewardAmountPicker';
 import Category, { CategoryValue } from '../../../components/Category';
-import { CATEGORY_AI_TAGS } from '../../../constants/choreCategories';
+import { CATEGORY_AI_TAGS, categoryForTag } from '../../../constants/choreCategories';
 import ParentHeader from '../../../components/parent/ParentHeader';
 import BackButton from '../../../components/BackButton';
 
@@ -31,18 +31,26 @@ const CHILD_TONES = [colors.category.kitchen, colors.category.clean, colors.cate
 
 export default function CreateChore() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const isEditing = !!params.id;
+
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [children, setChildren] = useState([]);
 
-  const [title, setTitle] = useState('');
-  const [reward, setReward] = useState(500);
-  const [selectedChildId, setSelectedChildId] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState<CategoryValue>('clean');
-  const [date, setDate] = useState(new Date());
+  const [title, setTitle] = useState(params.title ? String(params.title) : '');
+  const [reward, setReward] = useState(params.reward ? Number(params.reward) : 500);
+  const [selectedChildId, setSelectedChildId] = useState(params.assignedTo ? String(params.assignedTo) : 'all');
+  const [selectedCategory, setSelectedCategory] = useState<CategoryValue>(
+    params.targetLabel ? categoryForTag(String(params.targetLabel)) : 'clean'
+  );
+  const [date, setDate] = useState(params.dueDate ? new Date(String(params.dueDate)) : new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [steps, setSteps] = useState<string[]>([]);
+  const [steps, setSteps] = useState<string[]>(() => {
+    if (!params.steps) return [];
+    try { return JSON.parse(String(params.steps)); } catch { return []; }
+  });
   const [newStep, setNewStep] = useState('');
   const [addingStep, setAddingStep] = useState(false);
 
@@ -129,6 +137,29 @@ export default function CreateChore() {
 
     setLoading(true);
     try {
+      //editing targets the one chore being reviewed, not a bulk assignment -
+      //the "All" picker option is hidden in edit mode, so this is always a
+      //real single child by the time editing gets here
+      if (isEditing) {
+        const { error } = await supabase.from('chores').update({
+          title,
+          reward_amount: reward,
+          assigned_to: selectedChildId,
+          target_label: CATEGORY_AI_TAGS[selectedCategory],
+          due_date: date.toISOString(),
+          steps: steps.length > 0 ? JSON.stringify(steps) : null,
+        }).eq('id', params.id);
+        if (error) throw error;
+
+        setLoading(false);
+        setIsSuccess(true);
+        setTimeout(() => {
+          setIsSuccess(false);
+          router.canGoBack() ? router.back() : router.replace('/(parent)/(tabs)/home');
+        }, 1500);
+        return;
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       const targetKids = selectedChildId === 'all' ? children : children.filter(c => c.id === selectedChildId);
 
@@ -180,10 +211,10 @@ export default function CreateChore() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-          <ParentHeader left={<BackButton fallbackHref="/(parent)/(tabs)/home" />} right="New Chore" />
+          <ParentHeader left={<BackButton fallbackHref="/(parent)/(tabs)/home" />} right={isEditing ? 'Edit Chore' : 'New Chore'} />
 
           <View style={styles.fieldGroup}>
-            <Text style={typography.h3}>Create a new chore</Text>
+            <Text style={typography.h3}>{isEditing ? 'Edit this chore' : 'Create a new chore'}</Text>
             <Input placeholder="e.g. Unload the Dishwasher" value={title} onChangeText={setTitle} />
           </View>
 
@@ -242,14 +273,18 @@ export default function CreateChore() {
           <View style={styles.fieldGroup}>
             <Text style={typography.h3}>{"Who's doing it?"}</Text>
             <View style={styles.pillRow}>
-              <TouchableOpacity style={styles.pillChipWrap} onPress={() => setSelectedChildId('all')} activeOpacity={0.85}>
-                {selectedChildId === 'all' && <View pointerEvents="none" style={styles.pillChipLedge} />}
-                <View style={[styles.pillChip, selectedChildId === 'all' ? styles.pillChipSelected : styles.pillChipUnselected]}>
-                  <Text style={[styles.pillChipLabel, { color: selectedChildId === 'all' ? colors.text.inverse : colors.text.primary }]}>
-                    All
-                  </Text>
-                </View>
-              </TouchableOpacity>
+              {/* Editing targets one specific chore - assigning it to "everyone"
+                  doesn't make sense, so that option is only offered when creating. */}
+              {!isEditing && (
+                <TouchableOpacity style={styles.pillChipWrap} onPress={() => setSelectedChildId('all')} activeOpacity={0.85}>
+                  {selectedChildId === 'all' && <View pointerEvents="none" style={styles.pillChipLedge} />}
+                  <View style={[styles.pillChip, selectedChildId === 'all' ? styles.pillChipSelected : styles.pillChipUnselected]}>
+                    <Text style={[styles.pillChipLabel, { color: selectedChildId === 'all' ? colors.text.inverse : colors.text.primary }]}>
+                      All
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
 
               {children.map((child, index) => {
                 const selected = selectedChildId === child.id;

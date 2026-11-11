@@ -82,6 +82,45 @@ export default function ParentChoreReview() {
     setBusy(false);
   };
 
+  const handleEdit = () => {
+    router.push({
+      pathname: '/(parent)/chores/create-chore',
+      params: {
+        id: chore.id,
+        title: chore.title,
+        reward: String(chore.reward_amount),
+        targetLabel: chore.target_label || '',
+        assignedTo: chore.assigned_to,
+        dueDate: chore.due_date,
+        steps: chore.steps || '',
+      },
+    });
+  };
+
+  //cascades to chore_analysis (ON DELETE CASCADE) - only reachable for
+  //todo/pending/completed chores (see the status check below), never
+  //approved ones, since transactions.chore_id has no cascade and would
+  //just reject the delete anyway once a chore's been paid out
+  const handleDelete = () => {
+    Alert.alert('Delete this chore?', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          setBusy(true);
+          const { error } = await supabase.from('chores').delete().eq('id', id);
+          setBusy(false);
+          if (error) {
+            console.error('delete error:', error.message);
+          } else {
+            router.replace('/(parent)/(tabs)/home');
+          }
+        },
+      },
+    ]);
+  };
+
   if (loading) return <View style={styles.center}><ActivityIndicator color={colors.brand.primary} /></View>;
 
   return (
@@ -170,6 +209,29 @@ export default function ParentChoreReview() {
               />
             </View>
           </>
+        )}
+
+        {/* editing/deleting is only safe before a chore's been paid out -
+            transactions.chore_id has no cascade, so an approved chore can't
+            actually be deleted anyway */}
+        {chore?.status && chore.status !== 'approved' && (
+          <View style={styles.actionRow}>
+            <Button
+              title="edit"
+              variant="outline"
+              onPress={handleEdit}
+              disabled={busy}
+              style={styles.actionBtn}
+            />
+            <Button
+              title="delete"
+              variant="outline"
+              color="error"
+              onPress={handleDelete}
+              loading={busy}
+              style={styles.actionBtn}
+            />
+          </View>
         )}
 
       </ScrollView>
