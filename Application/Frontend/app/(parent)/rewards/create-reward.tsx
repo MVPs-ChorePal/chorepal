@@ -5,7 +5,7 @@ import {
   ScrollView, Platform, KeyboardAvoidingView
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
-import { showAlert } from '../../../utils/alert';
+import { showAlert, showConfirm } from '../../../utils/alert';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -106,6 +106,9 @@ export default function CreateReward() {
 
   //archived instead of deleted so redemption history keeps its reward name
   const handleDelete = async () => {
+    const confirmed = await showConfirm('Delete this reward?', 'This cannot be undone.', 'Delete');
+    if (!confirmed) return;
+
     setDeleting(true);
     const { error } = await supabase.from('rewards').update({ archived: true }).eq('id', params.id);
     setDeleting(false);
