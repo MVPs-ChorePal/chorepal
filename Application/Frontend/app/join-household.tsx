@@ -96,7 +96,8 @@ export default function JoinHousehold() {
             title="skip to camera dashboard"
             variant="text"
             size="small"
-            onPress={() => router.push('/(child)/(tabs)/home')}
+            // replace, not push - see login-page.tsx's "Forgot password?" link
+            onPress={() => router.replace('/(child)/(tabs)/home')}
           />
         )}
 
