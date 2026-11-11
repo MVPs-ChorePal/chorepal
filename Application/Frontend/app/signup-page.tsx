@@ -236,7 +236,8 @@ export default function SignupPage() {
             </TouchableOpacity>
           </View>
         )} */}
-        <TouchableOpacity onPress={() => router.push('/login-page')} style={styles.linkContainer}>
+        {/* replace, not push - see login-page.tsx's "Forgot password?" link */}
+        <TouchableOpacity onPress={() => router.replace('/login-page')} style={styles.linkContainer}>
           <Text style={{ ...typography.bodySecondary }}>Already have an account? <Text style={{ ...typography.body, color: colors.brand.primaryShadow }}>Login</Text></Text>
         </TouchableOpacity>
         

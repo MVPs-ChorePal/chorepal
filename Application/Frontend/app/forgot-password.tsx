@@ -222,7 +222,8 @@ export default function ForgotPassword() {
               </>
             )}
 
-            <TouchableOpacity onPress={() => router.push('/login-page')} style={styles.linkContainer}>
+            {/* replace, not push - see login-page.tsx's "Forgot password?" link */}
+            <TouchableOpacity onPress={() => router.replace('/login-page')} style={styles.linkContainer}>
               <Text style={{ ...typography.bodySecondary }}>Back to <Text style={{ ...typography.body, color: colors.brand.primaryShadow }}>Login</Text></Text>
             </TouchableOpacity>
           </ScrollView>

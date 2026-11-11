@@ -1,6 +1,7 @@
 //@ts-nocheck
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, Image, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
 import { supabase } from '../../../utils/supabase';
 import { showConfirm } from '../../../utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect, Stack } from 'expo-router';
@@ -261,7 +262,12 @@ export default function ParentChoreReview() {
               <View pointerEvents="none" style={styles.photoLedge} />
               <View style={styles.photo}>
                 {photoKey ? (
-                  <Image source={{ uri: S3_PATH + photoKey }} style={styles.photoImage} />
+                  <Image
+                    source={{ uri: S3_PATH + photoKey }}
+                    style={styles.photoImage}
+                    contentFit="cover"
+                    onError={(e) => console.error('chore photo failed to load:', S3_PATH + photoKey, e.error)}
+                  />
                 ) : (
                   <IconPhoto size={40} color={colors.icon.secondary} />
                 )}
@@ -348,7 +354,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  photoImage: { ...StyleSheet.absoluteFillObject, resizeMode: 'cover' },
+  // expo-image uses the contentFit prop (not style.resizeMode) for cover/contain
+  photoImage: { ...StyleSheet.absoluteFillObject },
   photoToggle: { position: 'absolute', top: spacing.sm, left: spacing.sm, flexDirection: 'row', gap: spacing.xs },
 
   noteInput: { height: 90, paddingTop: spacing.sm },

@@ -157,12 +157,17 @@ export default function LoginPage() {
                 fullWidth
               />
 
-              <TouchableOpacity onPress={() => router.push({ pathname: '/forgot-password', params: { role } })} style={styles.linkContainer}>
+              {/* replace, not push - these are sibling auth screens, not a
+                  stack to go back through. push here lets copies of
+                  login/signup/forgot-password pile up underneath the
+                  authenticated app, reachable by swiping back into it
+                  even after logging in. */}
+              <TouchableOpacity onPress={() => router.replace({ pathname: '/forgot-password', params: { role } })} style={styles.linkContainer}>
                 <Text style={{ ...typography.body, color: colors.brand.primaryShadow }}>Forgot password?</Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => router.push('/signup-page')} style={styles.linkContainer}>
+            <TouchableOpacity onPress={() => router.replace('/signup-page')} style={styles.linkContainer}>
               <Text style={{ ...typography.bodySecondary }}>New here? <Text style={{ ...typography.body, color: colors.brand.primaryShadow }}>Sign up</Text></Text>
             </TouchableOpacity>
           </ScrollView>
