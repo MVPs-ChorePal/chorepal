@@ -13,11 +13,10 @@ import Button from '@/components/Button';
 
 import Chore from '@/components/parent/Chore';
 import KidCard from '@/components/parent/KidCard';
+import CountBadge from '@/components/CountBadge';
 
-const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
-
-// Capitalized, for the Kid card's headline name (vs. the lowercase inline
-// label used next to chore cards).
+// Capitalized first name ("mario lopez" -> "Mario") - used for both the Kid
+// cards and the child label on chore cards.
 const capitalizedFirstName = (name) => {
   const first = (name || 'Child').trim().split(' ')[0];
   return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
@@ -34,7 +33,9 @@ const familyNameFrom = (fullName) => {
 
 // Rotating palette so each kid's avatar reads as a distinct color - same
 // convention as the "Who's doing it?" picker on Parent New Chore.
-const KID_TONES = [colors.category.kitchen, colors.category.clean, colors.category.outdoor, colors.category.other];
+const KIDS_ROW_GAP = spacing.md;
+
+const KID_TONES =[colors.category.kitchen, colors.category.clean, colors.category.outdoor, colors.category.other];
 
 export default function ParentDashboard() {
   const router = useRouter();
@@ -43,6 +44,10 @@ export default function ParentDashboard() {
   
   const [familyName, setFamilyName] = useState('Your family');
   const [kids, setKids] = useState([]);
+  //each kid card is exactly a third of the row: RN has no calc(), so the
+  //row is measured and the two gaps between cards are subtracted out
+  const [kidsRowWidth, setKidsRowWidth] = useState(0);
+  const kidCardWidth = kidsRowWidth ? (kidsRowWidth - KIDS_ROW_GAP * 2) / 3 : null;
   const [submissions, setSubmissions] = useState([]);
   const [dueToday, setDueToday] = useState([]);
   const instanceId = useId();
@@ -77,12 +82,12 @@ export default function ParentDashboard() {
 
         setSubmissions(waiting.map(c => ({
           ...c,
-          childName: firstName(familyMembers.find(k => k.id === c.assigned_to)?.display_name)
+          childName: capitalizedFirstName(familyMembers.find(k => k.id === c.assigned_to)?.display_name)
         })));
 
         setDueToday(todo.map(c => ({
           ...c,
-          childName: firstName(familyMembers.find(k => k.id === c.assigned_to)?.display_name)
+          childName: capitalizedFirstName(familyMembers.find(k => k.id === c.assigned_to)?.display_name)
         })));
 
         //each kid's progress on chores due today (approved ones count as done)
@@ -160,7 +165,7 @@ export default function ParentDashboard() {
         </View>
 
         {kids.length > 0 && (
-          <View style={styles.kidsRow}>
+          <View style={styles.kidsRow} onLayout={(e) => setKidsRowWidth(e.nativeEvent.layout.width)}>
             {kids.map(kid => (
               <KidCard
                 key={kid.id}
@@ -169,7 +174,7 @@ export default function ParentDashboard() {
                 doneCount={kid.doneCount}
                 totalCount={kid.totalCount}
                 balance={kid.balance}
-                style={styles.kidCardItem}
+                style={kidCardWidth ? { width: kidCardWidth } : styles.kidCardItem}
               />
             ))}
           </View>
@@ -179,11 +184,7 @@ export default function ParentDashboard() {
         <View style={styles.sectionHeaderRow}>
           <View style={styles.sectionHeaderLeft}>
             <Text style={typography.h2}>Needs your OK</Text>
-            {submissions.length > 0 && (
-              <View style={styles.countBadge}>
-                <Text style={styles.countBadgeText}>{submissions.length}</Text>
-              </View>
-            )}
+            {submissions.length > 0 && <CountBadge count={submissions.length} />}
           </View>
         </View>
         {submissions.length === 0 ? <Text style={{...typography.bodyTertiary}}>Nothing to approve right now</Text> :
@@ -228,9 +229,12 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   emptyText: { ...typography.bodyTertiary },
-  // flexWrap + a fixed per-card width (instead of KidCard's default flex:1)
-  // caps each row at 3 cards; beyond that they wrap to additional rows,
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  // flexWrap + a fixed one-third width per card caps each row at 3 cards
+  // (even with just 1-2 kids); beyond that they wrap to additional rows,
   // which the screen's existing vertical ScrollView already scrolls to.
-  kidsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  kidsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: KIDS_ROW_GAP },
+  // Fallback for the first frame, before the row's width has been measured.
   kidCardItem: { width: '31%' },
 });

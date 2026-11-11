@@ -33,7 +33,11 @@ const EMPTY_COPY: Record<StatusFilter, string> = {
   done: 'No approved chores yet',
 };
 
-const firstName = (name) => (name || 'child').trim().split(' ')[0].toLowerCase();
+// Capitalized first name ("mario lopez" -> "Mario") for the chore card label.
+const firstName = (name) => {
+  const first = (name || 'Child').trim().split(' ')[0];
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+};
 
 export default function ParentChoresList() {
   const router = useRouter();

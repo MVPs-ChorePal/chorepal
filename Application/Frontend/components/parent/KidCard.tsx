@@ -47,7 +47,9 @@ export default function KidCard({ name, avatarColor, doneCount, totalCount, bala
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1 },
+  // No flex: 1 here - it made a lone card stretch to the full row (and two
+  // split it in half). The caller sizes it (Parent Home: one third of the row).
+  wrap: {},
   // Hard, unblurred offset shadow — same "ledge" technique as Button/Chore.
   ledge: {
     position: 'absolute',

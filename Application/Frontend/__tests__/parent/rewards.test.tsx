@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ParentRewards from '../../app/(parent)/(tabs)/rewards';
-import { __setTableResponse, __resetMockSupabase } from '../../utils/supabase';
+import { __setTableResponse, __setRpcResponse, __resetMockSupabase } from '../../utils/supabase';
 import { __mockPush } from '../../__mocks__/expo-router';
 
 jest.mock('../../utils/supabase');
@@ -27,47 +27,71 @@ describe('ParentRewards (parent rewards tab)', () => {
     __resetMockSupabase();
   });
 
-  // redeem_reward debits points immediately (no parent approval step), so
-  // this is a real read-only log of what already happened, not a request
-  // a parent needs to act on.
-  it('shows recent activity fetched from the household', async () => {
+  // redeem_reward debits points immediately (no parent approval step), so a
+  // redemption shows up as something the parent still has to hand over.
+  function setUpRedemption() {
     setUpHousehold({
       transactions: [
-        { id: 't1', user_id: KID_ID, amount: 50, type: 'debit', reward_id: 'r1', created_at: '2026-01-01T00:00:00Z' },
+        { id: 't1', user_id: KID_ID, amount: 50, reward_id: 'r1', created_at: '2026-01-01T00:00:00Z' },
       ],
     });
     __setTableResponse('rewards', (calls) => {
       // fetchData queries rewards twice for different reasons: the reward
-      // shop (filtered by created_by) and this activity row's reward name
+      // shop (filtered by created_by) and the redemption's reward name
       // lookup (filtered by id) - distinguish by which filter was used.
       const isNameLookup = calls.some((c) => c.method === 'in' && c.args[0] === 'id');
-      if (isNameLookup) return { data: [{ id: 'r1', title: 'Extra screen time' }], error: null };
+      if (isNameLookup) return { data: [{ id: 'r1', title: 'Extra screen time', category: 'fun' }], error: null };
       return { data: [{ id: 'r1', title: 'Extra screen time', point_cost: 50, category: 'fun' }], error: null };
     });
-    const { findByText } = await render(<ParentRewards />);
+  }
 
-    expect(await findByText('Testy · extra screen time')).toBeTruthy();
+  it('lists redeemed rewards that still need handing out', async () => {
+    setUpRedemption();
+    const { findByText, findAllByText } = await render(<ParentRewards />);
+
+    expect(await findByText('To hand out')).toBeTruthy();
+    expect(await findByText(/^Testy · /)).toBeTruthy();
     expect(await findByText('-50')).toBeTruthy();
+    // shows in both the hand-out list and the shop
+    expect((await findAllByText('Extra screen time')).length).toBe(2);
   });
 
-  it('shows completed chores in the activity feed alongside reward redemptions', async () => {
-    setUpHousehold({
-      transactions: [
-        { id: 't1', user_id: KID_ID, amount: 20, type: 'credit', chore_id: 'c1', created_at: '2026-01-01T00:00:00Z' },
-      ],
+  it('only asks for reward redemptions not yet given - chore payouts are left out', async () => {
+    let txCalls = [];
+    setUpHousehold();
+    __setTableResponse('transactions', (calls) => {
+      txCalls = calls;
+      return { data: [], error: null };
     });
-    __setTableResponse('chores', { data: [{ id: 'c1', title: 'Clean room' }], error: null });
     const { findByText } = await render(<ParentRewards />);
 
-    expect(await findByText('Testy · clean room')).toBeTruthy();
-    expect(await findByText('+20')).toBeTruthy();
+    await findByText('All caught up - rewards your kids redeem show up here');
+    expect(txCalls).toContainEqual({ method: 'eq', args: ['type', 'debit'] });
+    expect(txCalls).toContainEqual({ method: 'is', args: ['given_at', null] });
   });
 
-  it('shows the empty-activity message when there are no transactions', async () => {
+  it('"Mark given" calls mark_reward_given and removes the row', async () => {
+    setUpRedemption();
+    const rpcCalls = [];
+    __setRpcResponse('mark_reward_given', (params) => {
+      rpcCalls.push(params);
+      return { data: null, error: null };
+    });
+    const { findByText, queryByText } = await render(<ParentRewards />);
+
+    await fireEvent.press(await findByText('Mark given'));
+
+    await waitFor(() => {
+      expect(rpcCalls).toContainEqual({ p_transaction_id: 't1' });
+      expect(queryByText('Mark given')).toBeNull();
+    });
+  });
+
+  it('shows the all-caught-up message when nothing needs handing out', async () => {
     setUpHousehold();
     const { findByText } = await render(<ParentRewards />);
 
-    expect(await findByText("Nothing yet - completed chores and reward redemptions show up here")).toBeTruthy();
+    expect(await findByText('All caught up - rewards your kids redeem show up here')).toBeTruthy();
   });
 
   it('lists rewards fetched from the household reward shop', async () => {

@@ -79,5 +79,6 @@ CREATE TABLE public.transactions (
   reward_id UUID REFERENCES public.rewards(id),
   amount NUMERIC DEFAULT 0,
   type TEXT, -- 'credit' or 'debit'
+  given_at TIMESTAMP WITH TIME ZONE, -- reward redemptions: when the parent handed it over (mark_reward_given)
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

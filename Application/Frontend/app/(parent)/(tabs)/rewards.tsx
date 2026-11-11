@@ -6,18 +6,24 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../../utils/supabase';
 import { colors, typography, radius, spacing } from '../../../constants/theme';
 import RewardShopItem from '../../../components/parent/RewardShopItem';
+import RewardActivityItem from '../../../components/RewardActivityItem';
+import CountBadge from '../../../components/CountBadge';
 import Button from '../../../components/Button';
 
 // Source of truth: Figma "Parent Rewards"
 // https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=709-145
 
-//formats an ISO date string into something like "sep 12"
+//formats an ISO date string into something like "Sep 12"
 const formatDate = (isoDate) =>
-  new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toLowerCase();
+  new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+const capitalizedFirstName = (name) => {
+  const first = (name || 'Child').trim().split(' ')[0];
+  return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+};
 
 export default function ParentRewards() {
   const router = useRouter();
@@ -25,11 +31,11 @@ export default function ParentRewards() {
   const [refreshing, setRefreshing] = useState(false);
   const [rewards, setRewards] = useState([]);
 
-  // redeem_reward debits points immediately (no parent approval step), so
-  // this is a read-only log of what already happened, not pending requests -
-  // both chore payouts and reward redemptions, most recent first, same as
-  // the child's own rewards.tsx history.
-  const [activity, setActivity] = useState([]);
+  // redeem_reward debits points immediately (no parent approval step), so a
+  // redemption shows up here as something to hand over. "Mark given" stamps
+  // transactions.given_at (mark_reward_given) and drops it off the list.
+  // Chore payouts aren't shown - parents already see those on the chores side.
+  const [toHandOut, setToHandOut] = useState([]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -69,32 +75,35 @@ export default function ParentRewards() {
       if (kidsError) throw kidsError;
 
       if (kids.length > 0) {
+        //redemptions not handed over yet, oldest first (the longest-waiting
+        //kid is at the top)
         const { data: txData, error: txError } = await supabase
           .from('transactions')
-          .select('id, user_id, amount, type, chore_id, reward_id, created_at')
+          .select('id, user_id, amount, reward_id, created_at')
           .in('user_id', kids.map(k => k.id))
-          .order('created_at', { ascending: false })
-          .limit(20);
+          .eq('type', 'debit')
+          .is('given_at', null)
+          .order('created_at', { ascending: true });
         if (txError) throw txError;
 
-        //look up the chore/reward names for the activity labels, same
-        //pattern as the child's own rewards.tsx history
-        const choreIds = [...new Set(txData.filter(t => t.chore_id).map(t => t.chore_id))];
+        //reward names/categories - looked up by id rather than taken from
+        //the shop list above, so archived rewards still show their name
         const rewardIds = [...new Set(txData.filter(t => t.reward_id).map(t => t.reward_id))];
-        const [{ data: choreNames }, { data: rewardNames }] = await Promise.all([
-          choreIds.length ? supabase.from('chores').select('id, title').in('id', choreIds) : { data: [] },
-          rewardIds.length ? supabase.from('rewards').select('id, title').in('id', rewardIds) : { data: [] },
-        ]);
+        const { data: rewardInfo } = rewardIds.length
+          ? await supabase.from('rewards').select('id, title, category').in('id', rewardIds)
+          : { data: [] };
 
-        setActivity(txData.map(t => ({
-          ...t,
-          childName: (kids.find(k => k.id === t.user_id)?.display_name || 'Child').trim().split(' ')[0],
-          label: t.type === 'credit'
-            ? choreNames?.find(c => c.id === t.chore_id)?.title || 'chore'
-            : rewardNames?.find(r => r.id === t.reward_id)?.title || 'reward',
-        })));
+        setToHandOut(txData.map(t => {
+          const reward = rewardInfo?.find(r => r.id === t.reward_id);
+          return {
+            ...t,
+            childName: capitalizedFirstName(kids.find(k => k.id === t.user_id)?.display_name),
+            title: reward?.title || 'Reward',
+            category: reward?.category || 'other',
+          };
+        }));
       } else {
-        setActivity([]);
+        setToHandOut([]);
       }
     } catch (e) {
       console.error('FETCH REWARDS ERROR:', e.message);
@@ -110,6 +119,16 @@ export default function ParentRewards() {
   const onRefresh = () => {
     setRefreshing(true);
     fetchData();
+  };
+
+  //optimistic: drop it off the list right away, put it back if the save fails
+  const handleMarkGiven = async (item) => {
+    setToHandOut((prev) => prev.filter((t) => t.id !== item.id));
+    const { error } = await supabase.rpc('mark_reward_given', { p_transaction_id: item.id });
+    if (error) {
+      console.error('MARK GIVEN ERROR:', error.message);
+      setToHandOut((prev) => [...prev, item].sort((a, b) => a.created_at.localeCompare(b.created_at)));
+    }
   };
 
   const goToEditReward = (reward) => {
@@ -137,34 +156,31 @@ export default function ParentRewards() {
         <Text style={{ ...typography.display }}>Rewards</Text>
 
         <View style={styles.fieldGroup}>
-          <Text style={{ ...typography.h2 }}>Recent activity</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={{ ...typography.h2 }}>To hand out</Text>
+            {toHandOut.length > 0 && <CountBadge count={toHandOut.length} />}
+          </View>
 
-          {activity.length === 0 ? (
-            <Text style={{...typography.bodyTertiary}}>Nothing yet - completed chores and reward redemptions show up here</Text>
+          {toHandOut.length === 0 ? (
+            <Text style={{...typography.bodyTertiary}}>{"All caught up - rewards your kids redeem show up here"}</Text>
           ) : (
-            <View style={styles.activityCard}>
-              {activity.map((t, i) => {
-                const isCredit = t.type === 'credit';
-                return (
+            <View>
+              <View pointerEvents="none" style={styles.shopCardLedge} />
+              <View style={styles.shopCard}>
+                {toHandOut.map((t, i) => (
                   <React.Fragment key={t.id}>
                     {i > 0 && <View style={styles.rowDivider} />}
-                    <View style={styles.activityRow}>
-                      <Ionicons
-                        name={isCredit ? 'checkmark-circle' : 'gift'}
-                        size={20}
-                        color={isCredit ? colors.status.success : colors.status.pending}
-                      />
-                      <View style={{ flex: 1, marginLeft: 12 }}>
-                        <Text style={typography.body} numberOfLines={1}>{t.childName} · {t.label.toLowerCase()}</Text>
-                        <Text style={styles.activityDate}>{formatDate(t.created_at)}</Text>
-                      </View>
-                      <Text style={[styles.activityAmount, { color: isCredit ? colors.status.success : colors.text.primary }]}>
-                        {isCredit ? '+' : '-'}{Number(t.amount)}
-                      </Text>
-                    </View>
+                    <RewardActivityItem
+                      title={t.title}
+                      subtitle={`${t.childName} · ${formatDate(t.created_at)}`}
+                      amount={Number(t.amount)}
+                      type="debit"
+                      category={t.category}
+                      onMarkGiven={() => handleMarkGiven(t)}
+                    />
                   </React.Fragment>
-                );
-              })}
+                ))}
+              </View>
             </View>
           )}
         </View>
@@ -207,11 +223,9 @@ const styles = StyleSheet.create({
   center: { justifyContent: 'center', alignItems: 'center' },
   scroll: { paddingBottom: spacing.xl, gap: spacing.xl },
   fieldGroup: { gap: spacing.lg },
-  activityCard: { backgroundColor: colors.surface.white, borderRadius: radius.card, paddingHorizontal: 20, paddingVertical: 5 },
-  activityRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
-  activityDate: { fontSize: 12, color: colors.text.secondary, marginTop: 2 },
-  activityAmount: { fontSize: 15, fontWeight: '800' },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   // Hard, unblurred offset shadow — same "ledge" technique as Button/KidCard.
+  // Shared by the "To hand out" and "Your reward shop" cards.
   shopCardLedge: {
     position: 'absolute',
     top: 0,
