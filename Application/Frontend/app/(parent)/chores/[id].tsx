@@ -1,5 +1,5 @@
 //@ts-nocheck
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { StyleSheet, Text, View, ActivityIndicator, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { supabase } from '../../../utils/supabase';
@@ -113,8 +113,16 @@ export default function ParentChoreReview() {
   const [redoOpen, setRedoOpen] = useState(false); //"Ask to redo" expands into a note field
   const [rejectNote, setRejectNote] = useState(''); //optional feedback shown to the child on retry
 
+  // DIAGNOSTIC: useFocusEffect can refire fast enough (e.g. right after a
+  // logout/login round-trip) to start overlapping fetches - this detects an
+  // older call resolving after a newer one and logs/ignores it instead of
+  // letting it clobber fresher state with stale data.
+  const fetchSeq = useRef(0);
+
   //fetches chore details, child name, and ai evidence logs
   async function fetchReviewDetails() {
+    const callId = ++fetchSeq.current;
+    console.log(`[chore-review] fetch #${callId} starting for chore ${id}`);
     try {
       //fetch the main chore record
       const { data: choreData, error: choreError } = await supabase
@@ -134,13 +142,19 @@ export default function ParentChoreReview() {
         .limit(1)
         .maybeSingle();
 
+      if (callId !== fetchSeq.current) {
+        console.log(`[chore-review] fetch #${callId} resolved after a newer call (#${fetchSeq.current}) - ignoring stale result`);
+        return;
+      }
+
       //analysis' own id/created_at would otherwise overwrite the chore's
       const { id: _analysisId, created_at: _analysisCreatedAt, ...analysis } = analysisData || {};
+      console.log(`[chore-review] fetch #${callId} resolved - before_image_key=${analysis.before_image_key} after_image_key=${analysis.after_image_key} status=${choreData?.status}`);
       setChore({ ...choreData, ...analysis });
     } catch (e) {
-      console.error("fetch review error:", e.message);
+      console.error(`[chore-review] fetch #${callId} error:`, e.message);
     } finally {
-      setLoading(false);
+      if (callId === fetchSeq.current) setLoading(false);
     }
   }
 
