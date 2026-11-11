@@ -71,6 +71,9 @@ const mockGetUser = jest.fn().mockResolvedValue({ data: { user: { id: 'test-user
 const mockSignInWithPassword = jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } }, error: null });
 const mockSignUp = jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } }, error: null });
 const mockSignOut = jest.fn().mockResolvedValue({ error: null });
+const mockResetPasswordForEmail = jest.fn().mockResolvedValue({ data: {}, error: null });
+const mockVerifyOtp = jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } }, error: null });
+const mockUpdateUser = jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } }, error: null });
 const mockFrom = jest.fn((table) => createChainable((calls) => resolveTable(table, calls)));
 const mockRpc = jest.fn((name, params) => {
   const configured = rpcResponses[name];
@@ -89,6 +92,7 @@ export const __resetMockSupabase = () => {
   Object.keys(rpcResponses).forEach((k) => delete rpcResponses[k]);
   [
     mockGetSession, mockGetUser, mockSignInWithPassword, mockSignUp, mockSignOut,
+    mockResetPasswordForEmail, mockVerifyOtp, mockUpdateUser,
     mockFrom, mockRpc, mockInvoke, mockOn, mockSubscribe, mockChannel, mockRemoveChannel,
   ].forEach((fn) => fn.mockClear());
 };
@@ -100,6 +104,9 @@ export const supabase = {
     signInWithPassword: mockSignInWithPassword,
     signUp: mockSignUp,
     signOut: mockSignOut,
+    resetPasswordForEmail: mockResetPasswordForEmail,
+    verifyOtp: mockVerifyOtp,
+    updateUser: mockUpdateUser,
   },
   from: mockFrom,
   rpc: mockRpc,

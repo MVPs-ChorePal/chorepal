@@ -38,6 +38,7 @@ export default function CodeBoxes({ value, onChangeText, length, autoFocus }: Co
         );
       })}
       <TextInput
+        testID="code-boxes-input"
         ref={inputRef}
         value={value}
         onChangeText={onChangeText}
