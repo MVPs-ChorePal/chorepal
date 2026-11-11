@@ -20,7 +20,7 @@ describe('ChildAccount (child account tab)', () => {
   it('tapping logout signs out and returns to the login page', async () => {
     const { findByText } = await render(<ChildAccount />);
 
-    await fireEvent.press(await findByText('logout'));
+    await fireEvent.press(await findByText('Log out'));
 
     await waitFor(() => {
       expect(__mockReplace).toHaveBeenCalledWith('/login-page');

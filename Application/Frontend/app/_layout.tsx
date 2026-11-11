@@ -32,7 +32,10 @@ export default function RootLayout() {
       screenOptions={{
         headerShown: false,
         animation: 'none',
-        contentStyle: screen,
+        // Top-level screens (splash, login, signup, join-household) have no
+        // floating nav bar, so they don't need `screen`'s bottom padding that
+        // clears it - left in, it just cuts the bottom of the page off.
+        contentStyle: { ...screen, paddingBottom: 0 },
       }}
     >
       {/* (parent)/(child) are Tabs groups that apply `screen` per-tab via

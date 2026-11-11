@@ -1,24 +1,34 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IconLogout2 } from '@tabler/icons-react-native';
 import { supabase } from '../../../utils/supabase';
 import { useRouter } from 'expo-router';
 import { colors, typography, spacing } from '../../../constants/theme';
 import ChildHeader from '../../../components/ChildHeader';
+import SettingsCard from '../../../components/SettingsCard';
 
 export default function ChildAccount() {
   const router = useRouter();
+  const handleLogout = () => supabase.auth.signOut().then(() => router.replace('/login-page'));
+
   return (
     <SafeAreaView style={styles.root}>
       <ChildHeader left={`Account`} />
       <View style={styles.content}>
         <Text style={styles.placeholder}>personal stats</Text>
       </View>
-      <TouchableOpacity 
-        onPress={() => supabase.auth.signOut().then(() => router.replace('/login-page'))}
-        style={styles.logoutButton}
-      >
-        <Text style={styles.logoutText}>logout</Text>
-      </TouchableOpacity>
+      <View style={styles.settings}>
+        <SettingsCard
+          items={[
+            {
+              icon: <IconLogout2 size={20} color={colors.text.secondary} />,
+              iconBg: 'rgba(122,111,143,0.15)',
+              label: 'Log out',
+              onPress: handleLogout,
+            },
+          ]}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -29,6 +39,6 @@ const styles = StyleSheet.create({
   title: { ...typography.display},
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   placeholder: { color: colors.text.tertiary, fontWeight: '300' },
-  logoutButton: { alignItems: 'center', marginBottom: 70 },
-  logoutText: { color: colors.brand.primary, textDecorationLine: 'underline', fontWeight: '300' }
+  // Clears the floating bottom nav bar (BottomNavBar.tsx), which overlays the screen.
+  settings: { marginBottom: 100 },
 });

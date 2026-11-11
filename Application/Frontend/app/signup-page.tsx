@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing } from '../constants/theme';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Sweepy from '../components/Sweepy';
 
 export default function SignupPage() {
   //generates family code
@@ -128,14 +129,6 @@ export default function SignupPage() {
           own row, not absolutely positioned over the centered content below -
           otherwise a short/narrow viewport can render something on top of it
           that silently intercepts the tap even though the button is visible */}
-      <TouchableOpacity
-        onPress={() => router.replace('/login-page')}
-        style={styles.backBtn}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <Ionicons name="chevron-back" size={24} color={colors.brand.primary} />
-        <Text style={styles.backText}>back</Text>
-      </TouchableOpacity>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -146,8 +139,9 @@ export default function SignupPage() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.headerArea}>
-          <Text style={styles.title}>Welcome to ChorePal</Text>
+        <View style={styles.headerArea}>
+          <Sweepy size={120} />
+          <Text style={styles.title}>Welcome to ChorePal!</Text>
           <Text style={styles.subtitle}>Who is setting up this account?</Text>
         </View>
 
@@ -188,9 +182,6 @@ export default function SignupPage() {
               autoCapitalize="none"
               label="Username"
             />
-            <Text style={styles.hint}>
-              {isChild ? "must be unique - this is what you'll log in with" : 'must be unique'}
-            </Text>
           </View>
 
           {!isChild && (
@@ -266,7 +257,7 @@ const styles = StyleSheet.create({
   // horizontal/top margins already come from the Stack's contentStyle (app/_layout.tsx)
   backBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
   backText: { color: colors.brand.primary, fontSize: 16, fontWeight: '600', marginLeft: 5 },
-  headerArea: { gap: spacing.sm },
+  headerArea: { gap: spacing.sm, alignItems: 'center' },
   title: { ...typography.display, color: colors.text.primary, textAlign: 'center', letterSpacing: -1 },
   subtitle: { ...typography.body, color: colors.text.tertiary, textAlign: 'center' },
   form: { width: '100%', gap: spacing.xl },
