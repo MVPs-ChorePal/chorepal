@@ -25,6 +25,15 @@ import BackButton from '../../../components/BackButton';
 
 const CATEGORIES: CategoryValue[] = ['clean', 'kitchen', 'outdoor', 'other'];
 
+//local YYYY-MM-DD for <input type="date">'s value/min - toISOString() would
+//convert to UTC first, which can shift the date by a day depending on timezone
+const toDateInputValue = (d: Date) => {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 // Rotating palette so each child's avatar reads as a distinct color, cycling
 // through the same category tones used elsewhere in the design system.
 const CHILD_TONES = [colors.category.kitchen, colors.category.clean, colors.category.outdoor, colors.category.other];
@@ -365,7 +374,24 @@ export default function CreateChore() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalHeader}>Select Deadline</Text>
-            <DateTimePicker value={date} mode="date" display="spinner" onChange={onDateChange} minimumDate={new Date()} textColor={colors.text.primary} />
+            {/* @react-native-community/datetimepicker has no web implementation -
+                it renders null there (just a console warning), so the browser
+                gets a plain HTML date input instead. */}
+            {Platform.OS === 'web' ? (
+              <input
+                type="date"
+                value={toDateInputValue(date)}
+                min={toDateInputValue(new Date())}
+                onChange={(e: any) => {
+                  if (!e.target.value) return;
+                  const [y, m, d] = e.target.value.split('-').map(Number);
+                  setDate(new Date(y, m - 1, d));
+                }}
+                style={webDateInputStyle}
+              />
+            ) : (
+              <DateTimePicker value={date} mode="date" display="spinner" onChange={onDateChange} minimumDate={new Date()} textColor={colors.text.primary} />
+            )}
             <Button title="Done" onPress={() => setShowDatePicker(false)} fullWidth />
           </View>
         </View>
@@ -374,6 +400,17 @@ export default function CreateChore() {
     </SafeAreaView>
   );
 }
+
+// A real DOM style object (not an RN StyleSheet) for the web-only <input>.
+const webDateInputStyle = {
+  fontSize: 16,
+  fontFamily: 'inherit',
+  padding: 12,
+  borderRadius: radius.small,
+  border: `2px solid ${colors.border.default}`,
+  color: colors.text.primary,
+  width: '100%',
+};
 
 const styles = StyleSheet.create({
   // Background + top/side margins come from the wrapping Stack's contentStyle
