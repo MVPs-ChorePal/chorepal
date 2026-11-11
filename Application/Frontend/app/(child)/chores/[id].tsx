@@ -377,6 +377,11 @@ export default function ChoreSubmissionMachine() {
             <View pointerEvents="none" style={styles.celebrationChoreLedge} />
             <View style={styles.celebrationChoreCard}>
               <Image source={{ uri: s3Path + chore.after_image_key }} style={styles.celebrationThumb} />
+              
+              {/* {chore?.before_image_key ? (
+                <Image source={{ uri: S3_PATH + chore.before_image_key }} style={styles.img} />
+              ) : null} */}
+
               <Text style={typography.h3} numberOfLines={1}>{chore.title}</Text>
             </View>
           </View>

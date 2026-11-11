@@ -284,6 +284,7 @@ export default function ParentChoreReview() {
                     onLoadEnd={() => console.log('[chore-photo] load ended for', S3_PATH + photoKey)}
                     onDisplay={() => console.log('[chore-photo] displayed successfully:', S3_PATH + photoKey)}
                   />
+                  
                 ) : (
                   <IconPhoto size={40} color={colors.icon.secondary} />
                 )}
@@ -324,6 +325,24 @@ export default function ParentChoreReview() {
         ) : (
           <>
             {chore?.description ? <Text style={typography.bodySecondary}>{chore.description}</Text> : null}
+
+            {/* child has taken the before photo but not finished yet */}
+            {chore?.before_image_key && (
+              <View>
+                <View pointerEvents="none" style={styles.photoLedge} />
+                <View style={styles.photo}>
+                  <Image
+                    source={{ uri: S3_PATH + chore.before_image_key }}
+                    style={styles.photoImage}
+                    contentFit="cover"
+                    onError={(e) => console.error('chore photo failed to load:', S3_PATH + chore.before_image_key, e.error)}
+                  />
+                  <View style={styles.photoToggle}>
+                    <Pill selected>Before</Pill>
+                  </View>
+                </View>
+              </View>
+            )}
             {steps.length > 0 && <StepsCard steps={steps} />}
 
             {/* nothing to review yet - the chore can still be changed or removed */}
@@ -371,7 +390,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   // expo-image uses the contentFit prop (not style.resizeMode) for cover/contain
-  photoImage: { ...StyleSheet.absoluteFillObject },
+  // Sized in normal layout (not absoluteFill) - same as the pre-redesign
+  // screen and the child's photo box, which both render fine on device.
+  photoImage: { width: '100%', height: '100%' },
   photoToggle: { position: 'absolute', top: spacing.sm, left: spacing.sm, flexDirection: 'row', gap: spacing.xs },
 
   noteInput: { height: 90, paddingTop: spacing.sm },
