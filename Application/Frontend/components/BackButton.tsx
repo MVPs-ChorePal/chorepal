@@ -12,6 +12,12 @@ export interface BackButtonProps {
 }
 
 export default function BackButton({ fallbackHref = '/' }: BackButtonProps) {
+  // DIAGNOSTIC: the icon has vanished intermittently even after switching
+  // from an SVG-based icon (@tabler/icons-react-native) to this font-glyph
+  // one, so it isn't specific to either icon library - logging every render
+  // to find out whether BackButton even mounts when it happens, and how often.
+  console.log(`[back-button] rendering, fallbackHref=${fallbackHref}`);
+
   const handlePress = () => {
     router.canGoBack() ? router.back() : router.replace(fallbackHref);
   };
@@ -21,9 +27,6 @@ export default function BackButton({ fallbackHref = '/' }: BackButtonProps) {
       testID="back-button"
       onPress={handlePress}
       title=""
-      // Ionicons renders as a font glyph, not an SVG (unlike @tabler/icons-
-      // react-native) - avoids a reported class of icon-disappearing-on-
-      // remount issue tied to SVG-based icons.
       icon={<Ionicons name="chevron-back" size={22} color={colors.text.primary} />}
       color='secondary'
       size="small"
