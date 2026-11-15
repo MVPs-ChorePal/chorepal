@@ -260,7 +260,11 @@ export default function ChoreSubmissionMachine() {
           attempt_number: nextAttempt
         });
 
-        await supabase.from('chores').update({ status: 'pending' }).eq('id', id);
+        //children have no direct UPDATE on chores (see migration
+        //20261114120000_lock_down_chore_writes.sql) - this RPC only does
+        //todo -> pending, and only once the before photo row above exists
+        const { error: startError } = await supabase.rpc('start_chore', { p_chore_id: id });
+        if (startError) throw startError;
 
         setButtonState('checkmark');
         setTimeout(() => {

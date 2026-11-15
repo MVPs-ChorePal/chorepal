@@ -28,31 +28,56 @@ function parseClaudeJson(rawText: string) {
   return JSON.parse(cleaned)
 }
 
+//custom error class to carry an HTTP status code for the response
+class HttpError extends Error {
+  constructor(public status: number, message: string) {
+    super(message)
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { fileName, choreId, logId } = await req.json()
+    const { choreId, logId } = await req.json()
+    if (!choreId || !logId) throw new HttpError(400, 'choreId and logId are required') //bad request
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    //authenticate the kid via their jwt
+    const jwt = (req.headers.get('Authorization') ?? '').replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabase.auth.getUser(jwt)
+    if (userError || !user) throw new HttpError(401, 'not authenticated')
+
     const { data: chore } = await supabase
       .from('chores')
-      .select('title, description, target_label')
+      .select('title, description, target_label, assigned_to, status')
       .eq('id', choreId)
       .single()
+    if (!chore) throw new HttpError(404, 'chore not found')
+    
+    //the chore must be assigned to this kid and must be waiting for an after photo
+    if (chore.assigned_to !== user.id) throw new HttpError(403, 'this chore is not assigned to you')
+    if (chore.status !== 'pending') throw new HttpError(409, 'this chore is not waiting for an after photo')
 
     //this attempt's before photo - compared against it instead of judging
     //the after photo in isolation, so re-submitting the same (or similar)
     //photo as both before and after doesn't pass
     const { data: analysisRow } = await supabase
       .from('chore_analysis')
-      .select('before_image_key')
+      .select('chore_id, before_image_key, after_image_key, ai_detected_label')
       .eq('id', logId)
       .single()
+
+    //the log entry must exist and must belong to this chore, and must have an
+    if (!analysisRow || String(analysisRow.chore_id) !== String(choreId)) {
+      throw new HttpError(403, 'this attempt does not belong to this chore')
+    }
+    if (!analysisRow.after_image_key) throw new HttpError(409, 'no after photo on this attempt')
+    if (analysisRow.ai_detected_label) throw new HttpError(409, 'this attempt was already checked')
 
     const bucket = Deno.env.get('MY_AWS_S3_BUCKET_NAME')
     const region = Deno.env.get('MY_AWS_REGION')
@@ -68,7 +93,7 @@ Deno.serve(async (req) => {
       return { base64: encodeBase64(bytes), mediaType: detectMediaType(bytes) }
     }
 
-    const after = await fetchImage(fileName)
+    const after = await fetchImage(analysisRow.after_image_key)
     const before = analysisRow?.before_image_key ? await fetchImage(analysisRow.before_image_key) : null
 
     const choreLabel = chore?.title || chore?.target_label || 'this chore'
@@ -168,7 +193,7 @@ Deno.serve(async (req) => {
     console.error(`ai function error: ${error.message}`)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: error instanceof HttpError ? error.status : 400 }
     )
   }
 })
