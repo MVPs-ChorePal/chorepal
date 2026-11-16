@@ -113,5 +113,4 @@ npm run lint      # ESLint
 ---
 
 ### **More**
-*   [User Manual](user-manual.md)
-*   [Contributions](CONTRIBUTIONS.md)
+*   [Figma Design](https://www.figma.com/design/DzekBPRM1Yl9mPLJu6i15R/ChorePal?node-id=706-8&t=b7cipbOYJnklzTH2-0)
