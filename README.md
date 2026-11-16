@@ -40,7 +40,6 @@ ChorePal is a mobile application designed to modernize and gamify household mana
 *   **Backend:** Supabase - PostgreSQL with row-level security, Auth, and Edge Functions (Deno)
 *   **AI verification:** Claude API (vision) compares each chore's before and after photos
 *   **Cloud Storage:** AWS S3 for chore photos (uploaded via signed URLs)
-*   **UI:** react-native-svg (Sweepy, coins, stars), Tabler Icons, Fredoka & Nunito fonts
 *   **Testing:** Jest + React Native Testing Library
 *   **Design:** Figma (design system and screens)
 *   **Tools:** VS Code, Git/GitHub, Node.js
