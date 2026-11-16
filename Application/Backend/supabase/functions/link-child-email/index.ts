@@ -1,9 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.118.0'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { HttpError, corsHeaders, errorResponse, json } from '../_shared/http.ts'
 
 // Children never see or type their real email - they get a synthetic
 // ${username}@chorepal.internal address at signup, purely to satisfy
@@ -30,16 +26,17 @@ Deno.serve(async (req) => {
     //identify the caller from their own JWT - this function only ever acts
     //on the caller's own account, never an arbitrary id from the body
     const { data: { user }, error: userError } = await admin.auth.getUser(jwt)
-    if (userError || !user) throw new Error('not authenticated')
+    if (userError || !user) throw new HttpError(401, 'not authenticated')
 
     const { data: child, error: childError } = await admin
       .from('users')
       .select('role, family_id, username')
       .eq('id', user.id)
-      .single()
-    if (childError || !child) throw new Error('user not found')
+      .maybeSingle()
+    if (childError) throw childError
+    if (!child) throw new HttpError(404, 'user not found')
     if (child.role !== 'child' || !child.family_id) {
-      throw new Error('only a child with a household can link their email')
+      throw new HttpError(403, 'only a child with a household can link their email')
     }
 
     //family_id is the founding parent's own user id
@@ -47,11 +44,12 @@ Deno.serve(async (req) => {
       .from('users')
       .select('email')
       .eq('id', child.family_id)
-      .single()
-    if (parentError || !parent?.email) throw new Error("could not find the household's parent email")
+      .maybeSingle()
+    if (parentError) throw parentError
+    if (!parent?.email) throw new HttpError(409, "could not find the household's parent email")
 
     const [localPart, domain] = parent.email.split('@')
-    if (!localPart || !domain) throw new Error('parent email is not in a usable format')
+    if (!localPart || !domain) throw new HttpError(409, 'parent email is not in a usable format')
     const newEmail = `${localPart}+${child.username}@${domain}`
 
     const { error: updateAuthError } = await admin.auth.admin.updateUserById(user.id, {
@@ -66,15 +64,8 @@ Deno.serve(async (req) => {
       .eq('id', user.id)
     if (updateProfileError) throw updateProfileError
 
-    return new Response(
-      JSON.stringify({ email: newEmail }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    )
+    return json({ email: newEmail })
   } catch (error) {
-    console.error('link-child-email error:', error.message)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    )
+    return errorResponse('link-child-email', error)
   }
 })

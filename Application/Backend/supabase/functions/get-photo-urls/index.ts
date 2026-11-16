@@ -1,16 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.118.0'
 import { isKeyForChore, signDownload } from '../_shared/s3.ts'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-class HttpError extends Error {
-  constructor(public status: number, message: string) {
-    super(message)
-  }
-}
+import { HttpError, corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts'
 
 //returns short-lived signed links for a chore's photos
 //body: { choreId } -> { urls: { [imageKey]: signedUrl } }
@@ -18,7 +8,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { choreId } = await req.json()
+    const { choreId } = await readJson(req)
     if (!choreId) throw new HttpError(400, 'choreId is required')
 
     //acts as the caller, so chore_analysis's rls policies decide whose photos they can see
@@ -47,15 +37,8 @@ Deno.serve(async (req) => {
     const urls: Record<string, string> = {}
     await Promise.all([...keys].map(async (key) => { urls[key] = await signDownload(key) }))
 
-    return new Response(
-      JSON.stringify({ urls }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    )
+    return json({ urls })
   } catch (error) {
-    console.error('get-photo-urls error:', error.message)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: error instanceof HttpError ? error.status : 400 }
-    )
+    return errorResponse('get-photo-urls', error)
   }
 })

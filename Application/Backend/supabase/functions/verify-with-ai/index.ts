@@ -1,11 +1,7 @@
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.118.0'
 import { isKeyForChore, signDownload } from '../_shared/s3.ts'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { HttpError, corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts'
 
 const CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
 
@@ -29,18 +25,11 @@ function parseClaudeJson(rawText: string) {
   return JSON.parse(cleaned)
 }
 
-//custom error class to carry an HTTP status code for the response
-class HttpError extends Error {
-  constructor(public status: number, message: string) {
-    super(message)
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { choreId, logId } = await req.json()
+    const { choreId, logId } = await readJson(req)
     if (!choreId || !logId) throw new HttpError(400, 'choreId and logId are required') //bad request
 
     const supabase = createClient(
@@ -185,16 +174,9 @@ Deno.serve(async (req) => {
       }).eq('id', choreId)
     }
 
-    return new Response(
-      JSON.stringify({ isMatch, feedback }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    )
+    return json({ isMatch, feedback })
 
   } catch (error) {
-    console.error(`ai function error: ${error.message}`)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: error instanceof HttpError ? error.status : 400 }
-    )
+    return errorResponse('verify-with-ai', error)
   }
 })
