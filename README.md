@@ -12,9 +12,12 @@
 ChorePal is a mobile application designed to modernize and gamify household management. Parents assign chores to their children, kids prove the work with before/after photos that are checked by AI (and then the parent), and approved chores pay out coins into a **virtual wallet** that kids spend in a household reward shop. By bridging the gap between work and reward, ChorePal encourages accountability in the household.
 
 <p align="center">
-  <img src="images/parent_home.PNG" alt="Parent home screen" width="240" />
+  <img src="images/Child-Home.png" alt="Parent home screen" width="240" />
   &nbsp;&nbsp;
-  <img src="images/child_camera.PNG" alt="Child chore camera screen" width="240" />
+  <img src="images/Chore-Details-To-Do.png" alt="Child chore camera screen" width="240" />
+  &nbsp;&nbsp;
+  <img src="images/Reward-Shop.png" alt="Parent home screen" width="240" />
+
 </p>
 
 ---
