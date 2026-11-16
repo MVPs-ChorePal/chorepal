@@ -6,6 +6,7 @@ import {
   Image, ScrollView, LogBox
 } from 'react-native';
 import { supabase } from '../../../utils/supabase';
+import { getChorePhotoUrls } from '../../../utils/photos';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -178,6 +179,7 @@ export default function ChoreSubmissionMachine() {
   const [aiNote, setAiNote] = useState('');
   const [permission, requestPermission] = useCameraPermissions();
   const [childFirstName, setChildFirstName] = useState('');
+  const [photoUrls, setPhotoUrls] = useState({}); //signed links, keyed by image key
 
   useEffect(() => {
     setCapturedPhoto(null);
@@ -209,6 +211,8 @@ export default function ChoreSubmissionMachine() {
 
       setChore({ ...choreData, ...analysisData });
       if (analysisData?.ai_feedback) setAiNote(analysisData.ai_feedback);
+      //photos are private
+      if (analysisData?.after_image_key) getChorePhotoUrls(id).then(setPhotoUrls);
     }
     setLoading(false);
   }
@@ -235,18 +239,23 @@ export default function ChoreSubmissionMachine() {
     try {
       setIsProcessing(true);
       const isBefore = chore?.status === 'todo';
-      const fileName = `${isBefore ? 'before' : 'after'}_${id}_${Date.now()}.jpg`;
+
+      //read the photo first - the upload link is signed for its exact type and size
+      const blobResponse = await fetch(capturedPhoto);
+      const photoBlob = await blobResponse.blob();
+      //the native camera produces JPEG; expo-camera's web fallback produces PNG
+      const contentType = photoBlob.type === 'image/png' ? 'image/png' : 'image/jpeg';
 
       //get s3 pass
       const { data: urlData, error: urlError } = await supabase.functions.invoke('get-upload-url', {
-        body: { fileName, fileType: 'image/jpeg' }
+        body: { choreId: id, kind: isBefore ? 'before' : 'after', contentType, size: photoBlob.size }
       });
       if (urlError) throw urlError;
+      const fileName = urlData.key;
 
       //upload photo to s3
-      const blobResponse = await fetch(capturedPhoto);
-      const photoBlob = await blobResponse.blob();
-      await fetch(urlData.uploadUrl, { method: 'PUT', body: photoBlob, headers: { 'Content-Type': 'image/jpeg' } });
+      const uploadRes = await fetch(urlData.uploadUrl, { method: 'PUT', body: photoBlob, headers: { 'Content-Type': contentType } });
+      if (!uploadRes.ok) throw new Error(`photo upload failed (status ${uploadRes.status})`);
 
       if (isBefore) {
         //count how many rows already exist for this chore
@@ -331,6 +340,7 @@ export default function ChoreSubmissionMachine() {
       }
     } catch (e) {
       console.error("PIPELINE ERROR:", e.message);
+      setAiNote("Uh oh, your photo didn't send. Check your internet and try again!");
     } finally {
       setIsProcessing(false); //ensures button is never stuck
     }
@@ -342,7 +352,6 @@ export default function ChoreSubmissionMachine() {
   const tone = colors.category[category];
   const CategoryIcon = CATEGORY_ICONS[category];
   const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
-  const s3Path = `https://${process.env.EXPO_PUBLIC_AWS_S3_BUCKET_NAME}.s3.${process.env.EXPO_PUBLIC_AWS_REGION}.amazonaws.com/`;
 
   //steps is a JSON array string (see create-chore.tsx) - null/empty for
   //chores created before this existed, or where the parent skipped it
@@ -377,10 +386,10 @@ export default function ChoreSubmissionMachine() {
           <View style={styles.celebrationChoreRow}>
             <View pointerEvents="none" style={styles.celebrationChoreLedge} />
             <View style={styles.celebrationChoreCard}>
-              <Image source={{ uri: s3Path + chore.after_image_key }} style={styles.celebrationThumb} />
+              <Image source={{ uri: photoUrls[chore.after_image_key] }} style={styles.celebrationThumb} />
               
               {/* {chore?.before_image_key ? (
-                <Image source={{ uri: S3_PATH + chore.before_image_key }} style={styles.img} />
+                <Image source={{ uri: photoUrls[chore.before_image_key] }} style={styles.img} />
               ) : null} */}
 
               <Text style={typography.h3} numberOfLines={1}>{chore.title}</Text>
@@ -421,7 +430,7 @@ export default function ChoreSubmissionMachine() {
           </View>
 
           <View style={styles.photoBox}>
-            <Image source={{ uri: s3Path + chore.after_image_key }} style={styles.photoImage} />
+            <Image source={{ uri: photoUrls[chore.after_image_key] }} style={styles.photoImage} />
             <Pill bordered style={styles.photoLabel}>Your photo</Pill>
           </View>
         </ScrollView>

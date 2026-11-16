@@ -1,5 +1,6 @@
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.118.0'
+import { isKeyForChore, signDownload } from '../_shared/s3.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,15 +80,15 @@ Deno.serve(async (req) => {
     if (!analysisRow.after_image_key) throw new HttpError(409, 'no after photo on this attempt')
     if (analysisRow.ai_detected_label) throw new HttpError(409, 'this attempt was already checked')
 
-    const bucket = Deno.env.get('MY_AWS_S3_BUCKET_NAME')
-    const region = Deno.env.get('MY_AWS_REGION')
-    const s3Url = (key: string) => `https://${bucket}.s3.${region}.amazonaws.com/${key}`
+    //keep the keys for this chore separate
+    if (!isKeyForChore(analysisRow.after_image_key, choreId)) throw new HttpError(403, 'after photo does not belong to this chore')
+    if (analysisRow.before_image_key && !isKeyForChore(analysisRow.before_image_key, choreId)) {
+      throw new HttpError(403, 'before photo does not belong to this chore')
+    }
 
-    //the bucket serves uploaded photos over plain public HTTPS (same URLs
-    //the app itself displays photos from), so no AWS credentials are
-    //needed here - just fetch the bytes and base64-encode them for Claude
+    //the bucket is private - fetch through a short-lived signed link, then base64-encode the bytes
     const fetchImage = async (key: string) => {
-      const res = await fetch(s3Url(key))
+      const res = await fetch(await signDownload(key, 60))
       if (!res.ok) throw new Error(`could not fetch ${key} from S3 (status ${res.status})`)
       const bytes = new Uint8Array(await res.arrayBuffer())
       return { base64: encodeBase64(bytes), mediaType: detectMediaType(bytes) }

@@ -2,7 +2,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import ParentChoreReview from '../../app/(parent)/chores/[id]';
-import { __setTableResponse, __setRpcResponse, __resetMockSupabase } from '../../utils/supabase';
+import { supabase, __setTableResponse, __setRpcResponse, __resetMockSupabase } from '../../utils/supabase';
 import { useLocalSearchParams, __mockBack, __mockReplace, __mockCanGoBack } from '../../__mocks__/expo-router';
 
 jest.mock('../../utils/supabase');
@@ -28,6 +28,23 @@ function setUpChore(overrides = {}) {
 describe('ParentChoreReview (parent chore detail)', () => {
   beforeEach(() => {
     __resetMockSupabase();
+  });
+
+  //photos live in a private bucket
+  it('shows the chore photo through a signed link from get-photo-urls', async () => {
+    setUpChore({ status: 'completed' });
+    __setTableResponse('chore_analysis', {
+      data: { before_image_key: 'chores/chore-1/before_a.jpg', after_image_key: 'chores/chore-1/after_b.jpg' },
+      error: null,
+    });
+    supabase.functions.invoke.mockResolvedValueOnce({
+      data: { urls: { 'chores/chore-1/after_b.jpg': 'https://signed.example/after_b' } },
+      error: null,
+    });
+    const { getByTestId } = await render(<ParentChoreReview />);
+
+    await waitFor(() => expect(getByTestId('chore-photo').props.source).toEqual([{ uri: 'https://signed.example/after_b' }]));
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('get-photo-urls', { body: { choreId: 'chore-1' } });
   });
 
   it('renders the chore title and child name', async () => {

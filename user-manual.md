@@ -42,8 +42,8 @@ ChorePal utilizes advanced libraries for native camera access and cloud communic
 Create a file named .env.local and input the following variables:
 - EXPO_PUBLIC_SUPABASE_URL
 - EXPO_PUBLIC_SUPABASE_ANON_KEY
-- EXPO_PUBLIC_AWS_S3_BUCKET_NAME
-- EXPO_PUBLIC_AWS_REGION
+
+(The app no longer needs the S3 bucket name or region. Chore photos are in a private bucket, and the app gets short-lived links to them from the `get-upload-url` and `get-photo-urls` edge functions.)
 
 **Note*: The EXPO_PUBLIC_ prefix is mandatory for Expo to expose these variables to the mobile runtime.
 
