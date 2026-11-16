@@ -1,48 +1,48 @@
-import { S3Client, PutObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.433.0"
-import { getSignedUrl } from "https://esm.sh/@aws-sdk/s3-request-presigner@3.433.0"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.118.0'
+import { MAX_PHOTO_BYTES, PHOTO_TYPES, newPhotoKey, signUpload, type PhotoType } from '../_shared/s3.ts'
+import { HttpError, corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+//the before photo starts a todo chore, the after photo finishes a pending one
+const STATUS_FOR_KIND = { before: 'todo', after: 'pending' } as const
 
-// Deno.serve is the modern way to write Supabase functions
 Deno.serve(async (req) => {
-  // Handle CORS
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { fileName, fileType } = await req.json()
-    console.log(`Generating URL for: ${fileName}`)
+    const { choreId, kind, contentType, size } = await readJson(req)
+    if (!choreId || !Object.hasOwn(STATUS_FOR_KIND, kind)) throw new HttpError(400, "choreId and kind ('before' | 'after') are required")
+    if (!Object.hasOwn(PHOTO_TYPES, contentType)) throw new HttpError(400, "contentType must be 'image/jpeg' or 'image/png'")
+    if (!Number.isInteger(size) || size <= 0) throw new HttpError(400, 'size (in bytes) is required')
+    if (size > MAX_PHOTO_BYTES) throw new HttpError(413, 'photo is too large (max 5 MB)')
 
-    const client = new S3Client({
-      region: Deno.env.get('MY_AWS_REGION'),
-      credentials: {
-        accessKeyId: Deno.env.get('MY_AWS_ACCESS_KEY_ID')!,
-        secretAccessKey: Deno.env.get('MY_AWS_SECRET_ACCESS_KEY')!,
-      },
-    })
-
-    const command = new PutObjectCommand({
-      Bucket: Deno.env.get('MY_AWS_S3_BUCKET_NAME'),
-      Key: fileName,
-      ContentType: fileType,
-    })
-
-    // URL expires in 5 minutes (300 seconds)
-    const uploadUrl = await getSignedUrl(client, command, { expiresIn: 300 })
-
-    return new Response(
-      JSON.stringify({ uploadUrl }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    //acts as the caller, so rls decides which chores they can see
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } }
     )
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) throw new HttpError(401, 'not authenticated')
+
+    const { data: chore, error: choreError } = await supabase
+      .from('chores')
+      .select('assigned_to, status')
+      .eq('id', choreId)
+      .maybeSingle()
+    if (choreError) throw choreError
+    if (!chore) throw new HttpError(404, 'chore not found')
+    if (chore.assigned_to !== user.id) throw new HttpError(403, 'this chore is not assigned to you')
+    if (chore.status !== STATUS_FOR_KIND[kind as keyof typeof STATUS_FOR_KIND]) {
+      throw new HttpError(409, `this chore is not waiting for a ${kind} photo`)
+    }
+
+    //the server picks the key - the client just uploads to it and stores it
+    const key = newPhotoKey(choreId, kind, contentType as PhotoType)
+    const uploadUrl = await signUpload(key, contentType as PhotoType, size)
+
+    return json({ uploadUrl, key })
   } catch (error) {
-    console.error("Function Error:", error.message)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    )
+    return errorResponse('get-upload-url', error)
   }
 })

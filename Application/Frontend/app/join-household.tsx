@@ -35,26 +35,14 @@ export default function JoinHousehold() {
 
     console.log("joining household with code:", secretCode);
 
-    //find which family this code belongs to, without reading the whole users table
-    const { data: familyId, error: findError } = await supabase
-      .rpc('find_family_by_code', { p_code: secretCode });
+    //the server checks the code and links this user to that household
+    const { data: familyId, error: joinError } = await supabase
+      .rpc('join_household', { p_code: secretCode });
 
-    if (findError || !familyId) {
-      showAlert("error", "invalid code. check with your parent.");
-      return;
-    }
-
-    //get the current logged-in user's id
-    const { data: { user } } = await supabase.auth.getUser();
-
-    //link this user to that household
-    const { error: linkError } = await supabase
-      .from('users')
-      .update({ family_id: familyId })
-      .eq('id', user?.id);
-
-    if (linkError) {
-      showAlert("error", "could not join household");
+    if (joinError || !familyId) {
+      showAlert("error", joinError?.message?.includes('already in a household')
+        ? "you're already in a household"
+        : "invalid code. check with your parent.");
       return;
     }
 

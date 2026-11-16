@@ -3,6 +3,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { StyleSheet, Text, View, ActivityIndicator, ScrollView } from 'react-native';
 import { Image } from 'expo-image';
 import { supabase } from '../../../utils/supabase';
+import { getChorePhotoUrls } from '../../../utils/photos';
 import { showConfirm } from '../../../utils/alert';
 import { useLocalSearchParams, useRouter, useFocusEffect, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,8 +26,6 @@ import BackButton from '../../../components/BackButton';
 //  - todo / pending (nothing submitted yet): the chore's steps + Edit/Delete,
 //    since it's still safe to change before the child sends a photo.
 //  - approved: the photo + AI check, read-only.
-
-const S3_PATH = `https://${process.env.EXPO_PUBLIC_AWS_S3_BUCKET_NAME}.s3.${process.env.EXPO_PUBLIC_AWS_REGION}.amazonaws.com/`;
 
 // Rotating palette, same convention as Parent Home's KidCard. This screen
 // only has the one child, so it just takes the first tone.
@@ -112,6 +111,7 @@ export default function ParentChoreReview() {
   const [showBefore, setShowBefore] = useState(false); //before/after photo toggle
   const [redoOpen, setRedoOpen] = useState(false); //"Ask to redo" expands into a note field
   const [rejectNote, setRejectNote] = useState(''); //optional feedback shown to the child on retry
+  const [photoUrls, setPhotoUrls] = useState({}); //signed links, keyed by image key
 
   // useFocusEffect can refire fast enough (e.g. right after a logout/login
   // round-trip) to start overlapping fetches - this ignores an older call
@@ -146,6 +146,13 @@ export default function ParentChoreReview() {
       //analysis' own id/created_at would otherwise overwrite the chore's
       const { id: _analysisId, created_at: _analysisCreatedAt, ...analysis } = analysisData || {};
       setChore({ ...choreData, ...analysis });
+
+      //photos are private
+      if (analysis.before_image_key || analysis.after_image_key) {
+        getChorePhotoUrls(id).then((urls) => {
+          if (callId === fetchSeq.current) setPhotoUrls(urls);
+        });
+      }
     } catch (e) {
       console.error('fetch review error:', e.message);
     } finally {
@@ -272,10 +279,11 @@ export default function ParentChoreReview() {
               <View style={styles.photo}>
                 {photoKey ? (
                   <Image
-                    source={{ uri: S3_PATH + photoKey }}
+                    testID="chore-photo"
+                    source={{ uri: photoUrls[photoKey] }}
                     style={styles.photoImage}
                     contentFit="cover"
-                    onError={(e) => console.error('chore photo failed to load:', S3_PATH + photoKey, e.error)}
+                    onError={(e) => console.error('chore photo failed to load:', photoKey, e.error)}
                   />
                 ) : (
                   <IconPhoto size={40} color={colors.icon.secondary} />
@@ -324,10 +332,10 @@ export default function ParentChoreReview() {
                 <View pointerEvents="none" style={styles.photoLedge} />
                 <View style={styles.photo}>
                   <Image
-                    source={{ uri: S3_PATH + chore.before_image_key }}
+                    source={{ uri: photoUrls[chore.before_image_key] }}
                     style={styles.photoImage}
                     contentFit="cover"
-                    onError={(e) => console.error('chore photo failed to load:', S3_PATH + chore.before_image_key, e.error)}
+                    onError={(e) => console.error('chore photo failed to load:', chore.before_image_key, e.error)}
                   />
                   <View style={styles.photoToggle}>
                     <Pill selected>Before</Pill>

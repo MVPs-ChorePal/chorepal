@@ -10,6 +10,13 @@ entrypoint = "./functions/get-upload-url/index.ts"
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/get-upload-url/*.html" ]
 
+# checks the caller's JWT itself (like the two functions around it)
+[functions.get-photo-urls]
+enabled = true
+verify_jwt = false
+import_map = "./functions/get-photo-urls/deno.json"
+entrypoint = "./functions/get-photo-urls/index.ts"
+
 [functions.verify-with-ai]
 enabled = true
 verify_jwt = false

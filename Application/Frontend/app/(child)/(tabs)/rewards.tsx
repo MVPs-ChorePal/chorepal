@@ -70,26 +70,23 @@ export default function ChildRewards() {
 
       const { data: txData, error: txError } = await supabase
         .from('transactions')
-        .select('id, amount, type, chore_id, reward_id, given_at, created_at')
+        .select('id, amount, reward_id, given_at, created_at')
         .eq('user_id', session.user.id)
+        .eq('type', 'debit')
         .order('created_at', { ascending: false });
       if (txError) throw txError;
 
-      //look up the chore/reward names for the history list
-      const choreIds = [...new Set(txData.filter(t => t.chore_id).map(t => t.chore_id))];
+      //look up the reward names for the history list
       const rewardIds = [...new Set(txData.filter(t => t.reward_id).map(t => t.reward_id))];
-      const [{ data: choreNames }, { data: rewardNames }] = await Promise.all([
-        choreIds.length ? supabase.from('chores').select('id, title').in('id', choreIds) : { data: [] },
-        rewardIds.length ? supabase.from('rewards').select('id, title, category').in('id', rewardIds) : { data: [] },
-      ]);
+      const { data: rewardNames } = rewardIds.length
+        ? await supabase.from('rewards').select('id, title, category').in('id', rewardIds)
+        : { data: [] };
 
       setHistory(txData.map(t => {
         const reward = rewardNames?.find(r => r.id === t.reward_id);
         return {
           ...t,
-          label: t.type === 'credit'
-            ? choreNames?.find(c => c.id === t.chore_id)?.title || 'Chore'
-            : reward?.title || 'Reward',
+          label: reward?.title || 'Reward',
           category: reward?.category || 'other', //sets the row's tile color/icon
         };
       }));
@@ -183,7 +180,7 @@ export default function ChildRewards() {
 
         <Text style={{...typography.h2}}>History</Text>
         {history.length === 0 ? (
-          <Text style={{...typography.bodySecondary}}>Points you earn and spend will show up here</Text>
+          <Text style={{...typography.bodySecondary}}>Reward redemptions will show up here</Text>
         ) : (
           <RewardActivityList
             items={history.map((t) => ({
@@ -191,13 +188,11 @@ export default function ChildRewards() {
               title: t.label,
               subtitle: formatDate(t.created_at),
               amount: Number(t.amount),
-              type: t.type === 'credit' ? 'credit' : 'debit',
+              type: 'debit',
               category: t.category,
-              //redeemed rewards: has the parent handed it over yet?
-              //(given_at is set by the parent's "Mark given")
-              status: t.type === 'debit'
-                ? (t.given_at ? { label: 'Given', done: true } : { label: 'On its way', done: false })
-                : undefined,
+              //has the parent handed it over yet? (given_at is set by the
+              //parent's "Mark given")
+              status: t.given_at ? { label: 'Given', done: true } : { label: 'On its way', done: false },
             }))}
           />
         )}

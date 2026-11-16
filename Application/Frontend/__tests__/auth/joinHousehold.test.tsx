@@ -34,43 +34,53 @@ describe('JoinHousehold', () => {
 
   it('an invalid code does not link the account', async () => {
     setUpRole('parent');
-    __setRpcResponse('find_family_by_code', { data: null, error: null });
+    __setRpcResponse('join_household', { data: null, error: null });
     const { findByText, getByTestId } = await render(<JoinHousehold />);
 
     await fireEvent.changeText(getByTestId('code-boxes-input'), 'ABC1234');
     await fireEvent.press(await findByText('Join my household'));
 
     await waitFor(() => {
-      expect(supabase.rpc).toHaveBeenCalledWith('find_family_by_code', { p_code: 'ABC1234' });
+      expect(supabase.rpc).toHaveBeenCalledWith('join_household', { p_code: 'ABC1234' });
     });
     expect(__mockReplace).not.toHaveBeenCalled();
   });
 
   it('a valid code links a parent account and routes to the parent home', async () => {
     setUpRole('parent');
-    __setRpcResponse('find_family_by_code', { data: 'family-1', error: null });
-    const updateCalls = [];
-    __setTableResponse('users', (calls) => {
-      const updateCall = calls.find((c) => c.method === 'update');
-      if (updateCall) updateCalls.push(updateCall.args[0]);
-      return { data: { role: 'parent' }, error: null };
-    });
+    __setRpcResponse('join_household', { data: 'family-1', error: null });
     const { findByText, getByTestId } = await render(<JoinHousehold />);
 
     await fireEvent.changeText(getByTestId('code-boxes-input'), 'ABC1234');
     await fireEvent.press(await findByText('Join my household'));
 
     await waitFor(() => {
-      expect(updateCalls).toContainEqual({ family_id: 'family-1' });
+      //the server does the linking - the app never writes family_id itself
+      expect(supabase.rpc).toHaveBeenCalledWith('join_household', { p_code: 'ABC1234' });
       expect(__mockReplace).toHaveBeenCalledWith('/(parent)/(tabs)/home');
     });
     // only a child's account email needs relinking
     expect(supabase.functions.invoke).not.toHaveBeenCalled();
   });
 
+  it('a user already in a household is not moved', async () => {
+    setUpRole('child');
+    __setRpcResponse('join_household', { data: null, error: { message: 'already in a household' } });
+    const { findByText, getByTestId } = await render(<JoinHousehold />);
+
+    await fireEvent.changeText(getByTestId('code-boxes-input'), 'ABC1234');
+    await fireEvent.press(await findByText('Join my household'));
+
+    await waitFor(() => {
+      expect(supabase.rpc).toHaveBeenCalledWith('join_household', { p_code: 'ABC1234' });
+    });
+    expect(__mockReplace).not.toHaveBeenCalled();
+    expect(supabase.functions.invoke).not.toHaveBeenCalled();
+  });
+
   it('a valid code for a child also relinks their recovery email and routes to the child home', async () => {
     setUpRole('child');
-    __setRpcResponse('find_family_by_code', { data: 'family-1', error: null });
+    __setRpcResponse('join_household', { data: 'family-1', error: null });
     const { findByText, getByTestId } = await render(<JoinHousehold />);
 
     await fireEvent.changeText(getByTestId('code-boxes-input'), 'ABC1234');
@@ -80,27 +90,5 @@ describe('JoinHousehold', () => {
       expect(supabase.functions.invoke).toHaveBeenCalledWith('link-child-email');
       expect(__mockReplace).toHaveBeenCalledWith('/(child)/(tabs)/home');
     });
-  });
-
-  it('shows the "skip to camera dashboard" button only for a child', async () => {
-    setUpRole('child');
-    const { findByText } = await render(<JoinHousehold />);
-    expect(await findByText('skip to camera dashboard')).toBeTruthy();
-  });
-
-  it('hides the skip button for a parent', async () => {
-    setUpRole('parent');
-    const { findByText, queryByText } = await render(<JoinHousehold />);
-    await findByText('Join your household');
-    expect(queryByText('skip to camera dashboard')).toBeNull();
-  });
-
-  it('tapping "skip to camera dashboard" replaces straight to the child home', async () => {
-    setUpRole('child');
-    const { findByText } = await render(<JoinHousehold />);
-
-    await fireEvent.press(await findByText('skip to camera dashboard'));
-
-    expect(__mockReplace).toHaveBeenCalledWith('/(child)/(tabs)/home');
   });
 });

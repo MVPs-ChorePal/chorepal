@@ -1,10 +1,7 @@
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.118.0'
+import { isKeyForChore, signDownload } from '../_shared/s3.ts'
+import { HttpError, corsHeaders, errorResponse, json, readJson } from '../_shared/http.ts'
 
 const CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
 
@@ -32,43 +29,61 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { fileName, choreId, logId } = await req.json()
+    const { choreId, logId } = await readJson(req)
+    if (!choreId || !logId) throw new HttpError(400, 'choreId and logId are required') //bad request
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    //authenticate the kid via their jwt
+    const jwt = (req.headers.get('Authorization') ?? '').replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabase.auth.getUser(jwt)
+    if (userError || !user) throw new HttpError(401, 'not authenticated')
+
     const { data: chore } = await supabase
       .from('chores')
-      .select('title, description, target_label')
+      .select('title, description, target_label, assigned_to, status')
       .eq('id', choreId)
       .single()
+    if (!chore) throw new HttpError(404, 'chore not found')
+    
+    //the chore must be assigned to this kid and must be waiting for an after photo
+    if (chore.assigned_to !== user.id) throw new HttpError(403, 'this chore is not assigned to you')
+    if (chore.status !== 'pending') throw new HttpError(409, 'this chore is not waiting for an after photo')
 
     //this attempt's before photo - compared against it instead of judging
     //the after photo in isolation, so re-submitting the same (or similar)
     //photo as both before and after doesn't pass
     const { data: analysisRow } = await supabase
       .from('chore_analysis')
-      .select('before_image_key')
+      .select('chore_id, before_image_key, after_image_key, ai_detected_label')
       .eq('id', logId)
       .single()
 
-    const bucket = Deno.env.get('MY_AWS_S3_BUCKET_NAME')
-    const region = Deno.env.get('MY_AWS_REGION')
-    const s3Url = (key: string) => `https://${bucket}.s3.${region}.amazonaws.com/${key}`
+    //the log entry must exist and must belong to this chore, and must have an
+    if (!analysisRow || String(analysisRow.chore_id) !== String(choreId)) {
+      throw new HttpError(403, 'this attempt does not belong to this chore')
+    }
+    if (!analysisRow.after_image_key) throw new HttpError(409, 'no after photo on this attempt')
+    if (analysisRow.ai_detected_label) throw new HttpError(409, 'this attempt was already checked')
 
-    //the bucket serves uploaded photos over plain public HTTPS (same URLs
-    //the app itself displays photos from), so no AWS credentials are
-    //needed here - just fetch the bytes and base64-encode them for Claude
+    //keep the keys for this chore separate
+    if (!isKeyForChore(analysisRow.after_image_key, choreId)) throw new HttpError(403, 'after photo does not belong to this chore')
+    if (analysisRow.before_image_key && !isKeyForChore(analysisRow.before_image_key, choreId)) {
+      throw new HttpError(403, 'before photo does not belong to this chore')
+    }
+
+    //the bucket is private - fetch through a short-lived signed link, then base64-encode the bytes
     const fetchImage = async (key: string) => {
-      const res = await fetch(s3Url(key))
+      const res = await fetch(await signDownload(key, 60))
       if (!res.ok) throw new Error(`could not fetch ${key} from S3 (status ${res.status})`)
       const bytes = new Uint8Array(await res.arrayBuffer())
       return { base64: encodeBase64(bytes), mediaType: detectMediaType(bytes) }
     }
 
-    const after = await fetchImage(fileName)
+    const after = await fetchImage(analysisRow.after_image_key)
     const before = analysisRow?.before_image_key ? await fetchImage(analysisRow.before_image_key) : null
 
     const choreLabel = chore?.title || chore?.target_label || 'this chore'
@@ -159,16 +174,9 @@ Deno.serve(async (req) => {
       }).eq('id', choreId)
     }
 
-    return new Response(
-      JSON.stringify({ isMatch, feedback }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
-    )
+    return json({ isMatch, feedback })
 
   } catch (error) {
-    console.error(`ai function error: ${error.message}`)
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    )
+    return errorResponse('verify-with-ai', error)
   }
 })
