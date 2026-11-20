@@ -17,6 +17,13 @@ verify_jwt = false
 import_map = "./functions/get-photo-urls/deno.json"
 entrypoint = "./functions/get-photo-urls/index.ts"
 
+# checks the caller's JWT itself (like the functions around it)
+[functions.update-profile]
+enabled = true
+verify_jwt = false
+import_map = "./functions/update-profile/deno.json"
+entrypoint = "./functions/update-profile/index.ts"
+
 [functions.verify-with-ai]
 enabled = true
 verify_jwt = false

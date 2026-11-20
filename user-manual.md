@@ -37,13 +37,15 @@ ChorePal utilizes advanced libraries for native camera access and cloud communic
 > npm install
 
 ### 3.3 Security Configuration
-**CRITICAL SECURITY NOTE:** ChorePal follows a "Zero-Trust" model. API keys and cloud secrets are never stored in the repository. You must manually create a local environment file in the Application/Frontend directory.
+**CRITICAL SECURITY NOTE:** ChorePal follows a "Zero-Trust" model. API keys and cloud secrets are never stored in the repository or in the app.
 
-Create a file named .env.local and input the following variables:
+The app's environment file, `Application/Frontend/.env`, is already included and needs no setup. It contains only two values, both public by design (they ship inside every copy of the app):
 - EXPO_PUBLIC_SUPABASE_URL
-- EXPO_PUBLIC_SUPABASE_ANON_KEY
+- EXPO_PUBLIC_SUPABASE_KEY (the Supabase publishable key)
 
-(The app no longer needs the S3 bucket name or region. Chore photos are in a private bucket, and the app gets short-lived links to them from the `get-upload-url` and `get-photo-urls` edge functions.)
+To use different values on your own machine only (for example, a local Supabase stack), create `Application/Frontend/.env.local`. It overrides `.env` and is ignored by git. Never put a secret in either file.
+
+All real secrets (AWS keys for the private photo bucket, the AI key, and the email server login) are stored as Supabase Edge Function secrets and are only ever used on the server. Chore photos live in a **private** S3 bucket; the app receives short-lived signed links from the `get-upload-url` and `get-photo-urls` edge functions.
 
 **Note*: The EXPO_PUBLIC_ prefix is mandatory for Expo to expose these variables to the mobile runtime.
 
@@ -145,8 +147,8 @@ ChorePal implements strict **PostgreSQL Row Level Security (RLS)**. Every query 
 1. Login "Stuck" on Logo; Stale cache or invalid refresh token. 
 Press the Logout button to reset the session.
 
-2. Image Rendering Failure; S3 URL mismatch or variable naming error.
-Ensure the .env.local file uses the EXPO_PUBLIC_ prefix and your AWS bucket is set to "Public Read."
+2. Image Rendering Failure; expired photo link or missing server configuration.
+Photo links are short-lived on purpose; leave and reopen the chore to get fresh ones. If photos never load, check that the `get-photo-urls` edge function is deployed and its AWS secrets are set. The bucket must stay **private** - never set it to "Public Read".
 
 3. AI "Check Failed"; Poor lighting or incorrect camera angle.
 Ensure the target object is well-lit and occupies the majority of the camera frame.

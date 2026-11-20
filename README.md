@@ -72,19 +72,28 @@ ChorePal is a mobile application designed to modernize and gamify household mana
     npm install
     ```
 
-3.  **Environment variables:** `Application/Frontend/.env` needs:
+3.  **Environment variables:** `Application/Frontend/.env` is committed and already set up - nothing to do. It only holds the two values the app needs, and both are public by design (they ship inside the app):
     ```
     EXPO_PUBLIC_SUPABASE_URL=
-    EXPO_PUBLIC_SUPABASE_KEY=          # the Supabase anon/publishable key
-    EXPO_PUBLIC_AWS_S3_BUCKET_NAME=
-    EXPO_PUBLIC_AWS_REGION=
+    EXPO_PUBLIC_SUPABASE_KEY=          # the Supabase publishable key
     ```
-    The edge functions read their own secrets from Supabase (`ANTHROPIC_API_KEY`, `MY_AWS_ACCESS_KEY_ID`, `MY_AWS_SECRET_ACCESS_KEY`, `MY_AWS_REGION`, `MY_AWS_S3_BUCKET_NAME`).
+    To override them on your machine only (e.g. to point the app at a local Supabase stack), create `Application/Frontend/.env.local` - it takes priority over `.env` and is git-ignored. Never put a secret in either file.
+
+    The edge functions read their own secrets, which never go in the repo:
+    | Secret | Used for |
+    |---|---|
+    | `MY_AWS_ACCESS_KEY_ID`, `MY_AWS_SECRET_ACCESS_KEY`, `MY_AWS_REGION`, `MY_AWS_S3_BUCKET_NAME` | private chore-photo bucket (signed upload/download links) |
+    | `ANTHROPIC_API_KEY` | AI photo verification |
+    | `SMTP_HOST`, `SMTP_PORT` (465), `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | "your account was changed" emails (Supabase blocks ports 25 and 587) |
+    | `ALLOWED_ORIGINS` *(optional)* | comma-separated websites allowed to call the functions from a browser; defaults to local Expo web |
+
+    In production they are set with `npx supabase secrets set NAME=value`. For running the functions locally (`npx supabase functions serve`), put them in `Application/Backend/supabase/functions/.env`, which is git-ignored.
 
 4.  **Database (only when there are new migrations):** from `Application/Backend`, with the Supabase CLI linked to the project:
     ```bash
-    npx supabase db push
+    npx supabase db push --remote
     ```
+    `--remote` matters: while a local Supabase stack is running, `db push` targets the local one by default.
 
 ---
 

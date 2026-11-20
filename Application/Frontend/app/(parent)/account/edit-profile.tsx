@@ -21,23 +21,37 @@ export default function EditProfile() {
   const [saving, setSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  //what is currently saved - used to work out what changed
+  const [saved, setSaved] = useState({ name: '', email: '', phone: '' });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  // There's no `phone` column on users yet (Database/schema.sql) - kept
-  // local-only for now, same as create-chore's "steps" field.
+  //stored on the auth user (Authentication > Users), not on public.users
   const [phone, setPhone] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
 
   const fetchProfile = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      //getUser asks the server, so this is what is actually stored
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw userError ?? new Error('not signed in');
 
-      const { data, error } = await supabase.from('users').select('display_name, email').eq('id', session.user.id).single();
+      const { data, error } = await supabase.from('users').select('display_name').eq('id', user.id).single();
       if (error) throw error;
-      setName(data?.display_name ?? '');
-      setEmail(data?.email ?? '');
+
+      const current = {
+        name: data?.display_name ?? '',
+        email: user.email ?? '',
+        phone: user.phone ? `+${user.phone}` : '',
+      };
+      setSaved(current);
+      setName(current.name);
+      setEmail(current.email);
+      setPhone(current.phone);
+      setCurrentPassword('');
+      return current;
     } catch (e) {
       console.error('FETCH PROFILE ERROR:', e.message);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -45,28 +59,56 @@ export default function EditProfile() {
 
   useFocusEffect(useCallback(() => { fetchProfile(); }, [fetchProfile]));
 
+  const nameChanged = name.trim() !== saved.name;
+  const emailChanged = email.trim().toLowerCase() !== saved.email.toLowerCase();
+  const phoneChanged = phone.trim() !== saved.phone;
+  //email and phone change straight away, so the server asks for the password first
+  const needsPassword = emailChanged || phoneChanged;
+
   const handleSave = async () => {
-    if (!name.trim() || !email.trim()) return;
+    if (!name.trim() || !email.trim()) return showAlert('error', 'name and email are required');
+    if (!nameChanged && !emailChanged && !phoneChanged) return showAlert('error', 'nothing to change');
+    if (needsPassword && !currentPassword) return showAlert('error', 'enter your current password to change your email or phone');
 
     setSaving(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const body: Record<string, string> = {};
+      if (nameChanged) body.displayName = name.trim();
+      if (emailChanged) body.email = email.trim();
+      if (phoneChanged) body.phone = phone.trim();
+      if (needsPassword) body.currentPassword = currentPassword;
 
-      if (email.trim() !== session.user.email) {
-        const { error: authError } = await supabase.auth.updateUser({ email: email.trim() });
-        if (authError) throw authError;
+      const { data, error } = await supabase.functions.invoke('update-profile', { body });
+      if (error) {
+        //invoke() doesn't throw on a non-2xx response - the reason is in the body
+        let reason = 'could not save your changes, please try again';
+        try {
+          const errBody = await error.context?.json();
+          if (errBody?.error) reason = errBody.error;
+        } catch {}
+        throw new Error(reason);
       }
 
-      const { error } = await supabase
-        .from('users')
-        .update({ display_name: name.trim(), email: email.trim() })
-        .eq('id', session.user.id);
-      if (error) throw error;
+      //only report success once a fresh read shows the new values are stored
+      if (emailChanged) await supabase.auth.refreshSession();
+      const now = await fetchProfile();
+      const stored =
+        now &&
+        (!nameChanged || now.name === data.displayName) &&
+        (!emailChanged || now.email.toLowerCase() === data.email.toLowerCase()) &&
+        (!phoneChanged || now.phone === (data.phone ? `+${data.phone}` : ''));
+      if (!stored) throw new Error('your changes could not be confirmed, please check and try again');
+
+      const what = [nameChanged && 'name', emailChanged && 'email', phoneChanged && 'phone number'].filter(Boolean);
+      const list = what.length > 1 ? `${what.slice(0, -1).join(', ')} and ${what[what.length - 1]}` : what[0];
+      showAlert(
+        'Saved',
+        `Your ${list} ${what.length > 1 ? 'were' : 'was'} updated successfully.` +
+          (data.notified ? ' We emailed you a notice about this change.' : ''),
+      );
 
       setSaving(false);
       setIsSuccess(true);
-
       setTimeout(() => {
         setIsSuccess(false);
         router.back();
@@ -103,8 +145,22 @@ export default function EditProfile() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Input label="Phone number" value={phone} onChangeText={setPhone} placeholder="(555) 123-4567" keyboardType="phone-pad" />
+            <Input label="Phone number" value={phone} onChangeText={setPhone} placeholder="3475551234" keyboardType="phone-pad" />
           </View>
+
+          {needsPassword && (
+            <View style={styles.fieldGroup}>
+              <Input
+                label="Current password"
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                placeholder="Needed to change your email or phone"
+                secureTextEntry
+                autoCapitalize="none"
+                testID="current-password-input"
+              />
+            </View>
+          )}
 
           <Button
             title="Save changes"
