@@ -27,13 +27,13 @@ ChorePal is a mobile application designed to modernize and gamify household mana
 *   Create chores with a category, steps, due date, reward amount, and who it's for
 *   Review submitted chores: before/after photos, the AI's verdict, then **Approve** (pays out coins) or **Ask to redo** with a note
 *   Edit or delete a chore before the child has submitted it
-*   Run a household **reward shop**, and see redeemed rewards **to hand out** - mark each one as given
+*   Run a household **reward shop**, and see redeemed rewards **to hand out**
 *   See each kid's progress and coin balance at a glance
 
 **For kids**
 *   A daily chore list with Today / Upcoming, plus Pending and Done tabs
 *   A step-by-step checklist and camera flow for each chore (before photo -> do the steps -> after photo)
-*   Spend coins in the reward shop and track whether each reward has been handed over yet
+*   Spend coins in the reward shop
 *   Kid-friendly logins by **username** - password-reset codes go to the parent's inbox
 
 ---
