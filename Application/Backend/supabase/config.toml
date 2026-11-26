@@ -10,6 +10,13 @@ entrypoint = "./functions/get-upload-url/index.ts"
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/get-upload-url/*.html" ]
 
+# called before login (forgot password) - needs no JWT, gives the same answer for any username
+[functions.child-reset-code]
+enabled = true
+verify_jwt = false
+import_map = "./functions/child-reset-code/deno.json"
+entrypoint = "./functions/child-reset-code/index.ts"
+
 # checks the caller's JWT itself (like the two functions around it)
 [functions.get-photo-urls]
 enabled = true

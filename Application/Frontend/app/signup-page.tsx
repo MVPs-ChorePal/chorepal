@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
+import { USERNAME_RULE, childLoginEmail, isValidUsername, normalizeUsername } from '../utils/username';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,7 +27,6 @@ export default function SignupPage() {
 
   const router = useRouter();
   const [role, setRole] = useState<'parent' | 'child'>('parent');
-  const [parentMode, setParentMode] = useState<'create' | 'join'>('create');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -49,10 +49,14 @@ export default function SignupPage() {
     }
     setLoading(true);
 
-    //normalized the same way a generated username used to be (lowercase, no
-    //spaces) - find_email_by_username matches it exactly, so this has to
-    //stay consistent with whatever the user types at login
-    const normalizedUsername = username.trim().toLowerCase().replace(/\s/g, '');
+    //lowercase, no spaces - login and "forgot password" normalize the same way,
+    //and a child's account address is built from it
+    const normalizedUsername = normalizeUsername(username);
+    if (!isValidUsername(normalizedUsername)) {
+      setError(USERNAME_RULE);
+      setLoading(false);
+      return;
+    }
 
     const { data: isTaken, error: usernameCheckError } = await supabase.rpc('is_username_taken', {
       p_username: normalizedUsername,
@@ -70,7 +74,7 @@ export default function SignupPage() {
 
     //children log in by username, not email - they get an internal address
     //they never see, which only exists to satisfy supabase auth's requirement for one
-    const authEmail = isChild ? `${normalizedUsername}@chorepal.internal` : email;
+    const authEmail = isChild ? childLoginEmail(normalizedUsername) : email.trim();
 
     //sign up with supabase auth and insert into users table
     const { data: authData, error: authError } = await supabase.auth.signUp({ email: authEmail, password });
@@ -83,9 +87,11 @@ export default function SignupPage() {
 
     //insert into users table with info
     if (authData.user) {
-      const isNewHousehold = role === 'parent' && parentMode === 'create';
-      const secretCode = isNewHousehold ? generateSecretCode() : null; //only generate code for whoever starts a household
-      const familyId = isNewHousehold ? authData.user.id : null; //household starter is their own family root
+      //a parent always starts their own household (one parent per household);
+      //a child joins one afterwards with its code
+      const isNewHousehold = role === 'parent';
+      const secretCode = isNewHousehold ? generateSecretCode() : null; //only the household's parent gets a code
+      const familyId = isNewHousehold ? authData.user.id : null; //the parent is the household's root
 
       //the family row must exist before a user can reference it as family_id
       if (isNewHousehold) {
@@ -221,24 +227,6 @@ export default function SignupPage() {
           />
         </View>
 
-        {/* NOT SURE IF WE NEED THIS */}
-        {/* {isParent && (
-          <View style={styles.toggleContainer}>
-            <TouchableOpacity
-              onPress={() => setParentMode('create')}
-              style={[styles.roleLabel, parentMode === 'create' && { borderBottomColor: colors.brand.primary }]}
-            >
-              <Text style={[styles.roleText, parentMode === 'create' && { color: colors.brand.primary }]}>create household</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setParentMode('join')}
-              style={[styles.roleLabel, parentMode === 'join' && { borderBottomColor: colors.brand.primary }]}
-            >
-              <Text style={[styles.roleText, parentMode === 'join' && { color: colors.brand.primary }]}>join household</Text>
-            </TouchableOpacity>
-          </View>
-        )} */}
         {/* replace, not push - see login-page.tsx's "Forgot password?" link */}
         <TouchableOpacity onPress={() => router.replace('/login-page')} style={styles.linkContainer}>
           <Text style={{ ...typography.bodySecondary }}>Already have an account? <Text style={{ ...typography.body, color: colors.brand.primaryShadow }}>Login</Text></Text>

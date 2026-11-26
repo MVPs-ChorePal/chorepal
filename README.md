@@ -84,7 +84,7 @@ ChorePal is a mobile application designed to modernize and gamify household mana
     |---|---|
     | `MY_AWS_ACCESS_KEY_ID`, `MY_AWS_SECRET_ACCESS_KEY`, `MY_AWS_REGION`, `MY_AWS_S3_BUCKET_NAME` | private chore-photo bucket (signed upload/download links) |
     | `ANTHROPIC_API_KEY` | AI photo verification |
-    | `SMTP_HOST`, `SMTP_PORT` (465), `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | "your account was changed" emails (Supabase blocks ports 25 and 587) |
+    | `SMTP_HOST`, `SMTP_PORT` (465), `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` | "your account was changed" emails and kids' password-reset codes, which go to their parent (Supabase blocks ports 25 and 587) |
     | `ALLOWED_ORIGINS` *(optional)* | comma-separated websites allowed to call the functions from a browser; defaults to local Expo web |
 
     In production they are set with `npx supabase secrets set NAME=value`. For running the functions locally (`npx supabase functions serve`), put them in `Application/Backend/supabase/functions/.env`, which is git-ignored.

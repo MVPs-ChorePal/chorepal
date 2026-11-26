@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { supabase } from '@/utils/supabase';
@@ -13,19 +13,6 @@ import Sweepy from '../components/Sweepy'
 export default function JoinHousehold() {
   const router = useRouter();
   const [secretCode, setSecretCode] = useState('');
-  const [role, setRole] = useState<'parent' | 'child' | null>(null);
-
-  useEffect(() => {
-    fetchRole();
-  }, []);
-
-  //used to route correctly after joining and to hide the child-only bypass button
-  async function fetchRole() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-    const { data } = await supabase.from('users').select('role').eq('id', session.user.id).single();
-    if (data) setRole(data.role);
-  }
 
   const handleJoin = async () => {
     if (secretCode.length !== 7) {
@@ -33,29 +20,23 @@ export default function JoinHousehold() {
       return;
     }
 
-    console.log("joining household with code:", secretCode);
-
     //the server checks the code and links this user to that household
     const { data: familyId, error: joinError } = await supabase
       .rpc('join_household', { p_code: secretCode });
 
     if (joinError || !familyId) {
-      showAlert("error", joinError?.message?.includes('already in a household')
+      const reason = joinError?.message ?? '';
+      showAlert("error", reason.includes('already in a household')
         ? "you're already in a household"
-        : "invalid code. check with your parent.");
+        : reason.includes('only children')
+          ? "only kids join a household with a code. grown-ups start their own when they sign up."
+          : "invalid code. check with your parent.");
       return;
     }
 
-    //best-effort: swaps the child's undeliverable internal email for one
-    //that actually reaches their parent's inbox (see link-child-email).
-    //non-fatal - the join itself already succeeded either way.
-    if (role === 'child') {
-      const { error: emailLinkError } = await supabase.functions.invoke('link-child-email');
-      if (emailLinkError) console.error('email link error:', emailLinkError.message);
-    }
-
+    //one parent per household, so only a child ever gets here successfully
     showAlert("success", "welcome to the family!");
-    router.replace(role === 'parent' ? '/(parent)/(tabs)/home' : '/(child)/(tabs)/home');
+    router.replace('/(child)/(tabs)/home');
   };
 
   return (

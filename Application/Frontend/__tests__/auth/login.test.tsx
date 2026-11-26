@@ -60,7 +60,6 @@ describe('LoginPage', () => {
 
   it('child login with a household routes to the child home', async () => {
     __setTableResponse('users', { data: { role: 'child', family_id: 'family-1' }, error: null });
-    __setRpcResponse('find_email_by_username', { data: 'testykid@chorepal.internal', error: null });
     const { findByText, findByPlaceholderText } = await render(<LoginPage />);
 
     await fireEvent.press(await findByText("I'm a child"));
@@ -69,8 +68,11 @@ describe('LoginPage', () => {
     await fireEvent.press(await findByText('login'));
 
     await waitFor(() => {
+      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({ email: 'testykid@chorepal.internal', password: 'password123' });
       expect(__mockReplace).toHaveBeenCalledWith('/(child)/(tabs)/home');
     });
+    //the account email is worked out from the username - nothing is looked up
+    expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
   it('shows an inline error when parent credentials are rejected', async () => {
@@ -88,11 +90,39 @@ describe('LoginPage', () => {
     expect(__mockReplace).not.toHaveBeenCalled();
   });
 
-  it('shows a generic error when the child username cannot be resolved', async () => {
+  it('an older 2-letter child username can still log in', async () => {
+    __setTableResponse('users', { data: { role: 'child', family_id: 'family-1' }, error: null });
+    const { findByText, findByPlaceholderText } = await render(<LoginPage />);
+
+    await fireEvent.press(await findByText("I'm a child"));
+    await fireEvent.changeText(await findByPlaceholderText('username'), 'Jo');
+    await fireEvent.changeText(await findByPlaceholderText('password'), 'password123');
+    await fireEvent.press(await findByText('login'));
+
+    await waitFor(() => {
+      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({ email: 'jo@chorepal.internal', password: 'password123' });
+      expect(__mockReplace).toHaveBeenCalledWith('/(child)/(tabs)/home');
+    });
+  });
+
+  it('shows a generic error for a wrong child username or password', async () => {
+    supabase.auth.signInWithPassword.mockResolvedValueOnce({ data: { user: null }, error: { message: 'Invalid login credentials' } });
     const { findByText, findByPlaceholderText } = await render(<LoginPage />);
 
     await fireEvent.press(await findByText("I'm a child"));
     await fireEvent.changeText(await findByPlaceholderText('username'), 'nobody');
+    await fireEvent.changeText(await findByPlaceholderText('password'), 'password123');
+    await fireEvent.press(await findByText('login'));
+
+    expect(await findByText('invalid username or password')).toBeTruthy();
+    expect(__mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('a username that could never exist is refused without contacting the server', async () => {
+    const { findByText, findByPlaceholderText } = await render(<LoginPage />);
+
+    await fireEvent.press(await findByText("I'm a child"));
+    await fireEvent.changeText(await findByPlaceholderText('username'), 'x"@evil.com');
     await fireEvent.changeText(await findByPlaceholderText('password'), 'password123');
     await fireEvent.press(await findByText('login'));
 

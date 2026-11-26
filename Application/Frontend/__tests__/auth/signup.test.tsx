@@ -112,6 +112,42 @@ describe('SignupPage', () => {
     jest.useRealTimers();
   });
 
+  it('refuses a username with characters the database would reject, before signing up', async () => {
+    const screen = await render(<SignupPage />);
+    await fireEvent.press(await screen.findByText("I'm a child"));
+    await fillCommonFields(screen, { username: 'kid@evil.com' });
+
+    await fireEvent.press(await screen.findByText('Sign up'));
+
+    expect(await screen.findByText('usernames must be 3-30 characters: letters, numbers, . _ or -')).toBeTruthy();
+    expect(supabase.auth.signUp).not.toHaveBeenCalled();
+  });
+
+  it('a parent signup always starts its own household (no join-as-parent)', async () => {
+    jest.useFakeTimers();
+    const insertCalls = [];
+    __setTableResponse('families', { data: null, error: null });
+    __setTableResponse('users', (calls) => {
+      const insertCall = calls.find((c) => c.method === 'insert');
+      if (insertCall) insertCalls.push(insertCall.args[0]);
+      return { data: null, error: null };
+    });
+    const screen = await render(<SignupPage />);
+    await fillCommonFields(screen);
+    await fireEvent.changeText(screen.getByPlaceholderText('you@email.com'), 'parent@example.com');
+
+    await fireEvent.press(await screen.findByText('Create family account'));
+
+    await waitFor(() => {
+      expect(insertCalls[0]).toMatchObject([
+        expect.objectContaining({ role: 'parent', family_id: 'test-user-id', secret_code: expect.stringMatching(/^[A-Z]{3}\d{4}$/) }),
+      ]);
+    });
+    expect(screen.queryByText('join household')).toBeNull();
+    await act(async () => { jest.runAllTimers(); });
+    jest.useRealTimers();
+  });
+
   it('shows an error and does not sign up when the username is already taken', async () => {
     __setRpcResponse('is_username_taken', { data: true, error: null });
     const screen = await render(<SignupPage />);

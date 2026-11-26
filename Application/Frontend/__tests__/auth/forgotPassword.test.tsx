@@ -35,30 +35,49 @@ describe('ForgotPassword', () => {
     expect(await findByText('Enter the code sent to parent@example.com and choose a new password.')).toBeTruthy();
   });
 
-  it("child: resolves the username to an email first, then requests a code", async () => {
+  it("child: asks the server to email the code to their grown-up - no email is looked up", async () => {
     useLocalSearchParams.mockReturnValue({ role: 'child' });
-    __setRpcResponse('find_email_by_username', { data: 'parent+testykid@example.com', error: null });
     const { findByPlaceholderText, findByText } = await render(<ForgotPassword />);
 
-    await fireEvent.changeText(await findByPlaceholderText('username'), 'testykid');
+    await fireEvent.changeText(await findByPlaceholderText('username'), ' TestyKid ');
     await fireEvent.press(await findByText('Send reset code'));
 
     await waitFor(() => {
-      expect(supabase.rpc).toHaveBeenCalledWith('find_email_by_username', { p_username: 'testykid' });
-      expect(supabase.auth.resetPasswordForEmail).toHaveBeenCalledWith('parent+testykid@example.com');
+      expect(supabase.functions.invoke).toHaveBeenCalledWith('child-reset-code', { body: { username: 'testykid' } });
+    });
+    expect(supabase.rpc).not.toHaveBeenCalled();
+    expect(supabase.auth.resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(await findByText('If that username is in a household, we emailed a code to your grown-up. Enter it and choose a new password.')).toBeTruthy();
+  });
+
+  it("child: the code is checked against the child's own login address", async () => {
+    useLocalSearchParams.mockReturnValue({ role: 'child' });
+    __setTableResponse('users', { data: { role: 'child', family_id: 'family-1' }, error: null });
+    supabase.auth.signInWithPassword.mockResolvedValueOnce({ data: { user: null }, error: { message: 'invalid credentials' } });
+    const screen = await render(<ForgotPassword />);
+
+    await fireEvent.changeText(await screen.findByPlaceholderText('username'), 'testykid');
+    await fireEvent.press(await screen.findByText('Send reset code'));
+    await screen.findByText('Reset code');
+    await fireEvent.changeText(await screen.findByPlaceholderText('123456'), '654321');
+    await fireEvent.changeText(await screen.findByPlaceholderText('new password'), 'newpassword123');
+    await fireEvent.press(await screen.findByText('Reset password'));
+
+    await waitFor(() => {
+      expect(supabase.auth.verifyOtp).toHaveBeenCalledWith({ email: 'testykid@chorepal.internal', token: '654321', type: 'recovery' });
+      expect(__mockReplace).toHaveBeenCalledWith('/(child)/(tabs)/home');
     });
   });
 
-  it('shows an error when the username cannot be resolved', async () => {
+  it('shows an error for a username that could never exist, without calling the server', async () => {
     useLocalSearchParams.mockReturnValue({ role: 'child' });
-    __setRpcResponse('find_email_by_username', { data: null, error: null });
     const { findByPlaceholderText, findByText } = await render(<ForgotPassword />);
 
-    await fireEvent.changeText(await findByPlaceholderText('username'), 'nobody');
+    await fireEvent.changeText(await findByPlaceholderText('username'), 'a@b');
     await fireEvent.press(await findByText('Send reset code'));
 
     expect(await findByText('could not find that username')).toBeTruthy();
-    expect(supabase.auth.resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(supabase.functions.invoke).not.toHaveBeenCalled();
   });
 
   async function advanceToConfirmStep({ findByPlaceholderText, findByText }) {

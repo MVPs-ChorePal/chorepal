@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
+import { childLoginEmail, couldBeUsername, normalizeUsername } from '../utils/username';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing } from '../constants/theme';
@@ -41,29 +42,35 @@ export default function ForgotPassword() {
     else router.replace('/(child)/(tabs)/home');
   };
 
-  //step 1: look up the real email (for a child, via the same username ->
-  //email resolution login uses) and ask Supabase to send a reset code to it.
-  //A child's account email is a plus-addressed variant of their parent's
-  //real address (see link-child-email), so the code lands in the parent's
-  //inbox - the parent reads it off and finishes the reset.
+  //step 1: ask for a reset code.
+  //parent: Supabase emails it to the address they typed.
+  //child: the child-reset-code function emails it to their parent's inbox -
+  //the app never learns the parent's address. the child's own account address
+  //is worked out from the username, the same way login does it.
   const handleRequestCode = async () => {
     setError('');
     setLoading(true);
 
-    let targetEmail = email;
     if (!isParent) {
-      const { data: lookedUpEmail, error: lookupError } = await supabase.rpc('find_email_by_username', {
-        p_username: username,
-      });
-      if (lookupError || !lookedUpEmail) {
+      if (!couldBeUsername(normalizeUsername(username))) {
         setError('could not find that username');
         setLoading(false);
         return;
       }
-      targetEmail = lookedUpEmail;
+      const { error: codeError } = await supabase.functions.invoke('child-reset-code', {
+        body: { username: normalizeUsername(username) },
+      });
+      setLoading(false);
+      if (codeError) {
+        setError('could not send a code right now, please try again');
+        return;
+      }
+      setResolvedEmail(childLoginEmail(username));
+      setStep('confirm');
+      return;
     }
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(targetEmail);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
     setLoading(false);
 
     if (resetError) {
@@ -71,7 +78,7 @@ export default function ForgotPassword() {
       return;
     }
 
-    setResolvedEmail(targetEmail);
+    setResolvedEmail(email);
     setStep('confirm');
   };
 
@@ -186,7 +193,9 @@ export default function ForgotPassword() {
             ) : (
               <>
                 <Text style={styles.subtitle}>
-                  {`Enter the code sent to ${resolvedEmail} and choose a new password.`}
+                  {isParent
+                    ? `Enter the code sent to ${resolvedEmail} and choose a new password.`
+                    : "If that username is in a household, we emailed a code to your parent. Enter it and choose a new password."}
                 </Text>
 
                 <View style={styles.form}>

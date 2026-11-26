@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { isValidEmail } from '../utils/validation';
+import { childLoginEmail, couldBeUsername, normalizeUsername } from '../utils/username';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography, spacing } from '../constants/theme';
@@ -64,20 +65,16 @@ export default function LoginPage() {
       }
       if (authData.user) await routeAfterLogin(authData.user.id);
     } else {
-      //children log in by username - look up the account's real (internal)
-      //email first, since supabase auth only understands email, not username
-      const { data: resolvedEmail, error: lookupError } = await supabase.rpc('find_email_by_username', {
-        p_username: username,
-      });
-
-      if (lookupError || !resolvedEmail) {
+      //children log in by username - their account address is worked out
+      //from it (supabase auth only understands email), nothing is looked up
+      if (!couldBeUsername(normalizeUsername(username))) {
         setError('invalid username or password');
         setLoading(false);
         return;
       }
 
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: resolvedEmail,
+        email: childLoginEmail(username),
         password,
       });
       if (authError) {
