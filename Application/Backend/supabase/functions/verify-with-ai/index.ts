@@ -67,8 +67,8 @@ serve('verify-with-ai', async (req) => {
   if (analysisRow.ai_detected_label) throw new HttpError(409, 'this attempt was already checked')
 
   //keep the keys for this chore separate
-  if (!isKeyForChore(analysisRow.after_image_key, choreId)) throw new HttpError(403, 'after photo does not belong to this chore')
-  if (analysisRow.before_image_key && !isKeyForChore(analysisRow.before_image_key, choreId)) {
+  if (!isKeyForChore(analysisRow.after_image_key, choreId, 'after')) throw new HttpError(403, 'after photo does not belong to this chore')
+  if (analysisRow.before_image_key && !isKeyForChore(analysisRow.before_image_key, choreId, 'before')) {
     throw new HttpError(403, 'before photo does not belong to this chore')
   }
 

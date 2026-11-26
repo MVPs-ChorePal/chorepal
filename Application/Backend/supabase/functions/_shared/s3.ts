@@ -40,10 +40,11 @@ export function newPhotoKey(choreId: string | number, kind: 'before' | 'after', 
   return `chores/${choreId}/${kind}_${crypto.randomUUID()}.${PHOTO_TYPES[contentType]}`
 }
 
-//makes sure the key is in the right format for this chore
-export function isKeyForChore(key: unknown, choreId: string | number): key is string {
+//true only for a key newPhotoKey() could have made for this chore
+const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+export function isKeyForChore(key: unknown, choreId: string | number, kind?: 'before' | 'after'): key is string {
   if (typeof key !== 'string') return false
   const id = String(choreId)
-  if (key.startsWith(`chores/${id}/`) && !key.includes('..')) return true
-  return new RegExp(`^(before|after)_${id.replace(/[^\w-]/g, '')}_\\d+\\.jpg$`).test(key)
+  if (!/^\d+$/.test(id)) return false
+  return new RegExp(`^chores/${id}/${kind ?? '(before|after)'}_${UUID}\\.(jpg|png)$`).test(key)
 }
